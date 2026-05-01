@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import SEOHead from '@/components/SEOHead.jsx';
-import pb from '@/lib/pocketbaseClient.js';
+import { getAllCareers } from '@/data/careersData.js';
 import { useCurrency } from '@/contexts/CurrencyContext.jsx';
 
 export default function CareersListPage() {
@@ -18,23 +18,11 @@ export default function CareersListPage() {
   const [error, setError] = useState(null);
   const { getCurrencySymbol, convertSalary } = useCurrency();
 
-  const loadCareers = async () => {
+  const loadCareers = () => {
     try {
-      console.log('[CareersListPage] Fetching all careers from PocketBase...');
       setIsLoading(true);
       setError(null);
-      
-      const allRecords = await pb.collection('careers').getFullList({
-        sort: 'name',
-        $autoCancel: false
-      });
-      
-      // Deduplicate by slug
-      const seenSlugs = new globalThis.Map();
-      allRecords.forEach(r => { if (!seenSlugs.has(r.slug)) seenSlugs.set(r.slug, r); });
-      const records = Array.from(seenSlugs.values());
-      
-      console.log(`[CareersListPage] Successfully fetched ${records.length} careers.`);
+      const records = getAllCareers();
       setCareers(records);
     } catch (err) {
       console.error("[CareersListPage] Failed to load careers:", err);
