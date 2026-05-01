@@ -78,6 +78,12 @@ export function useDownloadLimit() {
     canDownloadPDF,
     canDownloadDOC,
     canDownloadTXT,
+    // aliases used by DownloadModal and MyCVsPage
+    canDownload: canDownloadPDF,
+    isPaidPlan: isPremium,
+    isPaid: isPremium,
+    remainingDownloads: isPremium ? Infinity : Math.max(0, maxDownloads - downloadCount),
+    recordDownload: incrementDownloadCount,
     downloadCount,
     maxDownloads,
     isPremium,
