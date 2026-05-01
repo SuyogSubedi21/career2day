@@ -6,7 +6,7 @@ import pb from '../utils/pocketbaseClient.js';
 import logger from '../utils/logger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const LOCAL_DATA_PATH = resolve(__dirname, '../../../../../careerinfo.json');
+const LOCAL_DATA_PATH = resolve(__dirname, '../data/careerinfo.json');
 const SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 let syncIntervalId = null;
