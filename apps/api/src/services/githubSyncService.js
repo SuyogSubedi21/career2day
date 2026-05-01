@@ -1,27 +1,26 @@
 import 'dotenv/config';
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import pb from '../utils/pocketbaseClient.js';
 import logger from '../utils/logger.js';
 
-const GITHUB_DATA_URL = 'https://raw.githubusercontent.com/SuyogSubedi21/career-data/refs/heads/main/careerinfo.json';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const LOCAL_DATA_PATH = resolve(__dirname, '../../../../../careerinfo.json');
 const SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 let syncIntervalId = null;
 
 /**
- * Fetches career data from GitHub repository
+ * Fetches career data from local file
  * @returns {Promise<Object>} Parsed career data
  */
 async function fetchCareerDataFromGitHub() {
-  logger.info('Fetching career data from GitHub...');
+  logger.info('Fetching career data from local file...');
   
-  const response = await fetch(GITHUB_DATA_URL);
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch career data from GitHub: ${response.status} ${response.statusText}`);
-  }
-  
-  const data = await response.json();
-  logger.info('Career data fetched successfully from GitHub');
+  const raw = readFileSync(LOCAL_DATA_PATH, 'utf-8');
+  const data = JSON.parse(raw);
+  logger.info('Career data loaded successfully from local file');
   
   return data;
 }
