@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://career2day.com/sitemap.xml

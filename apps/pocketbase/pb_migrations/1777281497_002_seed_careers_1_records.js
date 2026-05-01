@@ -1,0 +1,35 @@
+/// <reference path="../pb_data/types.d.ts" />
+migrate((app) => {
+  const collection = app.findCollectionByNameOrId("careers");
+
+  const record0 = new Record(collection);
+    record0.set("name", "Machine Learning Engineer");
+    record0.set("slug", "machine-learning-engineer");
+    record0.set("description", "Design, build, and deploy machine learning models that solve real-world problems at scale. Work with data pipelines, model optimization, and production systems.");
+    record0.set("overview", "Complete ML engineering career path from fundamentals to production deployment");
+    record0.set("averageSalary", 200000);
+    record0.set("salaryRange", "{'min': 150000, 'max': 250000}");
+    record0.set("jobDemand", "Very High");
+    record0.set("jobDemandOutlook", "Very High");
+    record0.set("entrySalary", 150000);
+    record0.set("midSalary", 200000);
+    record0.set("seniorSalary", 250000);
+    record0.set("topPayingStates", [{"state": "California", "salary": 280000}, {"state": "New York", "salary": 260000}, {"state": "Washington", "salary": 250000}, {"state": "Massachusetts", "salary": 245000}, {"state": "Texas", "salary": 235000}]);
+    record0.set("technicalSkills", ["Linear Algebra", "Calculus", "Probability Theory", "Statistics", "Matrix Operations", "Python", "NumPy", "Pandas", "Data Visualization", "Matplotlib", "Seaborn", "Supervised Learning", "Unsupervised Learning", "Scikit-learn", "Feature Engineering", "Model Evaluation", "Cross-Validation", "Neural Networks", "CNNs", "RNNs", "LSTMs", "TensorFlow", "PyTorch", "Transformers", "Docker", "Kubernetes", "MLflow", "AWS SageMaker", "Model Monitoring", "CI/CD", "Model Versioning"]);
+    record0.set("softSkills", ["Problem Solving", "Communication", "Collaboration", "Critical Thinking", "Attention to Detail"]);
+    record0.set("tools", ["Python", "Jupyter Notebook", "Git", "Docker", "AWS", "TensorFlow", "PyTorch", "Scikit-learn", "MLflow"]);
+    record0.set("roadmap", [{"phase": 1, "title": "Mathematics & Statistics Foundation", "duration": "6-8 weeks", "skills": ["Linear Algebra", "Calculus", "Probability Theory", "Statistics", "Matrix Operations"], "resources": [{"name": "Khan Academy - Linear Algebra", "url": "https://www.khanacademy.org/math/linear-algebra", "type": "free"}, {"name": "3Blue1Brown - Essence of Algebra", "url": "https://www.youtube.com/playlist?list=PLZHQObOWTQDfhrWUL5NrDoji4QRYrqmzF", "type": "free"}, {"name": "StatQuest with Josh Starmer", "url": "https://www.youtube.com/c/joshstarmer", "type": "free"}, {"name": "Mathematics for Machine Learning - Coursera", "url": "https://www.coursera.org/specializations/mathematics-machine-learning", "type": "free audit"}]}, {"phase": 2, "title": "Python Programming & Data Manipulation", "duration": "4-6 weeks", "skills": ["Python Basics", "NumPy", "Pandas", "Data Visualization", "Matplotlib", "Seaborn"], "resources": [{"name": "Python for Everybody - Coursera", "url": "https://www.coursera.org/specializations/python", "type": "free audit"}, {"name": "Kaggle - Python Course", "url": "https://www.kaggle.com/learn/python", "type": "free"}, {"name": "Real Python - NumPy & Pandas Tutorials", "url": "https://realpython.com", "type": "free"}, {"name": "DataCamp - Python for Data Science", "url": "https://www.datacamp.com/courses/intro-to-python-for-data-science", "type": "paid"}]}, {"phase": 3, "title": "Machine Learning Fundamentals", "duration": "8-10 weeks", "skills": ["Supervised Learning", "Unsupervised Learning", "Scikit-learn", "Feature Engineering", "Model Evaluation", "Cross-Validation"], "resources": [{"name": "Andrew Ng - Machine Learning Course (Coursera)", "url": "https://www.coursera.org/learn/machine-learning", "type": "free audit"}, {"name": "Kaggle - Intro to Machine Learning", "url": "https://www.kaggle.com/learn/intro-to-machine-learning", "type": "free"}, {"name": "Google - Machine Learning Crash Course", "url": "https://developers.google.com/machine-learning/crash-course", "type": "free"}, {"name": "Scikit-learn Official Documentation", "url": "https://scikit-learn.org/stable/", "type": "free"}]}, {"phase": 4, "title": "Deep Learning & Neural Networks", "duration": "8-10 weeks", "skills": ["Neural Networks", "CNNs", "RNNs", "LSTMs", "TensorFlow", "PyTorch", "Transformers"], "resources": [{"name": "fast.ai - Practical Deep Learning", "url": "https://www.fast.ai", "type": "free"}, {"name": "Deep Learning Specialization - Coursera", "url": "https://www.coursera.org/specializations/deep-learning", "type": "free audit"}, {"name": "PyTorch Official Tutorials", "url": "https://pytorch.org/tutorials/", "type": "free"}, {"name": "TensorFlow Official Documentation", "url": "https://www.tensorflow.org/learn", "type": "free"}]}, {"phase": 5, "title": "MLOps & Production Deployment", "duration": "6-8 weeks", "skills": ["Docker", "Kubernetes", "MLflow", "AWS SageMaker", "Model Monitoring", "CI/CD for ML", "Model Versioning"], "resources": [{"name": "MLOps Zoomcamp", "url": "https://github.com/DataTalksClub/mlops-zoomcamp", "type": "free"}, {"name": "Made With ML - MLOps Course", "url": "https://madewithml.com", "type": "free"}, {"name": "AWS - Machine Learning Learning Path", "url": "https://aws.amazon.com/training/learn-aws-machine-learning/", "type": "free"}, {"name": "Docker for Data Scientists", "url": "https://www.udemy.com/course/docker-for-data-scientists/", "type": "paid"}]}]);
+    record0.set("relatedCareers", ["Data Scientist", "AI Engineer", "Data Engineer", "Research Scientist"]);
+    record0.set("faqs", [{"question": "What is the difference between a Machine Learning Engineer and a Data Scientist?", "answer": "ML Engineers focus on building production systems and deploying models at scale, while Data Scientists focus on analysis and model development. ML Engineers need stronger software engineering skills."}, {"question": "How long does it take to become a Machine Learning Engineer?", "answer": "Typically 12-18 months of dedicated learning if you have a programming background. It may take longer if you need to learn Python and math fundamentals first."}, {"question": "What programming language should I learn?", "answer": "Python is the industry standard for machine learning. It has the richest ecosystem of ML libraries and is used by most companies."}, {"question": "Do I need a degree in computer science?", "answer": "No, many successful ML engineers are self-taught or come from other backgrounds. What matters is strong fundamentals in math, programming, and practical experience."}, {"question": "What are the best resources to learn machine learning?", "answer": "Start with Andrew Ng's Machine Learning course on Coursera, then move to fast.ai for deep learning. Supplement with Kaggle competitions for practical experience."}]);
+  try {
+    app.save(record0);
+  } catch (e) {
+    if (e.message.includes("Value must be unique")) {
+      console.log("Record with unique value already exists, skipping");
+    } else {
+      throw e;
+    }
+  }
+}, (app) => {
+  // Rollback: record IDs not known, manual cleanup needed
+})
