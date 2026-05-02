@@ -21,6 +21,39 @@ import CareerRoadmapTimeline from '@/components/career/CareerRoadmapTimeline.jsx
 import CareerSalaryChart from '@/components/career/CareerSalaryChart.jsx';
 import CareerInsightsSection from '@/components/career/CareerInsightsSection.jsx';
 
+const QUIZ_LEVELS = {
+  Basic: { minutes: 10, labels: ['basic', 'simple'] },
+  Intermediate: { minutes: 12, labels: ['intermediate', 'medium'] },
+  Advanced: { minutes: 15, labels: ['advanced', 'hard'] }
+};
+
+const normalizeDifficulty = (value = '') => {
+  const key = String(value).toLowerCase();
+  if (QUIZ_LEVELS.Basic.labels.includes(key)) return 'Basic';
+  if (QUIZ_LEVELS.Intermediate.labels.includes(key)) return 'Intermediate';
+  if (QUIZ_LEVELS.Advanced.labels.includes(key)) return 'Advanced';
+  return value;
+};
+
+const parseOptions = (options) => {
+  if (Array.isArray(options)) return options;
+  if (typeof options === 'string') {
+    try {
+      const parsed = JSON.parse(options);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      return options.split('|').map(opt => opt.trim()).filter(Boolean);
+    }
+  }
+  return [];
+};
+
+const formatTimer = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+};
+
 export default function CareerDetailPage() {
   const { careerSlug } = useParams();
   const navigate = useNavigate();
@@ -50,6 +83,13 @@ export default function CareerDetailPage() {
   });
 
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [activeExamLevel, setActiveExamLevel] = useState(null);
+  const [examQuestions, setExamQuestions] = useState([]);
+  const [examAnswers, setExamAnswers] = useState({});
+  const [examCurrentIndex, setExamCurrentIndex] = useState(0);
+  const [examTimeLeft, setExamTimeLeft] = useState(0);
+  const [examSubmitted, setExamSubmitted] = useState(false);
+  const [autoSubmitted, setAutoSubmitted] = useState(false);
 
   const queryParams = new URLSearchParams(location.search);
   const defaultTab = queryParams.get('tab') || 'overview';
@@ -177,6 +217,23 @@ export default function CareerDetailPage() {
     fetchQuizzes();
   }, [careerSlug]);
 
+  useEffect(() => {
+    if (!activeExamLevel || examSubmitted) return;
+    const timer = setInterval(() => {
+      setExamTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setAutoSubmitted(true);
+          setExamSubmitted(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activeExamLevel, examSubmitted]);
+
   const handleShare = async () => {
     if (navigator.share) {
       try {
@@ -220,6 +277,51 @@ export default function CareerDetailPage() {
       toast.error("Action failed. Please try again.");
     }
   };
+
+  const getQuestionsForLevel = (level) => {
+    return quizzes
+      .filter(q => normalizeDifficulty(q.difficulty) === level)
+      .sort((a, b) => (a.questionNumber || 0) - (b.questionNumber || 0))
+      .slice(0, 10);
+  };
+
+  const startExam = (level) => {
+    const levelQuestions = getQuestionsForLevel(level);
+    if (levelQuestions.length < 10) {
+      toast.error(`${level} level needs at least 10 questions. Currently found ${levelQuestions.length}.`);
+      return;
+    }
+
+    setActiveExamLevel(level);
+    setExamQuestions(levelQuestions);
+    setExamAnswers({});
+    setExamCurrentIndex(0);
+    setExamTimeLeft(QUIZ_LEVELS[level].minutes * 60);
+    setExamSubmitted(false);
+    setAutoSubmitted(false);
+  };
+
+  const resetExam = () => {
+    setActiveExamLevel(null);
+    setExamQuestions([]);
+    setExamAnswers({});
+    setExamCurrentIndex(0);
+    setExamTimeLeft(0);
+    setExamSubmitted(false);
+    setAutoSubmitted(false);
+  };
+
+  const submitExam = (isAuto = false) => {
+    setAutoSubmitted(isAuto);
+    setExamSubmitted(true);
+  };
+
+  const currentQuestion = examQuestions[examCurrentIndex];
+  const answeredCount = Object.keys(examAnswers).length;
+  const correctCount = examQuestions.reduce((acc, q) => {
+    return acc + (examAnswers[q.id] === q.correctAnswer ? 1 : 0);
+  }, 0);
+  const scorePercent = examQuestions.length ? Math.round((correctCount / examQuestions.length) * 100) : 0;
 
   if (loading.career) {
     return (
@@ -471,7 +573,7 @@ export default function CareerDetailPage() {
               <TabsContent value="quiz" className="animate-in fade-in-50 duration-500 m-0">
                 <div className="mb-8">
                   <h2 className="text-3xl font-bold text-foreground mb-3">Career Knowledge Quiz</h2>
-                  <p className="text-lg text-muted-foreground">Test your knowledge with {quizzes.length} practice questions at 3 difficulty levels.</p>
+                  <p className="text-lg text-muted-foreground">Exam mode: 3 levels, 10 questions each, timed sessions, and instant scoring.</p>
                 </div>
                 
                 {loading.quizzes ? (
@@ -482,10 +584,109 @@ export default function CareerDetailPage() {
                   <ErrorState message={errors.quizzes} onRetry={fetchQuizzes} />
                 ) : quizzes.length === 0 ? (
                   <EmptyState icon={CheckCircle2} title="No quizzes available yet" message="Quiz questions for this career are coming soon." />
+                ) : activeExamLevel && !examSubmitted ? (
+                  <div className="space-y-6">
+                    <Card className="border border-border/50 bg-card">
+                      <CardContent className="p-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div>
+                            <p className="text-sm text-muted-foreground">{activeExamLevel} Exam</p>
+                            <h3 className="text-xl font-bold">Question {examCurrentIndex + 1} of {examQuestions.length}</h3>
+                          </div>
+                          <div className={`text-lg font-bold ${examTimeLeft <= 60 ? 'text-red-600' : 'text-primary'}`}>
+                            Time Left: {formatTimer(examTimeLeft)}
+                          </div>
+                        </div>
+                        <div className="w-full h-2 rounded-full bg-muted mt-4">
+                          <div
+                            className="h-2 rounded-full bg-primary transition-all"
+                            style={{ width: `${((examCurrentIndex + 1) / examQuestions.length) * 100}%` }}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {currentQuestion && (
+                      <Card className="border border-border/50 bg-card">
+                        <CardContent className="p-6">
+                          <Badge variant="outline" className="mb-4">Q{currentQuestion.questionNumber || examCurrentIndex + 1}</Badge>
+                          <h4 className="text-xl font-semibold mb-6">{currentQuestion.question}</h4>
+                          <div className="space-y-3">
+                            {parseOptions(currentQuestion.options).map((opt, idx) => {
+                              const isSelected = examAnswers[currentQuestion.id] === opt;
+                              return (
+                                <button
+                                  key={`${currentQuestion.id}-${idx}`}
+                                  type="button"
+                                  onClick={() => setExamAnswers(prev => ({ ...prev, [currentQuestion.id]: opt }))}
+                                  className={`w-full text-left p-4 rounded-xl border transition-all ${isSelected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}
+                                >
+                                  <span className="font-semibold mr-2">{String.fromCharCode(65 + idx)}.</span> {opt}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                            <Button
+                              variant="outline"
+                              disabled={examCurrentIndex === 0}
+                              onClick={() => setExamCurrentIndex(prev => Math.max(0, prev - 1))}
+                            >
+                              Previous
+                            </Button>
+                            {examCurrentIndex < examQuestions.length - 1 ? (
+                              <Button onClick={() => setExamCurrentIndex(prev => Math.min(examQuestions.length - 1, prev + 1))}>
+                                Next Question
+                              </Button>
+                            ) : (
+                              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => submitExam(false)}>
+                                Submit Exam
+                              </Button>
+                            )}
+                            <Button variant="ghost" className="sm:ml-auto" onClick={resetExam}>
+                              Exit Exam
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                ) : activeExamLevel && examSubmitted ? (
+                  <Card className="border border-border/50 bg-card">
+                    <CardContent className="p-8 space-y-6">
+                      <div className="text-center">
+                        <h3 className="text-3xl font-bold mb-2">{activeExamLevel} Exam Result</h3>
+                        <p className="text-muted-foreground">{autoSubmitted ? 'Time is up. Your exam was auto-submitted.' : 'Exam submitted successfully.'}</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="rounded-xl border border-border p-4 text-center">
+                          <p className="text-sm text-muted-foreground">Score</p>
+                          <p className="text-2xl font-bold">{scorePercent}%</p>
+                        </div>
+                        <div className="rounded-xl border border-border p-4 text-center">
+                          <p className="text-sm text-muted-foreground">Correct</p>
+                          <p className="text-2xl font-bold text-emerald-600">{correctCount}/10</p>
+                        </div>
+                        <div className="rounded-xl border border-border p-4 text-center">
+                          <p className="text-sm text-muted-foreground">Answered</p>
+                          <p className="text-2xl font-bold">{answeredCount}/10</p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <Button onClick={() => startExam(activeExamLevel)} className="bg-primary">
+                          <RotateCcw className="w-4 h-4 mr-2" /> Retake {activeExamLevel}
+                        </Button>
+                        <Button variant="outline" onClick={resetExam}>Choose Another Level</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ) : (
                   <div className="space-y-6">
                     {['Basic', 'Intermediate', 'Advanced'].map(difficulty => {
-                      const diffQuizzes = quizzes.filter(q => q.difficulty === difficulty);
+                      const diffQuizzes = getQuestionsForLevel(difficulty);
                       if (diffQuizzes.length === 0) return null;
                       
                       const difficultyColor = difficulty === 'Basic' ? 'text-green-600' : difficulty === 'Intermediate' ? 'text-amber-600' : 'text-red-600';
@@ -494,11 +695,12 @@ export default function CareerDetailPage() {
                       return (
                         <div key={difficulty} className={`${difficultyBg} rounded-2xl p-6 border border-border/50`}>
                           <h3 className={`text-xl font-bold mb-4 flex items-center gap-2 ${difficultyColor}`}>
-                            {difficulty === 'Basic' ? '🟢' : difficulty === 'Intermediate' ? '🟡' : '🔴'} {difficulty} Level ({diffQuizzes.length} questions)
+                            {difficulty === 'Basic' ? '🟢' : difficulty === 'Intermediate' ? '🟡' : '🔴'} {difficulty} Level Exam
                           </h3>
+                          <p className="text-sm text-muted-foreground mb-4">10 questions • {QUIZ_LEVELS[difficulty].minutes} minutes • auto-submit on timeout</p>
                           
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                            {diffQuizzes.slice(0, 4).map((q, idx) => (
+                            {diffQuizzes.slice(0, 2).map((q, idx) => (
                               <Card key={q.id} className="bg-card border border-border/50 shadow-sm">
                                 <CardContent className="p-4">
                                   <div className="flex items-start justify-between gap-3 mb-2">
@@ -506,19 +708,19 @@ export default function CareerDetailPage() {
                                   </div>
                                   <p className="text-sm font-semibold text-foreground line-clamp-2 mb-2">{q.question}</p>
                                   <div className="space-y-1">
-                                    {q.options?.slice(0, 2).map((opt, idx) => (
+                                    {parseOptions(q.options).slice(0, 2).map((opt, idx) => (
                                       <p key={idx} className="text-xs text-muted-foreground">• {opt}</p>
                                     ))}
-                                    {q.options?.length > 2 && <p className="text-xs text-muted-foreground">• +{q.options.length - 2} more</p>}
+                                    {parseOptions(q.options).length > 2 && <p className="text-xs text-muted-foreground">• +{parseOptions(q.options).length - 2} more</p>}
                                   </div>
                                 </CardContent>
                               </Card>
                             ))}
                           </div>
                           
-                          <Button className={`w-full font-semibold gap-2 ${difficulty === 'Basic' ? 'bg-green-600 hover:bg-green-700' : difficulty === 'Intermediate' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-red-600 hover:bg-red-700'} text-white`}>
+                          <Button onClick={() => startExam(difficulty)} className={`w-full font-semibold gap-2 ${difficulty === 'Basic' ? 'bg-green-600 hover:bg-green-700' : difficulty === 'Intermediate' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-red-600 hover:bg-red-700'} text-white`}>
                             <CheckCircle2 className="w-4 h-4" />
-                            Start {difficulty} Quiz ({diffQuizzes.length} questions)
+                            Start {difficulty} Exam (10 Questions)
                           </Button>
                         </div>
                       );
