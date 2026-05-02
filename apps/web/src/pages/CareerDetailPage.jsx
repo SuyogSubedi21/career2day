@@ -31,19 +31,22 @@ export default function CareerDetailPage() {
   const [skills, setSkills] = useState([]);
   const [roadmaps, setRoadmaps] = useState([]);
   const [interviewQuestions, setInterviewQuestions] = useState([]);
+  const [quizzes, setQuizzes] = useState([]);
   
   const [loading, setLoading] = useState({
     career: true,
     skills: true,
     roadmaps: true,
-    interviewQuestions: true
+    interviewQuestions: true,
+    quizzes: true
   });
   
   const [errors, setErrors] = useState({
     career: null,
     skills: null,
     roadmaps: null,
-    interviewQuestions: null
+    interviewQuestions: null,
+    quizzes: null
   });
 
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -145,12 +148,33 @@ export default function CareerDetailPage() {
     }
   };
 
+  const fetchQuizzes = async () => {
+    console.log(`[CareerDetailPage] Fetching quizzes for career slug: ${careerSlug}`);
+    setLoading(prev => ({ ...prev, quizzes: true }));
+    setErrors(prev => ({ ...prev, quizzes: null }));
+    try {
+      const records = await pb.collection('careerQuizzes').getList(1, 100, {
+        filter: `careerSlug="${careerSlug}"`,
+        sort: 'difficulty,questionNumber',
+        $autoCancel: false
+      });
+      console.log(`[CareerDetailPage] Fetched ${records.items.length} quizzes`);
+      setQuizzes(records.items || []);
+    } catch (err) {
+      console.error("[CareerDetailPage] Failed to fetch quizzes:", err);
+      setErrors(prev => ({ ...prev, quizzes: "Failed to load quizzes." }));
+    } finally {
+      setLoading(prev => ({ ...prev, quizzes: false }));
+    }
+  };
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     fetchCareer();
     fetchSkills();
     fetchRoadmaps();
     fetchInterviewQuestions();
+    fetchQuizzes();
   }, [careerSlug]);
 
   const handleShare = async () => {
@@ -304,6 +328,9 @@ export default function CareerDetailPage() {
             <TabsTrigger value="interview" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-4 font-semibold text-base whitespace-nowrap text-amber-600 data-[state=active]:text-amber-600 data-[state=active]:border-amber-500">
               <BrainCircuit className="w-4 h-4 mr-2" /> Interview Prep
             </TabsTrigger>
+            <TabsTrigger value="quiz" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-4 font-semibold text-base whitespace-nowrap text-violet-600 data-[state=active]:text-violet-600 data-[state=active]:border-violet-500">
+              <CheckCircle2 className="w-4 h-4 mr-2" /> Career Quiz
+            </TabsTrigger>
           </TabsList>
 
           <AnimatePresence mode="wait">
@@ -436,6 +463,66 @@ export default function CareerDetailPage() {
                         <ArrowRight className="w-4 h-4" />
                       </Link>
                     </Button>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* QUIZ TAB */}
+              <TabsContent value="quiz" className="animate-in fade-in-50 duration-500 m-0">
+                <div className="mb-8">
+                  <h2 className="text-3xl font-bold text-foreground mb-3">Career Knowledge Quiz</h2>
+                  <p className="text-lg text-muted-foreground">Test your knowledge with {quizzes.length} practice questions at 3 difficulty levels.</p>
+                </div>
+                
+                {loading.quizzes ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
+                  </div>
+                ) : errors.quizzes ? (
+                  <ErrorState message={errors.quizzes} onRetry={fetchQuizzes} />
+                ) : quizzes.length === 0 ? (
+                  <EmptyState icon={CheckCircle2} title="No quizzes available yet" message="Quiz questions for this career are coming soon." />
+                ) : (
+                  <div className="space-y-6">
+                    {['Basic', 'Intermediate', 'Advanced'].map(difficulty => {
+                      const diffQuizzes = quizzes.filter(q => q.difficulty === difficulty);
+                      if (diffQuizzes.length === 0) return null;
+                      
+                      const difficultyColor = difficulty === 'Basic' ? 'text-green-600' : difficulty === 'Intermediate' ? 'text-amber-600' : 'text-red-600';
+                      const difficultyBg = difficulty === 'Basic' ? 'bg-green-50 dark:bg-green-950' : difficulty === 'Intermediate' ? 'bg-amber-50 dark:bg-amber-950' : 'bg-red-50 dark:bg-red-950';
+                      
+                      return (
+                        <div key={difficulty} className={`${difficultyBg} rounded-2xl p-6 border border-border/50`}>
+                          <h3 className={`text-xl font-bold mb-4 flex items-center gap-2 ${difficultyColor}`}>
+                            {difficulty === 'Basic' ? '🟢' : difficulty === 'Intermediate' ? '🟡' : '🔴'} {difficulty} Level ({diffQuizzes.length} questions)
+                          </h3>
+                          
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                            {diffQuizzes.slice(0, 4).map((q, idx) => (
+                              <Card key={q.id} className="bg-card border border-border/50 shadow-sm">
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between gap-3 mb-2">
+                                    <Badge variant="outline" className="text-xs font-semibold">Q{q.questionNumber}</Badge>
+                                  </div>
+                                  <p className="text-sm font-semibold text-foreground line-clamp-2 mb-2">{q.question}</p>
+                                  <div className="space-y-1">
+                                    {q.options?.slice(0, 2).map((opt, idx) => (
+                                      <p key={idx} className="text-xs text-muted-foreground">• {opt}</p>
+                                    ))}
+                                    {q.options?.length > 2 && <p className="text-xs text-muted-foreground">• +{q.options.length - 2} more</p>}
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                          
+                          <Button className={`w-full font-semibold gap-2 ${difficulty === 'Basic' ? 'bg-green-600 hover:bg-green-700' : difficulty === 'Intermediate' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-red-600 hover:bg-red-700'} text-white`}>
+                            <CheckCircle2 className="w-4 h-4" />
+                            Start {difficulty} Quiz ({diffQuizzes.length} questions)
+                          </Button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
