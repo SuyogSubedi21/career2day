@@ -82,18 +82,12 @@ export default function CareerDetailPage() {
     setErrors(prev => ({ ...prev, skills: null }));
     try {
       const records = await pb.collection('careerSkills').getFullList({
+        filter: `relatedCareers~"${careerSlug}"`,
         $autoCancel: false
       });
-      console.log(`[CareerDetailPage] Fetched ${records.length} skills total`);
-      // Filter client-side to avoid unreliable server-side filter on JSON field
-      const related = records.filter(skill => {
-        if (!skill.relatedCareers) return false;
-        if (Array.isArray(skill.relatedCareers)) return skill.relatedCareers.includes(careerSlug);
-        if (typeof skill.relatedCareers === 'string') return skill.relatedCareers.includes(careerSlug);
-        return false;
-      });
+      console.log(`[CareerDetailPage] Fetched ${records.length} skills for ${careerSlug}`);
       const seenSkills = new Map();
-      related.forEach(s => {
+      records.forEach(s => {
         const key = (s.skillName || '').toLowerCase();
         if (!seenSkills.has(key)) seenSkills.set(key, s);
       });
