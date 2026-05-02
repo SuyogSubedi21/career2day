@@ -7,7 +7,7 @@ migrate(async (db) => {
   const records = [
   {
     "phase": 1,
-    "title": "Fundamentals & Prerequisites",
+    "phaseTitle": "Fundamentals & Prerequisites",
     "duration": "3 months",
     "skills": "[\"Problem Solving\",\"System Thinking\",\"Technical Communication\"]",
     "resources": "[\"Online courses\",\"Documentation\",\"Tutorials\"]",
@@ -16,7 +16,7 @@ migrate(async (db) => {
   },
   {
     "phase": 2,
-    "title": "Core Technologies & Tools",
+    "phaseTitle": "Core Technologies & Tools",
     "duration": "3 months",
     "skills": "[\"Technology Stack\",\"Tool Proficiency\",\"Best Practices\"]",
     "resources": "[\"Advanced courses\",\"Official docs\",\"Community projects\"]",
@@ -25,7 +25,7 @@ migrate(async (db) => {
   },
   {
     "phase": 3,
-    "title": "Advanced Patterns & Architecture",
+    "phaseTitle": "Advanced Patterns & Architecture",
     "duration": "4 months",
     "skills": "[\"Architectural Design\",\"Performance Optimization\",\"Security\"]",
     "resources": "[\"Case studies\",\"Advanced workshops\",\"Industry papers\"]",
@@ -34,7 +34,7 @@ migrate(async (db) => {
   },
   {
     "phase": 4,
-    "title": "Leadership & Mentoring",
+    "phaseTitle": "Leadership & Mentoring",
     "duration": "3 months",
     "skills": "[\"Team Leadership\",\"Communication\",\"Strategic Thinking\"]",
     "resources": "[\"Leadership training\",\"Mentoring programs\",\"Industry events\"]",
@@ -43,7 +43,7 @@ migrate(async (db) => {
   },
   {
     "phase": 5,
-    "title": "Specialization & Mastery",
+    "phaseTitle": "Specialization & Mastery",
     "duration": "Ongoing",
     "skills": "[\"Deep Expertise\",\"Innovation\",\"Executive Communication\"]",
     "resources": "[\"Research papers\",\"Conferences\",\"Expert networks\"]",
@@ -52,7 +52,7 @@ migrate(async (db) => {
   },
   {
     "phase": 1,
-    "title": "Fundamentals & Prerequisites",
+    "phaseTitle": "Fundamentals & Prerequisites",
     "duration": "3 months",
     "skills": "[\"Problem Solving\",\"System Thinking\",\"Technical Communication\"]",
     "resources": "[\"Online courses\",\"Documentation\",\"Tutorials\"]",
@@ -61,7 +61,7 @@ migrate(async (db) => {
   },
   {
     "phase": 2,
-    "title": "Core Technologies & Tools",
+    "phaseTitle": "Core Technologies & Tools",
     "duration": "3 months",
     "skills": "[\"Technology Stack\",\"Tool Proficiency\",\"Best Practices\"]",
     "resources": "[\"Advanced courses\",\"Official docs\",\"Community projects\"]",
@@ -70,7 +70,7 @@ migrate(async (db) => {
   },
   {
     "phase": 3,
-    "title": "Advanced Patterns & Architecture",
+    "phaseTitle": "Advanced Patterns & Architecture",
     "duration": "4 months",
     "skills": "[\"Architectural Design\",\"Performance Optimization\",\"Security\"]",
     "resources": "[\"Case studies\",\"Advanced workshops\",\"Industry papers\"]",
@@ -79,7 +79,7 @@ migrate(async (db) => {
   },
   {
     "phase": 4,
-    "title": "Leadership & Mentoring",
+    "phaseTitle": "Leadership & Mentoring",
     "duration": "3 months",
     "skills": "[\"Team Leadership\",\"Communication\",\"Strategic Thinking\"]",
     "resources": "[\"Leadership training\",\"Mentoring programs\",\"Industry events\"]",
@@ -88,7 +88,7 @@ migrate(async (db) => {
   },
   {
     "phase": 5,
-    "title": "Specialization & Mastery",
+    "phaseTitle": "Specialization & Mastery",
     "duration": "Ongoing",
     "skills": "[\"Deep Expertise\",\"Innovation\",\"Executive Communication\"]",
     "resources": "[\"Research papers\",\"Conferences\",\"Expert networks\"]",
@@ -97,7 +97,7 @@ migrate(async (db) => {
   },
   {
     "phase": 1,
-    "title": "Fundamentals & Prerequisites",
+    "phaseTitle": "Fundamentals & Prerequisites",
     "duration": "3 months",
     "skills": "[\"Problem Solving\",\"System Thinking\",\"Technical Communication\"]",
     "resources": "[\"Online courses\",\"Documentation\",\"Tutorials\"]",
@@ -106,7 +106,7 @@ migrate(async (db) => {
   },
   {
     "phase": 2,
-    "title": "Core Technologies & Tools",
+    "phaseTitle": "Core Technologies & Tools",
     "duration": "3 months",
     "skills": "[\"Technology Stack\",\"Tool Proficiency\",\"Best Practices\"]",
     "resources": "[\"Advanced courses\",\"Official docs\",\"Community projects\"]",
@@ -115,7 +115,7 @@ migrate(async (db) => {
   },
   {
     "phase": 3,
-    "title": "Advanced Patterns & Architecture",
+    "phaseTitle": "Advanced Patterns & Architecture",
     "duration": "4 months",
     "skills": "[\"Architectural Design\",\"Performance Optimization\",\"Security\"]",
     "resources": "[\"Case studies\",\"Advanced workshops\",\"Industry papers\"]",
@@ -124,7 +124,7 @@ migrate(async (db) => {
   },
   {
     "phase": 4,
-    "title": "Leadership & Mentoring",
+    "phaseTitle": "Leadership & Mentoring",
     "duration": "3 months",
     "skills": "[\"Team Leadership\",\"Communication\",\"Strategic Thinking\"]",
     "resources": "[\"Leadership training\",\"Mentoring programs\",\"Industry events\"]",
@@ -133,7 +133,7 @@ migrate(async (db) => {
   },
   {
     "phase": 5,
-    "title": "Specialization & Mastery",
+    "phaseTitle": "Specialization & Mastery",
     "duration": "Ongoing",
     "skills": "[\"Deep Expertise\",\"Innovation\",\"Executive Communication\"]",
     "resources": "[\"Research papers\",\"Conferences\",\"Expert networks\"]",
@@ -142,7 +142,7 @@ migrate(async (db) => {
   },
   {
     "phase": 1,
-    "title": "Fundamentals & Prerequisites",
+    "phaseTitle": "Fundamentals & Prerequisites",
     "duration": "3 months",
     "skills": "[\"Problem Solving\",\"System Thinking\",\"Technical Communication\"]",
     "resources": "[\"Online courses\",\"Documentation\",\"Tutorials\"]",
@@ -151,7 +151,7 @@ migrate(async (db) => {
   },
   {
     "phase": 2,
-    "title": "Core Technologies & Tools",
+    "phaseTitle": "Core Technologies & Tools",
     "duration": "3 months",
     "skills": "[\"Technology Stack\",\"Tool Proficiency\",\"Best Practices\"]",
     "resources": "[\"Advanced courses\",\"Official docs\",\"Community projects\"]",
@@ -160,7 +160,7 @@ migrate(async (db) => {
   },
   {
     "phase": 3,
-    "title": "Advanced Patterns & Architecture",
+    "phaseTitle": "Advanced Patterns & Architecture",
     "duration": "4 months",
     "skills": "[\"Architectural Design\",\"Performance Optimization\",\"Security\"]",
     "resources": "[\"Case studies\",\"Advanced workshops\",\"Industry papers\"]",
@@ -169,7 +169,7 @@ migrate(async (db) => {
   },
   {
     "phase": 4,
-    "title": "Leadership & Mentoring",
+    "phaseTitle": "Leadership & Mentoring",
     "duration": "3 months",
     "skills": "[\"Team Leadership\",\"Communication\",\"Strategic Thinking\"]",
     "resources": "[\"Leadership training\",\"Mentoring programs\",\"Industry events\"]",
@@ -178,7 +178,7 @@ migrate(async (db) => {
   },
   {
     "phase": 5,
-    "title": "Specialization & Mastery",
+    "phaseTitle": "Specialization & Mastery",
     "duration": "Ongoing",
     "skills": "[\"Deep Expertise\",\"Innovation\",\"Executive Communication\"]",
     "resources": "[\"Research papers\",\"Conferences\",\"Expert networks\"]",
