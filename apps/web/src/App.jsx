@@ -30,7 +30,7 @@ import TermsOfServicePage from '@/pages/TermsOfServicePage.jsx';
 import PricingPageRedesign from '@/pages/PricingPageRedesign.jsx';
 
 // Career Pages
-import CareersListPage from '@/pages/CareersListPage.jsx';
+import CareersListingPage from '@/pages/CareersListingPage.jsx';
 import CareerDetailPage from '@/pages/CareerDetailPage.jsx';
 
 // Interview Questions
@@ -143,7 +143,7 @@ export default function App() {
                 <Route path="/terms-of-service" element={<MainLayout><TermsOfServicePage /></MainLayout>} />
                 
                 {/* Careers Routes */}
-                <Route path="/careers" element={<MainLayout><CareersListPage /></MainLayout>} />
+                <Route path="/careers" element={<MainLayout><CareersListingPage /></MainLayout>} />
                 <Route path="/careers/:careerSlug" element={<MainLayout><CareerDetailPage /></MainLayout>} />
                 
                 {/* Interview Questions Routes (Public) */}

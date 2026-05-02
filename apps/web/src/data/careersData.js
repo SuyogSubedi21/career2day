@@ -225,6 +225,73 @@ export const careersData = [
     softSkills: ['Ethics', 'Innovation', 'Research-driven', 'Perseverance'],
     tools: ['EEG Software', 'TensorFlow', 'LabVIEW', 'OpenBCI', 'MNE-Python'],
     relatedCareers: ['Biomedical Engineer', 'Machine Learning Engineer', 'AI Engineer']
+  }),
+
+  // Fourth Expansion - 5 New Careers (Total 50)
+  createCareer({
+    name: 'Security Architect',
+    slug: 'security-architect',
+    salary: { min: 125000, max: 200000, avg: 165000 },
+    jobDemandOutlook: 'Very High',
+    jobDemand: 'Very High',
+    description: 'Design and implement enterprise security solutions, including access controls, encryption, and threat mitigation strategies across distributed systems.',
+    overview: 'Security Architects lead the design of comprehensive security frameworks, ensuring systems are protected against advanced persistent threats and compliance risks.',
+    technicalSkills: ['Zero Trust Architecture', 'IAM', 'PKI', 'SIEM', 'Threat Modeling', 'OWASP', 'Cloud Security'],
+    softSkills: ['Risk Assessment', 'Stakeholder Communication', 'Strategic Thinking', 'Attention to Detail'],
+    tools: ['Palo Alto', 'CrowdStrike', 'Splunk', 'AWS Security Hub', 'Terraform'],
+    relatedCareers: ['Cloud Security Engineer', 'Penetration Tester', 'CISO']
+  }),
+  createCareer({
+    name: 'Cloud Security Engineer',
+    slug: 'cloud-security-engineer',
+    salary: { min: 115000, max: 195000, avg: 155000 },
+    jobDemandOutlook: 'Very High',
+    jobDemand: 'Very High',
+    description: 'Secure cloud infrastructure and applications, implement cloud security best practices, and manage cloud access controls across multi-cloud environments.',
+    overview: 'Cloud Security Engineers protect cloud-native applications and infrastructure, implementing guardrails, policies, and monitoring across AWS, Azure, and GCP.',
+    technicalSkills: ['AWS/Azure/GCP Security', 'IAM', 'CSPM', 'Container Security', 'DevSecOps', 'Terraform', 'SIEM'],
+    softSkills: ['Risk Analysis', 'Collaboration', 'Communication', 'Continuous Learning'],
+    tools: ['AWS Security Hub', 'Azure Defender', 'Prisma Cloud', 'HashiCorp Vault', 'Wiz'],
+    relatedCareers: ['Security Architect', 'DevOps Engineer', 'Cloud Architect']
+  }),
+  createCareer({
+    name: 'Enterprise Architect',
+    slug: 'enterprise-architect',
+    salary: { min: 130000, max: 210000, avg: 170000 },
+    jobDemandOutlook: 'High',
+    jobDemand: 'High',
+    description: 'Design enterprise IT infrastructure, oversee digital transformation initiatives, and align technology with business strategy across an organization.',
+    overview: 'Enterprise Architects operate at the intersection of business and technology, crafting long-term IT strategies, governance frameworks, and architectural standards.',
+    technicalSkills: ['TOGAF', 'Enterprise Integration Patterns', 'SOA/Microservices', 'Cloud Strategy', 'API Design', 'ITIL'],
+    softSkills: ['Executive Communication', 'Strategic Planning', 'Stakeholder Management', 'Leadership'],
+    tools: ['ArchiMate', 'LeanIX', 'Sparx EA', 'Confluence', 'Jira'],
+    relatedCareers: ['Solutions Architect', 'Software Architect', 'CTO']
+  }),
+  createCareer({
+    name: 'Integration Engineer',
+    slug: 'integration-engineer',
+    salary: { min: 95000, max: 175000, avg: 135000 },
+    jobDemandOutlook: 'High',
+    jobDemand: 'High',
+    description: 'Design and implement integrations between enterprise systems using APIs, middleware, and ETL tools to create seamless data flows.',
+    overview: 'Integration Engineers connect disparate software systems, enabling data exchange and workflow automation across ERP, CRM, and cloud platforms.',
+    technicalSkills: ['REST APIs', 'GraphQL', 'ETL', 'Kafka', 'MuleSoft', 'iPaaS', 'SQL'],
+    softSkills: ['Problem Solving', 'Systems Thinking', 'Documentation', 'Collaboration'],
+    tools: ['MuleSoft', 'Boomi', 'Kafka', 'Postman', 'Talend'],
+    relatedCareers: ['API Developer', 'Backend Engineer', 'Data Engineer']
+  }),
+  createCareer({
+    name: 'Performance Engineer',
+    slug: 'performance-engineer',
+    salary: { min: 105000, max: 185000, avg: 145000 },
+    jobDemandOutlook: 'High',
+    jobDemand: 'High',
+    description: 'Optimize application and system performance through profiling, benchmarking, load testing, and architectural improvements for high-traffic systems.',
+    overview: 'Performance Engineers ensure applications can handle peak loads by identifying bottlenecks, tuning systems, and implementing caching and scaling solutions.',
+    technicalSkills: ['Load Testing', 'Profiling', 'JVM Tuning', 'Caching', 'CDN', 'Database Optimization', 'APM'],
+    softSkills: ['Analytical Thinking', 'Attention to Detail', 'Communication', 'Patience'],
+    tools: ['JMeter', 'Gatling', 'Grafana', 'Datadog', 'New Relic'],
+    relatedCareers: ['Site Reliability Engineer', 'Backend Engineer', 'DevOps Engineer']
   })
 ];
 
