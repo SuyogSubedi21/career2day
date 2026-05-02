@@ -1,8 +1,8 @@
 import Pocketbase from 'pocketbase';
 
-// In development, /hcgi/platform is proxied by Vite to http://localhost:8090
-// In production, set VITE_PB_URL to your hosted PocketBase URL (e.g. https://pb.yourdomain.com)
-const POCKETBASE_API_URL = import.meta.env.VITE_PB_URL || "/hcgi/platform";
+// Default to /pb because Nginx proxies /pb/* -> PocketBase :8090.
+// You can override this with VITE_PB_URL (e.g. https://api.example.com).
+const POCKETBASE_API_URL = import.meta.env.VITE_PB_URL || '/pb';
 
 const pocketbaseClient = new Pocketbase(POCKETBASE_API_URL);
 
