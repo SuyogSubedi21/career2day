@@ -396,39 +396,47 @@ export default function CareerDetailPage() {
               <TabsContent value="interview" className="animate-in fade-in-50 duration-500 m-0">
                 <div className="mb-8">
                   <h2 className="text-3xl font-bold text-foreground mb-3">Interview Questions</h2>
-                  <p className="text-lg text-muted-foreground">Practice with specific questions curated for {career.name}.</p>
+                  <p className="text-lg text-muted-foreground">Practice with {interviewQuestions.length} specific questions curated for {career.name}.</p>
                 </div>
                 
                 {loading.interviewQuestions ? (
-                  <Card className="bg-card shadow-sm border border-border rounded-2xl">
-                    <CardContent className="p-10 text-center flex flex-col items-center">
-                      <Skeleton className="w-20 h-20 rounded-full mb-6" />
-                      <Skeleton className="h-8 w-64 mb-4" />
-                      <Skeleton className="h-4 w-full max-w-md mb-8" />
-                      <Skeleton className="h-14 w-40 rounded-xl" />
-                    </CardContent>
-                  </Card>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
+                  </div>
                 ) : errors.interviewQuestions ? (
                   <ErrorState message={errors.interviewQuestions} onRetry={fetchInterviewQuestions} />
                 ) : interviewQuestions.length === 0 ? (
                   <EmptyState icon={BrainCircuit} title="No interview questions available" message="We are currently building the interview question database for this career." />
                 ) : (
-                  <Card className="bg-card shadow-sm border border-border rounded-2xl overflow-hidden">
-                    <CardContent className="p-10 text-center flex flex-col items-center bg-gradient-to-b from-card to-muted/30">
-                      <div className="w-24 h-24 bg-amber-500/10 rounded-full flex items-center justify-center text-amber-600 mb-6">
-                        <BrainCircuit className="w-12 h-12" />
-                      </div>
-                      <h3 className="text-3xl font-extrabold mb-3 text-foreground">Practice Ready!</h3>
-                      <p className="text-xl text-muted-foreground mb-8 max-w-md">
-                        We have {interviewQuestions.length} interview questions specifically tailored for {career.name}.
-                      </p>
-                      <Button asChild size="lg" className="h-14 px-8 text-lg font-bold rounded-xl bg-amber-600 hover:bg-amber-700 text-white">
-                        <Link to={`/interview-questions/${careerSlug}`}>
-                          Start Practice Session <ArrowRight className="w-5 h-5 ml-2" />
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {interviewQuestions.slice(0, 6).map((q, idx) => (
+                        <Card key={q.id} className="bg-card border border-border shadow-sm hover:shadow-md transition-shadow hover:border-primary/50 cursor-pointer">
+                          <CardContent className="p-5">
+                            <div className="flex items-start justify-between gap-3 mb-3">
+                              <Badge variant="outline" className="text-xs font-semibold bg-amber-500/10 text-amber-700 border-amber-200">Q{idx + 1}</Badge>
+                              {q.difficulty && (
+                                <Badge variant="secondary" className="text-xs font-medium">
+                                  {q.difficulty}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm font-semibold text-foreground line-clamp-3">{q.question}</p>
+                            {q.category && (
+                              <p className="text-xs text-muted-foreground mt-3">📂 {q.category}</p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    <Button asChild className="w-full mt-6 h-12 text-base font-semibold rounded-xl bg-amber-600 hover:bg-amber-700 text-white gap-2">
+                      <Link to={`/interview-questions/${careerSlug}`}>
+                        <BrainCircuit className="w-4 h-4" />
+                        Start Full Practice Session ({interviewQuestions.length} questions)
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                  </div>
                 )}
               </TabsContent>
             </div>
