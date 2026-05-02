@@ -93,10 +93,10 @@ const AppInitializer = () => {
     if (isAdminLoggedIn) seedBlogArticles();
   }, [isAdminLoggedIn]);
 
-  // Seed career data on mount regardless of admin status
-  useEffect(() => {
-    seedCareerDataFromGitHub().catch(e => console.error("Career seeding error:", e));
-  }, []);
+  // Career data is seeded via PocketBase migrations — do not auto-seed from frontend
+  // useEffect(() => {
+  //   seedCareerDataFromGitHub().catch(e => console.error("Career seeding error:", e));
+  // }, []);
 
   return null;
 };
