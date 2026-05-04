@@ -529,6 +529,7 @@ migrate((app) => {
       record.set("difficulty", skill.difficulty);
       record.set("description", skill.desc);
       record.set("relatedCareers", [careerSlug]);
+      record.set("phase", skill.difficulty || "Intermediate");
       try {
         app.save(record);
         skillsCreated++;
