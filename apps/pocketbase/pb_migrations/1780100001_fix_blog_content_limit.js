@@ -14,7 +14,7 @@ migrate((app) => {
     {
       slug: "complete-2026-guide-breaking-into-tech",
       title: "The Complete 2026 Guide to Breaking Into Tech",
-      category: "Career Advice",
+      category: "CareerGrowth",
       author: "Career2Day Team",
       excerpt: "A comprehensive roadmap for landing your first tech job in 2026, from skill-building to your first offer.",
       readingTime: 12,
@@ -25,7 +25,7 @@ migrate((app) => {
     {
       slug: "system-design-interview-ultimate-guide",
       title: "System Design Interviews: The Ultimate 2026 Guide",
-      category: "Interview Prep",
+      category: "InterviewTips",
       author: "Senior Engineer, Career2Day",
       excerpt: "Master system design interviews with proven frameworks used at FAANG companies.",
       readingTime: 15,
@@ -36,7 +36,7 @@ migrate((app) => {
     {
       slug: "negotiate-salary-increase-real-scripts",
       title: "How to Negotiate Your Tech Salary in 2026 (With Real Scripts)",
-      category: "Career Advice",
+      category: "CareerGrowth",
       author: "Career2Day Team",
       excerpt: "Practical scripts and strategies to negotiate a higher salary at offer time or during your annual review.",
       readingTime: 10,
@@ -47,7 +47,7 @@ migrate((app) => {
     {
       slug: "ai-tools-every-job-seeker-must-use-2026",
       title: "AI Tools Every Job Seeker Must Use in 2026",
-      category: "Tools & Resources",
+      category: "SkillDevelopment",
       author: "Career2Day Team",
       excerpt: "The AI tools that are genuinely transforming the job search — and how to use them effectively.",
       readingTime: 8,
@@ -58,7 +58,7 @@ migrate((app) => {
     {
       slug: "writing-resume-gets-interviews-2026-guide",
       title: "Writing a Resume That Gets Interviews in 2026",
-      category: "Career Advice",
+      category: "CVTips",
       author: "Career2Day Team",
       excerpt: "A practical guide to writing a tech resume that passes ATS filters and impresses hiring managers.",
       readingTime: 9,
