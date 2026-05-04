@@ -31,6 +31,8 @@ const toNumber = (value) => {
   return Number.isFinite(first) && first > 0 ? first : null;
 };
 
+import { getCareerBySlug as getLocalCareer } from '@/data/careerData.js';
+
 const SLUG_SALARY_FALLBACKS = {
   'ai-llm-engineer': { entry: 160000, avg: 220000, senior: 280000 },
   'api-developer': { entry: 70000, avg: 120000, senior: 170000 },
@@ -103,6 +105,20 @@ export const getCareerSalaryInfo = (career) => {
     resolvedEntry = fallback.entry;
     resolvedAvg = fallback.avg;
     resolvedSenior = fallback.senior;
+  }
+
+  // Final fallback: use pre-computed salary from local career data
+  if (resolvedAvg === null && career.slug) {
+    try {
+      const localCareer = getLocalCareer(career.slug);
+      if (localCareer) {
+        resolvedEntry = resolvedEntry ?? localCareer.salaryProgression?.entry ?? localCareer.salaryRange?.min ?? null;
+        resolvedAvg = localCareer.averageSalary ?? localCareer.salaryProgression?.mid ?? null;
+        resolvedSenior = resolvedSenior ?? localCareer.salaryProgression?.senior ?? localCareer.salaryRange?.max ?? null;
+      }
+    } catch {
+      // ignore
+    }
   }
 
   return {
