@@ -21,6 +21,7 @@ import CareerRoadmapTimeline from '@/components/career/CareerRoadmapTimeline.jsx
 import CareerSalaryChart from '@/components/career/CareerSalaryChart.jsx';
 import CareerInsightsSection from '@/components/career/CareerInsightsSection.jsx';
 import { getCareerSalaryInfo } from '@/lib/utils/careerSalary.js';
+import { getCareerBySlug } from '@/data/careerData.js';
 
 const QUIZ_LEVELS = {
   Basic: { minutes: 10, labels: ['basic', 'simple'] },
@@ -91,6 +92,7 @@ export default function CareerDetailPage() {
   const [examTimeLeft, setExamTimeLeft] = useState(0);
   const [examSubmitted, setExamSubmitted] = useState(false);
   const [autoSubmitted, setAutoSubmitted] = useState(false);
+  const [usingFallbackCareer, setUsingFallbackCareer] = useState(false);
 
   const queryParams = new URLSearchParams(location.search);
   const defaultTab = queryParams.get('tab') || 'overview';
@@ -103,6 +105,7 @@ export default function CareerDetailPage() {
       const record = await pb.collection('careers').getFirstListItem(`slug="${careerSlug}"`, { $autoCancel: false });
       console.log(`[CareerDetailPage] Successfully fetched career: ${record.name}`);
       setCareer(record);
+      setUsingFallbackCareer(false);
       
       if (pb.authStore.isValid && record.id) {
         try {
@@ -114,7 +117,20 @@ export default function CareerDetailPage() {
       }
     } catch (err) {
       console.error("[CareerDetailPage] Failed to fetch career:", err);
-      setErrors(prev => ({ ...prev, career: "Career profile not found or unavailable." }));
+      try {
+        const fallbackCareer = getCareerBySlug(careerSlug);
+        if (fallbackCareer) {
+          setCareer(fallbackCareer);
+          setUsingFallbackCareer(true);
+          setErrors(prev => ({ ...prev, career: null }));
+          setIsBookmarked(false);
+        } else {
+          setErrors(prev => ({ ...prev, career: "Career profile not found or unavailable." }));
+        }
+      } catch (fallbackError) {
+        console.error("[CareerDetailPage] Failed to load fallback career:", fallbackError);
+        setErrors(prev => ({ ...prev, career: "Career profile not found or unavailable." }));
+      }
     } finally {
       setLoading(prev => ({ ...prev, career: false }));
     }
@@ -371,6 +387,14 @@ export default function CareerDetailPage() {
         title={`${career.name} Career Path, Salary & Roadmap | Career2Day`}
         description={career.description || `Comprehensive guide to becoming a ${career.name}. Explore salary ranges, required skills, daily responsibilities, and a complete learning roadmap.`}
       />
+
+      {usingFallbackCareer && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 px-4 py-3 text-sm">
+            Live server data is temporarily unavailable. Showing local fallback career information.
+          </div>
+        </div>
+      )}
 
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center text-sm text-muted-foreground">
