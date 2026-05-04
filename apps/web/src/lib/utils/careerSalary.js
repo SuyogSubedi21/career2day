@@ -2,7 +2,8 @@ const toNumber = (value) => {
   if (value === null || value === undefined || value === '') return null;
 
   if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : null;
+    if (!Number.isFinite(value) || value <= 0) return null;
+    return value;
   }
 
   if (typeof value !== 'string') return null;
@@ -11,7 +12,9 @@ const toNumber = (value) => {
   if (!trimmed) return null;
 
   const numeric = Number(trimmed);
-  if (Number.isFinite(numeric)) return numeric;
+  if (Number.isFinite(numeric)) {
+    return numeric > 0 ? numeric : null;
+  }
 
   const matches = trimmed.replace(/,/g, '').match(/\d+(?:\.\d+)?/g);
   if (!matches || !matches.length) return null;
@@ -25,7 +28,13 @@ const toNumber = (value) => {
   }
 
   const first = Number(matches[0]);
-  return Number.isFinite(first) ? first : null;
+  return Number.isFinite(first) && first > 0 ? first : null;
+};
+
+const SLUG_SALARY_FALLBACKS = {
+  'ai-llm-engineer': { entry: 160000, avg: 220000, senior: 280000 },
+  'api-developer': { entry: 70000, avg: 120000, senior: 170000 },
+  'ar-vr-engineer': { entry: 120000, avg: 160000, senior: 200000 },
 };
 
 const parseSalaryRange = (salaryRange) => {
@@ -84,10 +93,21 @@ export const getCareerSalaryInfo = (career) => {
     avg = Math.round((entry + senior) / 2);
   }
 
+  let resolvedEntry = entry;
+  let resolvedAvg = avg;
+  let resolvedSenior = senior;
+
+  if (resolvedAvg === null && career.slug && SLUG_SALARY_FALLBACKS[career.slug]) {
+    const fallback = SLUG_SALARY_FALLBACKS[career.slug];
+    resolvedEntry = fallback.entry;
+    resolvedAvg = fallback.avg;
+    resolvedSenior = fallback.senior;
+  }
+
   return {
-    entry,
-    avg,
-    senior,
-    hasAverage: avg !== null,
+    entry: resolvedEntry,
+    avg: resolvedAvg,
+    senior: resolvedSenior,
+    hasAverage: resolvedAvg !== null,
   };
 };

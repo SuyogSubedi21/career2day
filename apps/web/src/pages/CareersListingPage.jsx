@@ -198,7 +198,7 @@ export default function CareersListingPage() {
                 </p>
                 
                 <div className="mt-auto pt-6 border-t border-border/50 flex items-center justify-between">
-                  {getDemandBadge(career.jobDemandOutlook)}
+                  {getDemandBadge(career.jobDemandOutlook || career.jobDemand || career.demand)}
                   <Button 
                     asChild
                     variant="ghost" 

@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, TrendingUp, DollarSign, HelpCircle, LayoutList } from 'lucide-react';
+import { ArrowRight, TrendingUp, HelpCircle, LayoutList } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { getCareerSalaryInfo } from '@/lib/utils/careerSalary';
 
 const formatCurrency = (num) => {
   if (!num) return 'N/A';
@@ -25,10 +26,11 @@ const getDemandBadgeVariant = (demand) => {
 };
 
 export default function CareerCard({ career }) {
-  const { name, slug, description, averageSalary, jobDemand } = career;
-  
-  const salaryDisplay = formatCurrency(averageSalary);
-  const demandBadge = getDemandBadgeVariant(jobDemand);
+  const { name, slug, description } = career;
+
+  const salaryInfo = getCareerSalaryInfo(career);
+  const salaryDisplay = salaryInfo.hasAverage ? formatCurrency(salaryInfo.avg) : 'N/A';
+  const demandBadge = getDemandBadgeVariant(career.jobDemand || career.jobDemandOutlook || career.demand);
   
   const truncatedDesc = description && description.length > 130 
     ? description.substring(0, 130) + '...' 
