@@ -850,7 +850,7 @@ migrate((app) => {
     phases.forEach((phase, idx) => {
       const record = new Record(roadmapCollection);
       record.set("careerSlug", careerSlug);
-      record.set("phase", phase.phase);
+      record.set("phase", idx + 1);
       record.set("phaseTitle", phase.title);
       record.set("phaseDescription", phase.description);
       record.set("phaseNumber", idx + 1);
