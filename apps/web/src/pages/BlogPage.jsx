@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Calendar, ArrowRight, Newspaper, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, Calendar, ArrowRight, Newspaper, AlertCircle, RefreshCw, Clock, BookOpen, TrendingUp, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -115,6 +115,17 @@ export default function BlogPage() {
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 text-balance leading-relaxed">
               Stay ahead of the curve. Actionable advice and deep dives into the professional world to help you land and thrive in your dream role.
             </p>
+
+            {/* Stats bar */}
+            {!loading && articles.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-6 mb-10 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-primary" /><strong className="text-foreground">{articles.length}+</strong> articles</span>
+                <span className="w-px h-4 bg-border" />
+                <span className="flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-primary" />Updated weekly</span>
+                <span className="w-px h-4 bg-border" />
+                <span className="flex items-center gap-1.5"><Users className="w-4 h-4 text-primary" />Expert authors</span>
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto">
               <div className="relative w-full">
@@ -233,9 +244,16 @@ export default function BlogPage() {
                             {article.author || 'Author'}
                           </div>
                         </div>
-                        <div className="flex items-center text-xs font-medium text-muted-foreground">
-                          <Calendar className="w-3.5 h-3.5 mr-1.5" />
-                          {formatDate(article.publishedAt || article.created)}
+                        <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
+                          {article.readingTime && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" />{article.readingTime} min
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {formatDate(article.publishedAt || article.created)}
+                          </span>
                         </div>
                       </div>
                       <Button variant="outline" className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors">
@@ -268,6 +286,30 @@ export default function BlogPage() {
           </div>
         ) : null}
       </div>
+
+      {/* Newsletter CTA */}
+      {!loading && !error && (
+        <section className="mt-20 mb-10 px-4">
+          <div className="max-w-3xl mx-auto rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-10 text-center shadow-sm">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/15 mb-5">
+              <Newspaper className="w-6 h-6 text-primary" />
+            </div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-foreground mb-3">Get Career Tips in Your Inbox</h2>
+            <p className="text-muted-foreground mb-7 max-w-xl mx-auto">Join thousands of professionals who read our weekly newsletter packed with actionable career advice, salary insights, and interview strategies.</p>
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email address"
+                className="flex-1 h-12 px-4 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+              <Button className="h-12 px-6 rounded-xl font-semibold whitespace-nowrap">
+                Subscribe Free
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-4">No spam. Unsubscribe anytime.</p>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
