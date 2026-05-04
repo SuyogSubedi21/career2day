@@ -176,10 +176,46 @@ export default function CareerDetailPage() {
         const key = r.phase ?? r.phaseTitle;
         if (!seenPhases.has(key)) seenPhases.set(key, r);
       });
-      setRoadmaps(Array.from(seenPhases.values()));
+      const pbRoadmaps = Array.from(seenPhases.values());
+
+      if (pbRoadmaps.length === 0) {
+        // Fall back to local careerData detailedRoadmap
+        const localCareer = getCareerBySlug(careerSlug);
+        const localRoadmap = localCareer?.detailedRoadmap || [];
+        const fallback = localRoadmap.map((r, idx) => ({
+          id: `local-${idx}`,
+          phase: idx + 1,
+          phaseTitle: r.phase,
+          duration: r.months ? `Months ${r.months}` : null,
+          skills: r.topics || [],
+          resources: r.resources || [],
+        }));
+        setRoadmaps(fallback);
+      } else {
+        setRoadmaps(pbRoadmaps);
+      }
     } catch (err) {
       console.error("[CareerDetailPage] Failed to fetch roadmaps:", err);
-      setErrors(prev => ({ ...prev, roadmaps: "Failed to load roadmap." }));
+      // Still try local fallback on error
+      try {
+        const localCareer = getCareerBySlug(careerSlug);
+        const localRoadmap = localCareer?.detailedRoadmap || [];
+        const fallback = localRoadmap.map((r, idx) => ({
+          id: `local-${idx}`,
+          phase: idx + 1,
+          phaseTitle: r.phase,
+          duration: r.months ? `Months ${r.months}` : null,
+          skills: r.topics || [],
+          resources: r.resources || [],
+        }));
+        if (fallback.length > 0) {
+          setRoadmaps(fallback);
+        } else {
+          setErrors(prev => ({ ...prev, roadmaps: "Failed to load roadmap." }));
+        }
+      } catch {
+        setErrors(prev => ({ ...prev, roadmaps: "Failed to load roadmap." }));
+      }
     } finally {
       setLoading(prev => ({ ...prev, roadmaps: false }));
     }
