@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { TrendingUp, DollarSign, Gift } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext.jsx';
+import { getCareerSalaryInfo } from '@/lib/utils/careerSalary.js';
 
 export default function CareerSalaryChart({ career }) {
   const { currency, convertSalary, getCurrencySymbol } = useCurrency();
@@ -11,10 +12,11 @@ export default function CareerSalaryChart({ career }) {
 
   if (!career) return null;
 
-  // Extract salaries with fallbacks
-  const rawMinSalary = Number(career.entrySalary || career.salaryRange?.min || 65000);
-  const rawAvgSalary = Number(career.averageSalary || career.midSalary || career.salaryRange?.avg || 95000);
-  const rawMaxSalary = Number(career.seniorSalary || career.salaryRange?.max || 145000);
+  // Use the same salary resolution logic as the header/sidebar
+  const salaryInfo = getCareerSalaryInfo(career);
+  const rawMinSalary = salaryInfo.entry ?? 65000;
+  const rawAvgSalary = salaryInfo.avg ?? 95000;
+  const rawMaxSalary = salaryInfo.senior ?? 145000;
 
   const minSalary = convertSalary(rawMinSalary);
   const avgSalary = convertSalary(rawAvgSalary);
