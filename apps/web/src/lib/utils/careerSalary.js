@@ -86,6 +86,7 @@ export const getCareerSalaryInfo = (career) => {
 
   let avg =
     toNumber(career.averageSalary) ??
+    toNumber(career.avg_salary) ??
     toNumber(career.midSalary) ??
     range.avg;
 
