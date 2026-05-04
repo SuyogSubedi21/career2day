@@ -100,25 +100,40 @@ export const getCareerSalaryInfo = (career) => {
   let resolvedAvg = avg;
   let resolvedSenior = senior;
 
-  if (resolvedAvg === null && career.slug && SLUG_SALARY_FALLBACKS[career.slug]) {
+  // Apply slug-specific fallbacks for any missing values
+  if (career.slug && SLUG_SALARY_FALLBACKS[career.slug]) {
     const fallback = SLUG_SALARY_FALLBACKS[career.slug];
-    resolvedEntry = fallback.entry;
-    resolvedAvg = fallback.avg;
-    resolvedSenior = fallback.senior;
+    resolvedEntry = resolvedEntry ?? fallback.entry;
+    resolvedAvg = resolvedAvg ?? fallback.avg;
+    resolvedSenior = resolvedSenior ?? fallback.senior;
   }
 
-  // Final fallback: use pre-computed salary from local career data
-  if (resolvedAvg === null && career.slug) {
+  // Final fallback: fill any remaining nulls from local career data
+  if ((resolvedAvg === null || resolvedEntry === null || resolvedSenior === null) && career.slug) {
     try {
       const localCareer = getLocalCareer(career.slug);
       if (localCareer) {
-        resolvedEntry = resolvedEntry ?? localCareer.salaryProgression?.entry ?? localCareer.salaryRange?.min ?? null;
-        resolvedAvg = localCareer.averageSalary ?? localCareer.salaryProgression?.mid ?? null;
-        resolvedSenior = resolvedSenior ?? localCareer.salaryProgression?.senior ?? localCareer.salaryRange?.max ?? null;
+        const localEntry = localCareer.salaryProgression?.entry ?? localCareer.salaryRange?.min ?? null;
+        const localAvg = localCareer.averageSalary ?? localCareer.salaryProgression?.mid ?? null;
+        const localSenior = localCareer.salaryProgression?.senior ?? localCareer.salaryRange?.max ?? null;
+        resolvedEntry = resolvedEntry ?? localEntry;
+        resolvedAvg = resolvedAvg ?? localAvg;
+        resolvedSenior = resolvedSenior ?? localSenior;
       }
     } catch {
       // ignore
     }
+  }
+
+  // Derive any still-missing values from what we have
+  if (resolvedAvg === null && resolvedEntry !== null && resolvedSenior !== null) {
+    resolvedAvg = Math.round((resolvedEntry + resolvedSenior) / 2);
+  }
+  if (resolvedEntry === null && resolvedAvg !== null) {
+    resolvedEntry = Math.round(resolvedAvg * 0.7);
+  }
+  if (resolvedSenior === null && resolvedAvg !== null) {
+    resolvedSenior = Math.round(resolvedAvg * 1.4);
   }
 
   return {
