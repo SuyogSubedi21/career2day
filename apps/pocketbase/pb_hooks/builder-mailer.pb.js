@@ -5,7 +5,22 @@ onMailerSend((e) => {
         return e.next()
     }
 
-    const senderAddress = $os.getenv("BUILDER_MAILER_SENDER_ADDRESS");
+    const apiUrl = $os.getenv("BUILDER_MAILER_API_URL");
+    const apiKey = $os.getenv("BUILDER_MAILER_API_KEY");
+    const senderAddress =
+        $os.getenv("BUILDER_MAILER_SENDER_ADDRESS") ||
+        e.app.settings().meta.senderAddress ||
+        $os.getenv("SMTP_USER") ||
+        "noreply@career2day.com";
+
+    if (!apiUrl || !apiKey) {
+        // Builder mailer is optional; fall through to default sender when not configured.
+        return e.next();
+    }
+
+    if (!e.message.to || !e.message.to.length || !e.message.to[0].address) {
+        return e.next();
+    }
 
     const payload = {
         "subject": e.message.subject,
@@ -23,10 +38,10 @@ onMailerSend((e) => {
     }
 
     const response = $http.send({
-        url: `${$os.getenv("BUILDER_MAILER_API_URL")}/api/v2/email`,
+        url: `${apiUrl}/api/v2/email`,
         method: "POST",
         headers: {
-            "Authorization": `Bearer ${$os.getenv("BUILDER_MAILER_API_KEY")}`,
+            "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
@@ -34,7 +49,8 @@ onMailerSend((e) => {
     
     if (response.statusCode !== 200) {
         $app.logger().error("Failed to send email", "error", response.json);
-
-        throw new ApiError(500, response.json?.message || 'Failed to send email');
+        return e.next();
     }
+
+    return;
 })

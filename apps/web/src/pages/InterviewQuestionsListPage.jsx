@@ -1,19 +1,64 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { Search, ChevronRight, BookOpen } from 'lucide-react';
+import { Search, ChevronRight, BookOpen, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
-import { getAllCareersWithQuestions } from '@/lib/interviewQuestionsData.js';
+import pb from '@/lib/pocketbaseClient.js';
 
 export default function InterviewQuestionsListPage() {
-  const careers = getAllCareersWithQuestions();
+  const [careers, setCareers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredCareers = careers.filter(career => 
-    career.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCareers = async () => {
+      try {
+        setLoading(true);
+        const careersResult = await pb.collection('careers').getList(1, 500, {
+          sort: 'name',
+          fields: 'id,name,slug',
+          $autoCancel: false,
+        });
+
+        if (!isMounted) return;
+
+        const mapped = (careersResult.items || [])
+          .filter((career) => Boolean(career.slug))
+          .map((career) => ({
+            id: career.id,
+            name: career.name,
+            slug: career.slug,
+          }));
+
+        setCareers(mapped);
+      } catch (err) {
+        console.error('[InterviewQuestionsListPage] Failed to load careers:', err);
+        if (isMounted) {
+          setCareers([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchCareers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredCareers = useMemo(() => {
+    return careers.filter((career) =>
+      career.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [careers, searchTerm]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,7 +92,13 @@ export default function InterviewQuestionsListPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {filteredCareers.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-24">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-muted-foreground/60 mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">Loading careers</h3>
+            <p className="text-muted-foreground">Fetching interview question categories.</p>
+          </div>
+        ) : filteredCareers.length === 0 ? (
           <div className="text-center py-24">
             <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-xl font-semibold text-foreground mb-2">No careers found</h3>
@@ -70,7 +121,7 @@ export default function InterviewQuestionsListPage() {
                     
                     <div className="mt-auto pt-6 flex items-center justify-between">
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                        100 Questions
+                        View Questions
                       </span>
                       <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>

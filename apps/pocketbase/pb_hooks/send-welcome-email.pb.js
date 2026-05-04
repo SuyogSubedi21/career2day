@@ -1,5 +1,11 @@
 /// <reference path="../pb_data/types.d.ts" />
 onRecordAfterCreateSuccess((e) => {
+  // This legacy hook is intentionally disabled to avoid duplicate welcome emails.
+  e.next();
+}, "users");
+
+/*
+onRecordAfterCreateSuccess((e) => {
   try {
     const userEmail = e.record.get("email");
     const userName = e.record.get("name") || "User";
@@ -44,3 +50,4 @@ onRecordAfterCreateSuccess((e) => {
   // Always continue execution regardless of email success/failure
   e.next();
 }, "users");
+*/

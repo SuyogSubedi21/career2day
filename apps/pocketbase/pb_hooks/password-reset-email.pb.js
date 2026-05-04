@@ -1,11 +1,18 @@
 /// <reference path="../pb_data/types.d.ts" />
 onRecordAfterCreateSuccess((e) => {
+  const senderAddress = $app.settings().meta.senderAddress || $os.getenv("SMTP_USER") || "noreply@career2day.com";
+  const recipient = e.record.get("email");
+  if (!recipient) {
+    e.next();
+    return;
+  }
+
   const message = new MailerMessage({
     from: {
-      address: $app.settings().meta.senderAddress,
+      address: senderAddress,
       name: 'Career2Day'
     },
-    to: [{ address: e.record.get("email") }],
+    to: [{ address: recipient }],
     subject: "Reset Your Career2Day Password",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
@@ -54,6 +61,10 @@ onRecordAfterCreateSuccess((e) => {
       </div>
     `
   });
-  $app.newMailClient().send(message);
+  try {
+    $app.newMailClient().send(message);
+  } catch (err) {
+    $app.logger().error("Password reset email error: " + err.message);
+  }
   e.next();
 }, "users");

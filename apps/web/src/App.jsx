@@ -27,6 +27,7 @@ import BlogPage from '@/pages/BlogPage.jsx';
 import BlogArticlePage from '@/pages/BlogArticlePage.jsx';
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage.jsx';
 import TermsOfServicePage from '@/pages/TermsOfServicePage.jsx';
+import RefundPolicyPage from '@/pages/RefundPolicyPage.jsx';
 import PricingPageRedesign from '@/pages/PricingPageRedesign.jsx';
 
 // Career Pages
@@ -141,6 +142,7 @@ export default function App() {
                 <Route path="/blog/:slug" element={<MainLayout><BlogArticlePage /></MainLayout>} />
                 <Route path="/privacy-policy" element={<MainLayout><PrivacyPolicyPage /></MainLayout>} />
                 <Route path="/terms-of-service" element={<MainLayout><TermsOfServicePage /></MainLayout>} />
+                <Route path="/refund-policy" element={<MainLayout><RefundPolicyPage /></MainLayout>} />
                 
                 {/* Careers Routes */}
                 <Route path="/careers" element={<MainLayout><CareersListingPage /></MainLayout>} />

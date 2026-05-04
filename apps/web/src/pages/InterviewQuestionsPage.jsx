@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { ArrowLeft, Loader2, AlertCircle, RefreshCcw, Lightbulb, CheckCircle2, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import pb from '@/lib/pocketbaseClient.js';
+import { getQuestionsByCareer } from '@/lib/interviewQuestionsData.js';
 
 export default function InterviewQuestionsPage() {
   const { careerSlug } = useParams();
@@ -31,15 +32,47 @@ export default function InterviewQuestionsPage() {
       console.log(`[InterviewQuestionsPage] Fetched career: ${careerRecord.name}`);
       setCareer(careerRecord);
 
-      // Fetch unique questions for this career from careerInterviewQuestions collection
+      // Primary source: per-career generated questions.
       const questionsRecords = await pb.collection('careerInterviewQuestions').getList(1, 100, {
         filter: `careerSlug="${careerSlug}"`,
         sort: 'questionNumber',
         $autoCancel: false
       });
-      
-      console.log(`[InterviewQuestionsPage] Fetched ${questionsRecords.items.length} interview questions for ${careerSlug}.`);
-      setQuestions(questionsRecords.items || []);
+
+      let resolvedQuestions = questionsRecords.items || [];
+
+      // Fallback: legacy interviewQuestions records keyed by career display name.
+      if (!resolvedQuestions.length) {
+        const legacyQuestions = await pb.collection('interviewQuestions').getList(1, 100, {
+          filter: `careerPath="${careerRecord.name}"`,
+          sort: 'question',
+          $autoCancel: false,
+        });
+
+        resolvedQuestions = (legacyQuestions.items || []).map((item, index) => ({
+          id: item.id,
+          questionNumber: index + 1,
+          question: item.question,
+          category: item.questionType || 'General',
+          difficulty: item.difficulty || 'Intermediate',
+          explanation: item.expectedAnswer || item.tips || '',
+        }));
+      }
+
+      // Final fallback: bundled static dataset to ensure every career has content.
+      if (!resolvedQuestions.length) {
+        resolvedQuestions = getQuestionsByCareer(careerSlug).map((item) => ({
+          id: item.id,
+          questionNumber: item.questionNumber,
+          question: item.question,
+          category: 'General',
+          difficulty: 'Intermediate',
+          explanation: item.answer,
+        }));
+      }
+
+      console.log(`[InterviewQuestionsPage] Resolved ${resolvedQuestions.length} interview questions for ${careerSlug}.`);
+      setQuestions(resolvedQuestions);
       setCurrentIndex(0);
       setShowAnswer(false);
     } catch (err) {
