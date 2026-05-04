@@ -27,36 +27,54 @@ export default function InterviewQuestionsPage() {
     setLoading(true);
     setError(null);
     try {
-      // Fetch career details
-      const careerRecord = await pb.collection('careers').getFirstListItem(`slug="${careerSlug}"`, { $autoCancel: false });
-      console.log(`[InterviewQuestionsPage] Fetched career: ${careerRecord.name}`);
+      let careerRecord = null;
+      try {
+        careerRecord = await pb.collection('careers').getFirstListItem(`slug="${careerSlug}"`, { $autoCancel: false });
+        console.log(`[InterviewQuestionsPage] Fetched career: ${careerRecord.name}`);
+      } catch (careerErr) {
+        console.warn('[InterviewQuestionsPage] Could not fetch career from PocketBase, using slug fallback:', careerErr?.message || careerErr);
+        const fallbackName = String(careerSlug || '')
+          .split('-')
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' ');
+        careerRecord = { name: fallbackName || 'Career', slug: careerSlug };
+      }
       setCareer(careerRecord);
 
+      let resolvedQuestions = [];
+
       // Primary source: per-career generated questions.
-      const questionsRecords = await pb.collection('careerInterviewQuestions').getList(1, 100, {
-        filter: `careerSlug="${careerSlug}"`,
-        sort: 'questionNumber',
-        $autoCancel: false
-      });
-
-      let resolvedQuestions = questionsRecords.items || [];
-
-      // Fallback: legacy interviewQuestions records keyed by career display name.
-      if (!resolvedQuestions.length) {
-        const legacyQuestions = await pb.collection('interviewQuestions').getList(1, 100, {
-          filter: `careerPath="${careerRecord.name}"`,
-          sort: 'question',
+      try {
+        const questionsRecords = await pb.collection('careerInterviewQuestions').getList(1, 100, {
+          filter: `careerSlug="${careerSlug}"`,
+          sort: 'questionNumber',
           $autoCancel: false,
         });
+        resolvedQuestions = questionsRecords.items || [];
+      } catch (primaryErr) {
+        console.warn('[InterviewQuestionsPage] careerInterviewQuestions unavailable:', primaryErr?.message || primaryErr);
+      }
 
-        resolvedQuestions = (legacyQuestions.items || []).map((item, index) => ({
-          id: item.id,
-          questionNumber: index + 1,
-          question: item.question,
-          category: item.questionType || 'General',
-          difficulty: item.difficulty || 'Intermediate',
-          explanation: item.expectedAnswer || item.tips || '',
-        }));
+      // Fallback: legacy interviewQuestions records keyed by career display name.
+      if (!resolvedQuestions.length && careerRecord?.name) {
+        try {
+          const legacyQuestions = await pb.collection('interviewQuestions').getList(1, 100, {
+            filter: `careerPath="${careerRecord.name}"`,
+            sort: 'question',
+            $autoCancel: false,
+          });
+
+          resolvedQuestions = (legacyQuestions.items || []).map((item, index) => ({
+            id: item.id,
+            questionNumber: index + 1,
+            question: item.question,
+            category: item.questionType || 'General',
+            difficulty: item.difficulty || 'Intermediate',
+            explanation: item.expectedAnswer || item.tips || '',
+          }));
+        } catch (legacyErr) {
+          console.warn('[InterviewQuestionsPage] interviewQuestions fallback unavailable:', legacyErr?.message || legacyErr);
+        }
       }
 
       // Final fallback: bundled static dataset to ensure every career has content.

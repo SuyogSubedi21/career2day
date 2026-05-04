@@ -20,6 +20,7 @@ import CareerSkillsSection from '@/components/career/CareerSkillsSection.jsx';
 import CareerRoadmapTimeline from '@/components/career/CareerRoadmapTimeline.jsx';
 import CareerSalaryChart from '@/components/career/CareerSalaryChart.jsx';
 import CareerInsightsSection from '@/components/career/CareerInsightsSection.jsx';
+import { getCareerSalaryInfo } from '@/lib/utils/careerSalary.js';
 
 const QUIZ_LEVELS = {
   Basic: { minutes: 10, labels: ['basic', 'simple'] },
@@ -352,6 +353,18 @@ export default function CareerDetailPage() {
     );
   }
 
+  const salaryInfo = getCareerSalaryInfo(career);
+  const avgSalaryConverted = salaryInfo.avg !== null ? convertSalary(salaryInfo.avg) : null;
+  const entrySalaryConverted = salaryInfo.entry !== null ? convertSalary(salaryInfo.entry) : null;
+  const seniorSalaryConverted = salaryInfo.senior !== null ? convertSalary(salaryInfo.senior) : null;
+
+  const formatConvertedSalary = (amount) => {
+    if (amount === null || amount === undefined || Number.isNaN(amount)) {
+      return 'N/A';
+    }
+    return `${getCurrencySymbol()}${amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  };
+
   return (
     <div className="min-h-[100dvh] bg-background pb-24">
       <SEOHead 
@@ -387,7 +400,7 @@ export default function CareerDetailPage() {
               <div className="flex flex-wrap gap-4 mt-4 pb-4">
                 <Badge variant="secondary" className="px-4 py-2 text-sm font-medium">
                   <TrendingUp className="w-4 h-4 mr-2 text-emerald-500" />
-                  Avg: {getCurrencySymbol()}{convertSalary(career.averageSalary || career.midSalary || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  Avg: {formatConvertedSalary(avgSalaryConverted)}
                 </Badge>
                 <Badge variant="secondary" className="px-4 py-2 text-sm font-medium">
                   <Briefcase className="w-4 h-4 mr-2 text-blue-500" />
@@ -479,15 +492,15 @@ export default function CareerDetailPage() {
                       <CardContent className="space-y-4">
                         <div className="flex justify-between items-center pb-4 border-b border-border">
                           <span className="text-muted-foreground">Entry Level</span>
-                          <span className="font-semibold">{getCurrencySymbol()}{convertSalary(career.entrySalary || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                          <span className="font-semibold">{formatConvertedSalary(entrySalaryConverted)}</span>
                         </div>
                         <div className="flex justify-between items-center pb-4 border-b border-border">
                           <span className="text-muted-foreground">Mid Level</span>
-                          <span className="font-semibold text-primary">{getCurrencySymbol()}{convertSalary(career.midSalary || career.averageSalary || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                          <span className="font-semibold text-primary">{formatConvertedSalary(avgSalaryConverted)}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">Senior Level</span>
-                          <span className="font-semibold">{getCurrencySymbol()}{convertSalary(career.seniorSalary || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                          <span className="font-semibold">{formatConvertedSalary(seniorSalaryConverted)}</span>
                         </div>
                       </CardContent>
                     </Card>

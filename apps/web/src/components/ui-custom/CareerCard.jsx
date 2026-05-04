@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, DollarSign, TrendingUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getCareerSalaryInfo } from '@/lib/utils/careerSalary.js';
 
 export const CareerCard = ({ career, index = 0 }) => {
   if (!career) {
@@ -46,7 +47,8 @@ export const CareerCard = ({ career, index = 0 }) => {
   const careerDescription = career.description || career.overview || 'Explore this career path';
   
   // Safely extract salary data from various possible structures
-  const avgSalary = career.averageSalary || career.salary?.avg || 0;
+  const salaryInfo = getCareerSalaryInfo(career);
+  const avgSalary = salaryInfo.avg || 0;
   const jobDemand = career.jobDemand || career.jobDemandOutlook || 'Medium';
   const careerSlug = career.slug || '';
 

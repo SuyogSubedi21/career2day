@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getCareerSalaryInfo } from '@/lib/utils/careerSalary.js';
 
 const CATEGORIES = [
   'All', 'Frontend', 'Backend', 'Full Stack', 'Data', 
@@ -71,17 +72,13 @@ export default function CareersListingPage() {
     return <Badge className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-yellow-500/20">Medium Demand</Badge>;
   };
 
-  const formatSalary = (salaryObj) => {
-    if (!salaryObj) return 'Salary data unavailable';
-    try {
-      const data = typeof salaryObj === 'string' ? JSON.parse(salaryObj) : salaryObj;
-      if (data.entry && data.senior) {
-        return `$${(data.entry/1000).toFixed(0)}k - $${(data.senior/1000).toFixed(0)}k`;
-      }
-      return 'Salary data unavailable';
-    } catch (e) {
+  const formatSalary = (career) => {
+    const salaryInfo = getCareerSalaryInfo(career);
+    if (!salaryInfo.hasAverage || salaryInfo.avg === null) {
       return 'Salary data unavailable';
     }
+
+    return `Avg $${(salaryInfo.avg / 1000).toFixed(0)}k`;
   };
 
   return (
@@ -192,7 +189,7 @@ export default function CareersListingPage() {
                     {career.name}
                   </h2>
                   <p className="text-sm font-medium text-muted-foreground">
-                    {formatSalary(career.salaryRange)}
+                    {formatSalary(career)}
                   </p>
                 </div>
                 
