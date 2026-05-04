@@ -844,23 +844,5 @@ migrate((app) => {
     ]
   };
 
-  // Create roadmap records
-  let roadmapsCreated = 0;
-  for (const [careerSlug, phases] of Object.entries(careerRoadmapsData)) {
-    phases.forEach((phase, idx) => {
-      const record = new Record(roadmapCollection);
-      record.set("careerSlug", careerSlug);
-      record.set("phase", idx + 1);
-      record.set("phaseTitle", phase.title);
-      record.set("phaseDescription", phase.description);
-      record.set("phaseNumber", idx + 1);
-      try {
-        app.save(record);
-        roadmapsCreated++;
-      } catch(e) {
-        if (!e.message.includes("unique")) throw e;
-      }
-    });
-  }
-  console.log("Created " + roadmapsCreated + " careerRoadmaps records.");
+  console.log("Roadmap creation skipped - handled by separate migration.");
 });
