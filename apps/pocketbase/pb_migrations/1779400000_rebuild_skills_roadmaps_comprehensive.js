@@ -468,12 +468,64 @@ migrate((app) => {
   };
 
   // Create skills records
+  const allowedCategories = new Set([
+    "Languages",
+    "Frameworks",
+    "Tools",
+    "Concepts",
+    "Databases",
+    "Cloud Platforms",
+    "Security",
+    "DevOps",
+    "AI-ML",
+    "Mobile",
+    "Testing",
+    "Design"
+  ]);
+
+  const categoryMap = {
+    "AI": "AI-ML",
+    "APIs": "Frameworks",
+    "Architecture": "Concepts",
+    "Audio": "Tools",
+    "Backend": "Concepts",
+    "Biology": "Concepts",
+    "Blockchain": "Concepts",
+    "Cloud": "Cloud Platforms",
+    "Containerization": "DevOps",
+    "Data": "Concepts",
+    "Engineering": "Concepts",
+    "Engines": "Frameworks",
+    "Frontend": "Concepts",
+    "Governance": "Security",
+    "Graphics": "Design",
+    "Hardware": "Tools",
+    "Infrastructure": "DevOps",
+    "Knowledge": "Concepts",
+    "Libraries": "Frameworks",
+    "Math": "Concepts",
+    "Methodologies": "Concepts",
+    "Operations": "DevOps",
+    "OS": "Tools",
+    "Physics": "Concepts",
+    "Programming": "Languages",
+    "Robotics": "Concepts",
+    "Skills": "Concepts",
+    "Strategy": "Concepts",
+    "Writing": "Concepts"
+  };
+
+  const normalizeCategory = (category) => {
+    if (allowedCategories.has(category)) return category;
+    return categoryMap[category] || "Concepts";
+  };
+
   let skillsCreated = 0;
   for (const [careerSlug, skills] of Object.entries(careerSkillsData)) {
     for (const skill of skills) {
       const record = new Record(skillsCollection);
       record.set("skillName", skill.name);
-      record.set("category", skill.category);
+      record.set("category", normalizeCategory(skill.category));
       record.set("difficulty", skill.difficulty);
       record.set("description", skill.desc);
       record.set("relatedCareers", [careerSlug]);
