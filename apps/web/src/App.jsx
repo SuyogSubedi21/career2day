@@ -24,6 +24,7 @@ import HomePage from '@/pages/HomePage.jsx';
 import AboutPage from '@/pages/AboutPage.jsx';
 import BlogPage from '@/pages/BlogPage.jsx';
 import BlogArticlePage from '@/pages/BlogArticlePage.jsx';
+import ContactPage from '@/pages/ContactPage.jsx';
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage.jsx';
 import TermsOfServicePage from '@/pages/TermsOfServicePage.jsx';
 import RefundPolicyPage from '@/pages/RefundPolicyPage.jsx';
@@ -132,6 +133,7 @@ export default function App() {
                 {/* Public Routes */}
                 <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
                 <Route path="/about" element={<MainLayout><AboutPage /></MainLayout>} />
+                <Route path="/contact" element={<MainLayout><ContactPage /></MainLayout>} />
                 <Route path="/pricing" element={<MainLayout><PricingPageRedesign /></MainLayout>} />
                 <Route path="/blog" element={<MainLayout><BlogPage /></MainLayout>} />
                 <Route path="/blog/:slug" element={<MainLayout><BlogArticlePage /></MainLayout>} />
