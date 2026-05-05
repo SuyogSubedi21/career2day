@@ -37,10 +37,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    console.log(`[AuthContext] Attempting login for user: ${email}`);
     try {
       const authData = await pb.collection('users').authWithPassword(email, password, { $autoCancel: false });
-      console.log('[AuthContext] Login successful for ID:', authData.record.id);
       // Removed success toast/notification per Task 1 request
       
       try {
@@ -79,8 +77,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (email, password, confirmPassword, name) => {
-    console.log(`[AuthContext] Registering new user: ${email}`);
-    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       return { success: false, error: 'Invalid email format.' };
@@ -104,7 +100,6 @@ export const AuthProvider = ({ children }) => {
         emailVisibility: true
       }, { $autoCancel: false });
       
-      console.log(`[AuthContext] User created successfully. Welcome email triggered via backend hook.`);
       pb.authStore.clear();
 
       return { success: true, user };
@@ -130,7 +125,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    console.log(`[AuthContext] Logging out user`);
     try {
       if (pb.authStore.isValid) {
         await logActivity('logout', window.location.pathname, 'user_logout');
