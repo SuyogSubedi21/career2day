@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead.jsx';
+import BlogInsightCharts from '@/components/blog/BlogInsightCharts.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 import { getCareerBlogArticle, getRelatedCareerBlogArticles } from '@/data/careerBlogArticles.js';
 
@@ -245,6 +246,8 @@ export default function BlogArticlePage() {
               <div className="whitespace-pre-wrap">{article.content}</div>
             )}
           </div>
+
+          <BlogInsightCharts slug={article.slug} />
           
           {/* Tags */}
           {displayTags.length > 0 && (

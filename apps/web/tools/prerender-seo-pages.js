@@ -30,6 +30,75 @@ const stripHtml = (value = '') =>
 const paragraph = (text) => `<p>${escapeHtml(text)}</p>`;
 const list = (items = []) => `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
 
+const blogChartSummaries = {
+  'how-to-follow-a-career-roadmap-without-getting-overwhelmed': {
+    title: 'Weekly roadmap balance',
+    description: 'A practical roadmap works best when learning, building, review, and applications stay connected.',
+    data: [['Learn', 35], ['Build', 30], ['Review', 15], ['Apply', 20]]
+  },
+  'cv-mistakes-that-stop-good-candidates-getting-interviews': {
+    title: 'CV clarity impact',
+    description: 'Recruiter confidence rises when CV claims are tied to tools, outcomes, and readable project proof.',
+    data: [['Generic claims', 28], ['Tool evidence', 58], ['Project proof', 76], ['Outcome bullets', 88]]
+  },
+  'how-to-practice-interview-questions-so-answers-sound-real': {
+    title: 'Interview practice improvement',
+    description: 'Answers usually improve when candidates move from memorizing to project-based practice.',
+    data: [['Session 1', 35], ['Session 2', 48], ['Session 3', 61], ['Session 4', 72], ['Session 5', 84]]
+  },
+  'how-to-become-an-ai-engineer-with-a-job-ready-portfolio': {
+    title: 'AI portfolio evidence mix',
+    description: 'A stronger AI portfolio shows more than notebooks: evaluation, API thinking, and product reliability matter.',
+    data: [['Notebook', 45], ['Evaluation', 70], ['API', 62], ['Monitoring', 54], ['Writeup', 80]]
+  },
+  'frontend-engineer-roadmap-from-html-to-production-ui': {
+    title: 'Frontend readiness ladder',
+    description: 'Frontend readiness grows as fundamentals become usable workflows with quality and polish.',
+    data: [['HTML/CSS', 30], ['JS', 45], ['React', 62], ['APIs', 74], ['Quality', 86]]
+  },
+  'why-quizzes-improve-career-readiness-when-used-correctly': {
+    title: 'Readiness score weighting',
+    description: 'Quiz scores are useful when they are combined with roadmap progress and interview practice.',
+    data: [['Roadmap', 40], ['Quizzes', 35], ['Interview', 25]]
+  },
+  'portfolio-projects-that-make-a-cv-stronger': {
+    title: 'Project strength signals',
+    description: 'Projects become stronger when they show relevance, documentation, deployment, and interview stories.',
+    data: [['Role fit', 82], ['README', 72], ['Screenshots', 58], ['Deployed app', 68], ['CV bullet', 88]]
+  },
+  'ats-keywords-without-making-your-cv-sound-robotic': {
+    title: 'ATS keyword quality',
+    description: 'Keyword value increases when terms are placed inside honest, evidence-based CV bullets.',
+    data: [['Stuffed list', 35], ['Skills', 55], ['Projects', 78], ['Experience', 86]]
+  },
+  'what-job-ready-really-means-for-beginners': {
+    title: 'Beginner readiness pillars',
+    description: 'Job-ready beginners combine fundamentals, proof, communication, and application materials.',
+    data: [['Fundamentals', 30], ['Proof', 30], ['Communication', 20], ['Applications', 20]]
+  },
+  'how-to-prepare-for-your-first-90-days-in-a-tech-role': {
+    title: 'First 90 days focus curve',
+    description: 'The early ramp shifts from learning context to reliable contribution and visible ownership.',
+    data: [['Day 1', 20], ['Day 15', 42], ['Day 30', 58], ['Day 60', 76], ['Day 90', 90]]
+  }
+};
+
+const blogChartContent = (slug) => {
+  const chart = blogChartSummaries[slug];
+  if (!chart) return '';
+
+  return `
+    <h2>${escapeHtml(chart.title)}</h2>
+    ${paragraph(chart.description)}
+    <table>
+      <thead><tr><th>Signal</th><th>Score</th></tr></thead>
+      <tbody>
+        ${chart.data.map(([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}%</td></tr>`).join('')}
+      </tbody>
+    </table>
+  `;
+};
+
 const layout = ({ title, description, canonical, content, schema }) => {
   let html = baseTemplate;
   html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${escapeHtml(title)}</title>`);
@@ -126,6 +195,7 @@ const blogArticleContent = (article) => `
     ${paragraph(article.excerpt)}
     <p><strong>Category:</strong> ${escapeHtml(article.category)} | <strong>Reading time:</strong> ${escapeHtml(article.readingTime)} minutes</p>
     ${article.content}
+    ${blogChartContent(article.slug)}
   </article>
 `;
 
