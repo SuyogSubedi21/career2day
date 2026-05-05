@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import pb from '@/lib/pocketbaseClient.js';
 
 const AdminAuthContext = createContext({
   isAdminLoggedIn: false,
@@ -9,8 +10,18 @@ const AdminAuthContext = createContext({
   logout: () => {}
 });
 
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || '';
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '';
+const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || 'suyogsubedivlogs@gmail.com').toLowerCase();
+
+const isAllowedAdmin = (record) => {
+  if (!record) return false;
+  const email = String(record.email || '').toLowerCase();
+  return (
+    email === ADMIN_EMAIL ||
+    record.role === 'admin' ||
+    record.isAdmin === true ||
+    record.admin === true
+  );
+};
 
 export const useAdminAuth = () => useContext(AdminAuthContext);
 
@@ -21,6 +32,9 @@ export const AdminAuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('admin_session');
+    if (pb.authStore.isValid) {
+      pb.authStore.clear();
+    }
     setIsAdminLoggedIn(false);
     setAdminEmail(null);
   };
@@ -31,8 +45,12 @@ export const AdminAuthProvider = ({ children }) => {
       if (sessionStr) {
         const session = JSON.parse(sessionStr);
         if (session.expiresAt && new Date(session.expiresAt) > new Date()) {
-          setIsAdminLoggedIn(true);
-          setAdminEmail(session.email);
+          if (pb.authStore.isValid && isAllowedAdmin(pb.authStore.model)) {
+            setIsAdminLoggedIn(true);
+            setAdminEmail(session.email);
+          } else {
+            localStorage.removeItem('admin_session');
+          }
         } else {
           localStorage.removeItem('admin_session');
         }
@@ -44,20 +62,24 @@ export const AdminAuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      throw new Error('Admin login is disabled. Configure admin authentication on the server before enabling this panel.');
+    const cleanEmail = email.toLowerCase().trim();
+
+    if (!cleanEmail || !password) {
+      throw new Error('Enter the admin email and password.');
     }
-    if (email.toLowerCase().trim() !== ADMIN_EMAIL) {
-      throw new Error('Access denied: unauthorized email address.');
-    }
-    if (password !== ADMIN_PASSWORD) {
-      throw new Error('Invalid password. Please try again.');
+
+    const authData = await pb.collection('users').authWithPassword(cleanEmail, password, { $autoCancel: false });
+    const user = authData.record;
+
+    if (!isAllowedAdmin(user)) {
+      pb.authStore.clear();
+      throw new Error('Access denied. This user is not allowed to open the admin dashboard.');
     }
 
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    localStorage.setItem('admin_session', JSON.stringify({ email: ADMIN_EMAIL, expiresAt }));
+    localStorage.setItem('admin_session', JSON.stringify({ email: user.email, expiresAt }));
     setIsAdminLoggedIn(true);
-    setAdminEmail(ADMIN_EMAIL);
+    setAdminEmail(user.email);
     return true;
   };
 

@@ -69,10 +69,11 @@ export default function AdminLoginPage() {
               <Input 
                 id="email" 
                 type="email" 
-                className="pl-10 bg-slate-950 border-slate-800 text-slate-400 cursor-not-allowed h-12"
+                className="pl-10 bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 focus-visible:ring-primary focus-visible:border-primary h-12"
                 value={email}
-                readOnly
-                tabIndex={-1}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@example.com"
+                required
               />
             </div>
           </div>
