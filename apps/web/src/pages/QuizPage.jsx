@@ -10,34 +10,16 @@ import { useQuiz } from '@/hooks/useQuiz.js';
 import SEOHead from '@/components/SEOHead.jsx';
 
 export default function QuizPage() {
-  const { careerSlug, difficulty } = useParams();
-  const navigate = useNavigate();
-  const [questions, setQuestions] = useState([]);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const data = getQuizQuestions(careerSlug, difficulty);
-    if (!data || data.length === 0) {
-      setError("No questions found for this configuration.");
-    } else {
-      setQuestions(data);
-    }
-  }, [careerSlug, difficulty]);
-
-  const {
-    currentQuestion,
-    currentIndex,
-    totalQuestions,
-    selectedOption,
-    answers,
-    score,
-    isFinished,
-    selectAnswer,
-    nextQuestion
-  } = useQuiz(questions);
-
-  // Navigate to results when finished
-  useEffect(() => {
+  return (
+    <div className="min-h-[100dvh] bg-background py-16 flex flex-col items-center justify-center">
+      <SEOHead title="Skill Quiz | Career2Day" />
+      <div className="max-w-xl mx-auto text-center py-24">
+        <h1 className="text-4xl font-bold mb-4">Skill Quiz</h1>
+        <p className="text-muted-foreground mb-8 text-lg">Coming Soon</p>
+      </div>
+    </div>
+  );
+}
     if (isFinished && selectedOption) {
       // Small delay before auto-navigation, or rely on Next button
       // To give user control, we'll wait for them to click "View Results"

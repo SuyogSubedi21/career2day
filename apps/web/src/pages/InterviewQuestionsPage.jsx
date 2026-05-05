@@ -11,34 +11,18 @@ import pb from '@/lib/pocketbaseClient.js';
 import { getQuestionsByCareer } from '@/lib/interviewQuestionsData.js';
 
 export default function InterviewQuestionsPage() {
-  const { careerSlug } = useParams();
-  const navigate = useNavigate();
-  
-  const [career, setCareer] = useState(null);
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
-
-  const fetchData = async () => {
-    console.log(`[InterviewQuestionsPage] Fetching data for career slug: ${careerSlug}`);
-    setLoading(true);
-    setError(null);
-    try {
-      let careerRecord = null;
-      try {
-        careerRecord = await pb.collection('careers').getFirstListItem(`slug="${careerSlug}"`, { $autoCancel: false });
-        console.log(`[InterviewQuestionsPage] Fetched career: ${careerRecord.name}`);
-      } catch (careerErr) {
-        console.warn('[InterviewQuestionsPage] Could not fetch career from PocketBase, using slug fallback:', careerErr?.message || careerErr);
-        const fallbackName = String(careerSlug || '')
-          .split('-')
-          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-          .join(' ');
-        careerRecord = { name: fallbackName || 'Career', slug: careerSlug };
-      }
+  return (
+    <div className="min-h-[100dvh] bg-background py-16 flex flex-col items-center justify-center">
+      <Helmet>
+        <title>Interview Questions | Career2Day</title>
+      </Helmet>
+      <div className="max-w-xl mx-auto text-center py-24">
+        <h1 className="text-4xl font-bold mb-4">Interview Questions</h1>
+        <p className="text-muted-foreground mb-8 text-lg">Coming Soon</p>
+      </div>
+    </div>
+  );
+}
       setCareer(careerRecord);
 
       let resolvedQuestions = [];
