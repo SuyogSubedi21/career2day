@@ -1,4 +1,3 @@
-
 import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -34,20 +33,8 @@ import PricingPageRedesign from '@/pages/PricingPageRedesign.jsx';
 import CareersListingPage from '@/pages/CareersListingPage.jsx';
 import CareerDetailPage from '@/pages/CareerDetailPage.jsx';
 
-// Interview Questions
-import InterviewQuestionsListPage from '@/pages/InterviewQuestionsListPage.jsx';
-import InterviewQuestionsPage from '@/pages/InterviewQuestionsPage.jsx';
-
-// Quiz Pages
-import QuizSelectionPage from '@/pages/QuizSelectionPage.jsx';
-import QuizDifficultyPage from '@/pages/QuizDifficultyPage.jsx';
-import QuizPage from '@/pages/QuizPage.jsx';
-import QuizResultsPage from '@/pages/QuizResultsPage.jsx';
-
-import LoginPage from '@/pages/auth/LoginPage.jsx';
-import SignupPage from '@/pages/auth/SignupPage.jsx';
-import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage.jsx';
-import ResetPasswordPage from '@/pages/auth/ResetPasswordPage.jsx';
+// Interview Questions & Quiz Routes (Coming Soon)
+import ComingSoonPage from '@/pages/ComingSoonPage.jsx';
 
 // Admin Pages
 import AdminLoginPage from '@/pages/admin/AdminLoginPage.jsx';
@@ -148,15 +135,13 @@ export default function App() {
                 <Route path="/careers" element={<MainLayout><CareersListingPage /></MainLayout>} />
                 <Route path="/careers/:careerSlug" element={<MainLayout><CareerDetailPage /></MainLayout>} />
                 
-                {/* Interview Questions Routes (Public) */}
-                <Route path="/interview-questions" element={<MainLayout><InterviewQuestionsListPage /></MainLayout>} />
-                <Route path="/interview-questions/:careerSlug" element={<MainLayout><InterviewQuestionsPage /></MainLayout>} />
-                
-                {/* Quiz Routes (Public) */}
-                <Route path="/quiz" element={<MainLayout><QuizSelectionPage /></MainLayout>} />
-                <Route path="/quiz/:careerSlug/difficulty" element={<MainLayout><QuizDifficultyPage /></MainLayout>} />
-                <Route path="/quiz/:careerSlug/:difficulty" element={<MainLayout><QuizPage /></MainLayout>} />
-                <Route path="/quiz/:careerSlug/:difficulty/results" element={<MainLayout><QuizResultsPage /></MainLayout>} />
+                {/* Interview Questions & Quiz Routes (Coming Soon) */}
+                <Route path="/interview-questions" element={<MainLayout><ComingSoonPage /></MainLayout>} />
+                <Route path="/interview-questions/:careerSlug" element={<MainLayout><ComingSoonPage /></MainLayout>} />
+                <Route path="/quiz" element={<MainLayout><ComingSoonPage /></MainLayout>} />
+                <Route path="/quiz/:careerSlug/difficulty" element={<MainLayout><ComingSoonPage /></MainLayout>} />
+                <Route path="/quiz/:careerSlug/:difficulty" element={<MainLayout><ComingSoonPage /></MainLayout>} />
+                <Route path="/quiz/:careerSlug/:difficulty/results" element={<MainLayout><ComingSoonPage /></MainLayout>} />
 
                 {/* CV Template Gallery is public */}
                 <Route path="/cv-templates" element={

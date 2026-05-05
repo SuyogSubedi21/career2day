@@ -5,8 +5,8 @@ migrate((app) => {
   const newProviders = [
     {
         "name": "google",
-        "clientId": "PLACEHOLDER_CLIENT_ID",
-        "clientSecret": "PLACEHOLDER_CLIENT_SECRET",
+        "clientId": "REDACTED_FOR_GITHUB_PUSH",
+        "clientSecret": "REDACTED_FOR_GITHUB_PUSH",
         "authURL": "",
         "tokenURL": "",
         "userInfoURL": "",
