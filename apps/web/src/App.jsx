@@ -124,6 +124,7 @@ export default function App() {
                 {/* Public Auth Routes */}
                 <Route path="/login" element={<MainLayout><LoginPage /></MainLayout>} />
                 <Route path="/signup" element={<MainLayout><SignupPage /></MainLayout>} />
+                <Route path="/register" element={<Navigate to="/signup" replace />} />
                 <Route path="/forgot-password" element={<MainLayout><ForgotPasswordPage /></MainLayout>} />
                 <Route path="/reset-password" element={<MainLayout><ResetPasswordPage /></MainLayout>} />
 

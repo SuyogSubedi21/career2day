@@ -16,11 +16,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/home';
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,6 +41,18 @@ export default function LoginPage() {
         errorMessage = 'Invalid email or password.';
       }
       toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      await loginWithGoogle();
+      navigate(from, { replace: true });
+    } catch {
+      // AuthContext shows the error toast.
     } finally {
       setLoading(false);
     }
@@ -91,9 +103,9 @@ export default function LoginPage() {
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="password" className="font-semibold text-foreground/90">Password</Label>
-              <a href="#" className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors" onClick={(e) => { e.preventDefault(); toast.info("Password reset link sent to your email."); }}>
+              <Link to="/forgot-password" className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
                 Forgot password?
-              </a>
+              </Link>
             </div>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -130,11 +142,21 @@ export default function LoginPage() {
           </Button>
         </form>
 
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs font-semibold uppercase text-muted-foreground">or</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <Button type="button" variant="outline" className="w-full h-12 rounded-xl font-bold" disabled={loading} onClick={handleGoogleLogin}>
+          Continue with Google
+        </Button>
+
         <div className="mt-8 text-center pt-6 border-t border-border/40">
           <p className="text-sm text-muted-foreground font-medium">
             Don't have an account?{' '}
-            <Link to="/register" className="font-bold text-primary hover:text-primary/80 transition-colors">
-              Register here
+            <Link to="/signup" className="font-bold text-primary hover:text-primary/80 transition-colors">
+              Create account
             </Link>
           </p>
         </div>

@@ -18,7 +18,7 @@ export default function SignupPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const { signup } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -46,9 +46,12 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      await signup(email, password, name);
-      toast.success('Account created successfully!');
-      navigate('/home');
+      const result = await register(email, password, confirmPassword, name);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      toast.success('Account created successfully. Please log in to continue.');
+      navigate('/login');
     } catch (error) {
       let errorMessage = 'Failed to create account. Please try again.';
       if (error.response?.data?.email?.code === 'validation_invalid_email') {
@@ -59,6 +62,18 @@ export default function SignupPage() {
         errorMessage = error.message;
       }
       toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    setLoading(true);
+    try {
+      await loginWithGoogle();
+      navigate('/dashboard');
+    } catch {
+      // AuthContext shows the error toast.
     } finally {
       setLoading(false);
     }
@@ -186,6 +201,16 @@ export default function SignupPage() {
             )}
           </Button>
         </form>
+
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs font-semibold uppercase text-muted-foreground">or</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <Button type="button" variant="outline" className="w-full h-11 font-medium" disabled={loading} onClick={handleGoogleSignup}>
+          Continue with Google
+        </Button>
 
         <div className="mt-8 text-center">
           <p className="text-sm text-muted-foreground">
