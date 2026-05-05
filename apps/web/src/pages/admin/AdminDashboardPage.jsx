@@ -5,16 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import pb from '@/lib/pocketbaseClient.js';
-
-const countCollection = async (name, options = {}) => {
-  try {
-    const result = await pb.collection(name).getList(1, 1, { ...options, $autoCancel: false });
-    return result.totalItems || 0;
-  } catch {
-    return 0;
-  }
-};
+import { getAdminSummary } from '@/lib/adminApi.js';
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState({
@@ -35,45 +26,8 @@ export default function AdminDashboardPage() {
   const loadStats = async () => {
     try {
       setLoading(true);
-      const [
-        users,
-        subscriptions,
-        activeSubscriptions,
-        pageViews,
-        userActivity,
-        cvs,
-        careers,
-        skills,
-        interviewQuestions,
-        quizzes,
-        roadmaps
-      ] = await Promise.all([
-        countCollection('users'),
-        countCollection('subscriptions_stripe'),
-        countCollection('subscriptions_stripe', { filter: 'status = "active"' }),
-        countCollection('page_views'),
-        countCollection('user_activity'),
-        countCollection('userCVs'),
-        countCollection('careers'),
-        countCollection('careerSkills'),
-        countCollection('careerInterviewQuestions'),
-        countCollection('careerQuizzes'),
-        countCollection('careerRoadmaps')
-      ]);
-
-      setStats({
-        users,
-        subscriptions,
-        activeSubscriptions,
-        pageViews,
-        userActivity,
-        cvs,
-        careers,
-        skills,
-        interviewQuestions,
-        quizzes,
-        roadmaps
-      });
+      const summary = await getAdminSummary();
+      setStats((prev) => ({ ...prev, ...(summary.counts || {}) }));
     } catch (e) {
       toast.error('Failed to load admin dashboard: ' + e.message);
     } finally {

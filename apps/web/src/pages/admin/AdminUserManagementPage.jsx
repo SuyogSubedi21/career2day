@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import pb from '@/lib/pocketbaseClient.js';
+import { getAdminUsers } from '@/lib/adminApi.js';
 
 export default function AdminUserManagementPage() {
   const [users, setUsers] = useState([]);
@@ -18,10 +18,7 @@ export default function AdminUserManagementPage() {
     try {
       setLoading(true);
       setError(null);
-      const records = await pb.collection('users').getList(1, 100, {
-        sort: '-created',
-        $autoCancel: false
-      });
+      const records = await getAdminUsers();
       setUsers(records.items || []);
       setTotalUsers(records.totalItems || 0);
     } catch (err) {

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import pb from '@/lib/pocketbaseClient.js';
+import { getAdminSubscriptions } from '@/lib/adminApi.js';
 
 const money = (value) => {
   const amount = Number(value || 0);
@@ -30,10 +30,7 @@ export default function AdminSubscriptionsPage() {
     try {
       setLoading(true);
       setError('');
-      const records = await pb.collection('subscriptions_stripe').getList(1, 100, {
-        sort: '-created',
-        $autoCancel: false
-      });
+      const records = await getAdminSubscriptions();
       setSubscriptions(records.items || []);
     } catch (err) {
       setError(err.message || 'Failed to load subscriptions');
