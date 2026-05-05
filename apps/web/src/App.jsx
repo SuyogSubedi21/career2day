@@ -28,6 +28,10 @@ import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage.jsx';
 import TermsOfServicePage from '@/pages/TermsOfServicePage.jsx';
 import RefundPolicyPage from '@/pages/RefundPolicyPage.jsx';
 import PricingPageRedesign from '@/pages/PricingPageRedesign.jsx';
+import LoginPage from '@/pages/LoginPage.jsx';
+import SignupPage from '@/pages/SignupPage.jsx';
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage.jsx';
+import ResetPasswordPage from '@/pages/ResetPasswordPage.jsx';
 
 // Career Pages
 import CareersListingPage from '@/pages/CareersListingPage.jsx';
@@ -48,10 +52,12 @@ import SettingsPage from '@/pages/SettingsPage.jsx';
 import CheckoutPage from '@/pages/CheckoutPage.jsx';
 import DownloadSuccessPage from '@/pages/DownloadSuccessPage.jsx';
 import MyCVsPage from '@/pages/MyCVsPage.jsx';
+import SmartCVBuilderPage from '@/pages/SmartCVBuilderPage.jsx';
+import PlatformInterviewQuestionsPage from '@/pages/PlatformInterviewQuestionsPage.jsx';
+import InterviewQuestionsListPage from '@/pages/InterviewQuestionsListPage.jsx';
 
-// Lazy Load CV Builder pages to optimize initial bundle
+// Lazy Load legacy CV template gallery to optimize initial bundle
 const CVTemplateSelectionPage = React.lazy(() => import('@/pages/CVTemplateSelectionPage.jsx'));
-const CVBuilderPage = React.lazy(() => import('@/pages/CVBuilderPage.jsx'));
 
 import { seedBlogArticles } from '@/lib/BlogArticlesSeeding.js';
 import { seedCareerDataFromGitHub } from '@/lib/seedCareerDataFromGitHub.js';
@@ -134,10 +140,13 @@ export default function App() {
                 {/* Careers Routes */}
                 <Route path="/careers" element={<MainLayout><CareersListingPage /></MainLayout>} />
                 <Route path="/careers/:careerSlug" element={<MainLayout><CareerDetailPage /></MainLayout>} />
+                <Route path="/cv-builder" element={<MainLayout><SmartCVBuilderPage /></MainLayout>} />
+                <Route path="/cv-builder/editor" element={<MainLayout><SmartCVBuilderPage /></MainLayout>} />
+                <Route path="/cv-builder/:templateId" element={<MainLayout><SmartCVBuilderPage /></MainLayout>} />
                 
-                {/* Interview Questions & Quiz Routes (Coming Soon) */}
-                <Route path="/interview-questions" element={<MainLayout><ComingSoonPage /></MainLayout>} />
-                <Route path="/interview-questions/:careerSlug" element={<MainLayout><ComingSoonPage /></MainLayout>} />
+                {/* Interview Questions & Quiz Routes */}
+                <Route path="/interview-questions" element={<MainLayout><InterviewQuestionsListPage /></MainLayout>} />
+                <Route path="/interview-questions/:careerSlug" element={<MainLayout><PlatformInterviewQuestionsPage /></MainLayout>} />
                 <Route path="/quiz" element={<MainLayout><ComingSoonPage /></MainLayout>} />
                 <Route path="/quiz/:careerSlug/difficulty" element={<MainLayout><ComingSoonPage /></MainLayout>} />
                 <Route path="/quiz/:careerSlug/:difficulty" element={<MainLayout><ComingSoonPage /></MainLayout>} />
@@ -160,15 +169,6 @@ export default function App() {
                   <Route path="/my-cvs" element={<MainLayout><MyCVsPage /></MainLayout>} />
                   <Route path="/practice" element={<MainLayout><PracticePage /></MainLayout>} />
                   
-                  {/* CV Builder uses full screen layout */}
-                  <Route path="/cv-builder" element={
-                    <ErrorBoundary>
-                      <Suspense fallback={<FallbackLoader />}>
-                        <CVBuilderPage />
-                      </Suspense>
-                    </ErrorBoundary>
-                  } />
-
                   {/* Checkout */}
                   <Route path="/checkout" element={<MainLayout><CheckoutPage /></MainLayout>} />
                 </Route>

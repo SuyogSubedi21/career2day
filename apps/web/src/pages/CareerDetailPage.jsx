@@ -1,833 +1,575 @@
-
-import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  ArrowLeft, Target, Map as MapIcon, Zap, TrendingUp, 
-  Share2, BookmarkPlus, BookmarkCheck, ChevronRight,
-  Briefcase, BrainCircuit, CheckCircle2, XCircle, RotateCcw, ArrowRight, AlertCircle, RefreshCcw, Lightbulb, UserCheck
-} from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { ArrowRight, CheckCircle2, ChevronRight, FileCheck2, Target, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import SEOHead from '@/components/SEOHead.jsx';
-import pb from '@/lib/pocketbaseClient.js';
-import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useCurrency } from '@/contexts/CurrencyContext.jsx';
-import CareerSkillsSection from '@/components/career/CareerSkillsSection.jsx';
-import CareerRoadmapTimeline from '@/components/career/CareerRoadmapTimeline.jsx';
-import CareerSalaryChart from '@/components/career/CareerSalaryChart.jsx';
-import CareerInsightsSection from '@/components/career/CareerInsightsSection.jsx';
-import { getCareerSalaryInfo } from '@/lib/utils/careerSalary.js';
-import { getCareerBySlug } from '@/data/careerData.js';
+import { allCareerSummaries, calculateReadinessScore, getCareerPlatformBySlug } from '@/data/careerPlatformData.js';
+import { useRetention } from '@/hooks/useRetention.js';
 
-const QUIZ_LEVELS = {
-  Basic: { minutes: 10, labels: ['basic', 'simple'] },
-  Intermediate: { minutes: 12, labels: ['intermediate', 'medium'] },
-  Advanced: { minutes: 15, labels: ['advanced', 'hard'] }
-};
-
-const normalizeDifficulty = (value = '') => {
-  const key = String(value).toLowerCase();
-  if (QUIZ_LEVELS.Basic.labels.includes(key)) return 'Basic';
-  if (QUIZ_LEVELS.Intermediate.labels.includes(key)) return 'Intermediate';
-  if (QUIZ_LEVELS.Advanced.labels.includes(key)) return 'Advanced';
-  return value;
-};
-
-const parseOptions = (options) => {
-  if (Array.isArray(options)) return options;
-  if (typeof options === 'string') {
-    try {
-      const parsed = JSON.parse(options);
-      if (Array.isArray(parsed)) return parsed;
-    } catch {
-      return options.split('|').map(opt => opt.trim()).filter(Boolean);
-    }
-  }
-  return [];
-};
-
-const formatTimer = (seconds) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-};
+const progressKey = (slug) => `career2day-progress-${slug}`;
+const quizKey = (slug) => `career2day-quiz-${slug}`;
+const interviewKey = (slug) => `career2day-interview-${slug}`;
+const projectKey = (slug) => `career2day-project-${slug}`;
 
 export default function CareerDetailPage() {
   const { careerSlug } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { convertSalary, getCurrencySymbol } = useCurrency();
-  
-  const [career, setCareer] = useState(null);
-  const [skills, setSkills] = useState([]);
-  const [roadmaps, setRoadmaps] = useState([]);
-  const [interviewQuestions, setInterviewQuestions] = useState([]);
-  const [quizzes, setQuizzes] = useState([]);
-  
-  const [loading, setLoading] = useState({
-    career: true,
-    skills: true,
-    roadmaps: true,
-    interviewQuestions: true,
-    quizzes: true
+  const career = getCareerPlatformBySlug(careerSlug);
+  const [checkedItems, setCheckedItems] = useLocalState(progressKey(careerSlug), {});
+  const [answers, setAnswers] = useLocalState(quizKey(careerSlug), {});
+  const [practiced, setPracticed] = useLocalState(interviewKey(careerSlug), {});
+  const [projectSubmission, setProjectSubmission] = useLocalState(projectKey(careerSlug), {
+    title: '',
+    url: '',
+    notes: '',
+    fileName: '',
+    selfReview: ''
   });
-  
-  const [errors, setErrors] = useState({
-    career: null,
-    skills: null,
-    roadmaps: null,
-    interviewQuestions: null,
-    quizzes: null
-  });
+  const [quizIndex, setQuizIndex] = useState(0);
+  const [quizDone, setQuizDone] = useState(false);
+  const [activeQuizLevel, setActiveQuizLevel] = useState('beginner');
+  const { retention, badges, completeAction } = useRetention(career);
 
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [activeExamLevel, setActiveExamLevel] = useState(null);
-  const [examQuestions, setExamQuestions] = useState([]);
-  const [examAnswers, setExamAnswers] = useState({});
-  const [examCurrentIndex, setExamCurrentIndex] = useState(0);
-  const [examTimeLeft, setExamTimeLeft] = useState(0);
-  const [examSubmitted, setExamSubmitted] = useState(false);
-  const [autoSubmitted, setAutoSubmitted] = useState(false);
-  const [usingFallbackCareer, setUsingFallbackCareer] = useState(false);
-
-  const queryParams = new URLSearchParams(location.search);
-  const defaultTab = queryParams.get('tab') || 'overview';
-
-  const fetchCareer = async () => {
-    console.log(`[CareerDetailPage] Fetching career info for slug: ${careerSlug}`);
-    setLoading(prev => ({ ...prev, career: true }));
-    setErrors(prev => ({ ...prev, career: null }));
-    try {
-      const record = await pb.collection('careers').getFirstListItem(`slug="${careerSlug}"`, { $autoCancel: false });
-      console.log(`[CareerDetailPage] Successfully fetched career: ${record.name}`);
-      setCareer(record);
-      setUsingFallbackCareer(false);
-      
-      if (pb.authStore.isValid && record.id) {
-        try {
-          await pb.collection('savedCareers').getFirstListItem(`careerPath="${record.id}" && userId="${pb.authStore.model.id}"`, { $autoCancel: false });
-          setIsBookmarked(true);
-        } catch (e) {
-          setIsBookmarked(false);
-        }
-      }
-    } catch (err) {
-      console.error("[CareerDetailPage] Failed to fetch career:", err);
-      try {
-        const fallbackCareer = getCareerBySlug(careerSlug);
-        if (fallbackCareer) {
-          setCareer(fallbackCareer);
-          setUsingFallbackCareer(true);
-          setErrors(prev => ({ ...prev, career: null }));
-          setIsBookmarked(false);
-        } else {
-          setErrors(prev => ({ ...prev, career: "Career profile not found or unavailable." }));
-        }
-      } catch (fallbackError) {
-        console.error("[CareerDetailPage] Failed to load fallback career:", fallbackError);
-        setErrors(prev => ({ ...prev, career: "Career profile not found or unavailable." }));
-      }
-    } finally {
-      setLoading(prev => ({ ...prev, career: false }));
-    }
-  };
-
-  const fetchSkills = async () => {
-    console.log(`[CareerDetailPage] Fetching skills for career slug: ${careerSlug}`);
-    setLoading(prev => ({ ...prev, skills: true }));
-    setErrors(prev => ({ ...prev, skills: null }));
-    try {
-      const records = await pb.collection('careerSkills').getFullList({
-        filter: `relatedCareers~"${careerSlug}"`,
-        $autoCancel: false
-      });
-      console.log(`[CareerDetailPage] Fetched ${records.length} skills for ${careerSlug}`);
-      const seenSkills = new Map();
-      records.forEach(s => {
-        const key = (s.skillName || '').toLowerCase();
-        if (!seenSkills.has(key)) seenSkills.set(key, s);
-      });
-      setSkills(Array.from(seenSkills.values()));
-    } catch (err) {
-      console.error("[CareerDetailPage] Failed to fetch skills:", err?.message || err?.status || err);
-      setErrors(prev => ({ ...prev, skills: `Failed to load skills: ${err?.message || err?.status || 'unknown error'}` }));
-    } finally {
-      setLoading(prev => ({ ...prev, skills: false }));
-    }
-  };
-
-  const fetchRoadmaps = async () => {
-    console.log(`[CareerDetailPage] Fetching roadmaps for career slug: ${careerSlug}`);
-    setLoading(prev => ({ ...prev, roadmaps: true }));
-    setErrors(prev => ({ ...prev, roadmaps: null }));
-    try {
-      const records = await pb.collection('careerRoadmaps').getList(1, 100, {
-        filter: `careerSlug="${careerSlug}"`,
-        sort: 'phase',
-        $autoCancel: false
-      });
-      console.log(`[CareerDetailPage] Fetched ${records.items.length} roadmap phases`);
-      const seenPhases = new Map();
-      (records.items || []).forEach(r => {
-        const key = r.phase ?? r.phaseTitle;
-        if (!seenPhases.has(key)) seenPhases.set(key, r);
-      });
-      const pbRoadmaps = Array.from(seenPhases.values());
-
-      if (pbRoadmaps.length === 0) {
-        // Fall back to local careerData detailedRoadmap
-        const localCareer = getCareerBySlug(careerSlug);
-        const localRoadmap = localCareer?.detailedRoadmap || [];
-        const fallback = localRoadmap.map((r, idx) => ({
-          id: `local-${idx}`,
-          phase: idx + 1,
-          phaseTitle: r.phase,
-          duration: r.months ? `Months ${r.months}` : null,
-          skills: r.topics || [],
-          resources: r.resources || [],
-        }));
-        setRoadmaps(fallback);
-      } else {
-        setRoadmaps(pbRoadmaps);
-      }
-    } catch (err) {
-      console.error("[CareerDetailPage] Failed to fetch roadmaps:", err);
-      // Still try local fallback on error
-      try {
-        const localCareer = getCareerBySlug(careerSlug);
-        const localRoadmap = localCareer?.detailedRoadmap || [];
-        const fallback = localRoadmap.map((r, idx) => ({
-          id: `local-${idx}`,
-          phase: idx + 1,
-          phaseTitle: r.phase,
-          duration: r.months ? `Months ${r.months}` : null,
-          skills: r.topics || [],
-          resources: r.resources || [],
-        }));
-        if (fallback.length > 0) {
-          setRoadmaps(fallback);
-        } else {
-          setErrors(prev => ({ ...prev, roadmaps: "Failed to load roadmap." }));
-        }
-      } catch {
-        setErrors(prev => ({ ...prev, roadmaps: "Failed to load roadmap." }));
-      }
-    } finally {
-      setLoading(prev => ({ ...prev, roadmaps: false }));
-    }
-  };
-
-  const fetchInterviewQuestions = async () => {
-    console.log(`[CareerDetailPage] Fetching interview questions from careerInterviewQuestions for slug: ${careerSlug}`);
-    setLoading(prev => ({ ...prev, interviewQuestions: true }));
-    setErrors(prev => ({ ...prev, interviewQuestions: null }));
-    try {
-      const records = await pb.collection('careerInterviewQuestions').getList(1, 100, {
-        filter: `careerSlug="${careerSlug}"`,
-        sort: 'questionNumber',
-        $autoCancel: false
-      });
-      console.log(`[CareerDetailPage] Fetched ${records.items.length} interview questions`);
-      setInterviewQuestions(records.items || []);
-    } catch (err) {
-      console.error("[CareerDetailPage] Failed to fetch interview questions:", err);
-      setErrors(prev => ({ ...prev, interviewQuestions: "Failed to load interview questions." }));
-    } finally {
-      setLoading(prev => ({ ...prev, interviewQuestions: false }));
-    }
-  };
-
-  const fetchQuizzes = async () => {
-    console.log(`[CareerDetailPage] Fetching quizzes for career slug: ${careerSlug}`);
-    setLoading(prev => ({ ...prev, quizzes: true }));
-    setErrors(prev => ({ ...prev, quizzes: null }));
-    try {
-      const records = await pb.collection('careerQuizzes').getList(1, 100, {
-        filter: `careerSlug="${careerSlug}"`,
-        sort: 'difficulty,questionNumber',
-        $autoCancel: false
-      });
-      console.log(`[CareerDetailPage] Fetched ${records.items.length} quizzes`);
-      setQuizzes(records.items || []);
-    } catch (err) {
-      console.error("[CareerDetailPage] Failed to fetch quizzes:", err);
-      setErrors(prev => ({ ...prev, quizzes: "Failed to load quizzes." }));
-    } finally {
-      setLoading(prev => ({ ...prev, quizzes: false }));
-    }
-  };
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetchCareer();
-    fetchSkills();
-    fetchRoadmaps();
-    fetchInterviewQuestions();
-    fetchQuizzes();
-  }, [careerSlug]);
-
-  useEffect(() => {
-    if (!activeExamLevel || examSubmitted) return;
-    const timer = setInterval(() => {
-      setExamTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setAutoSubmitted(true);
-          setExamSubmitted(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [activeExamLevel, examSubmitted]);
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${career?.name || 'Career'} Profile`,
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.log('Share cancelled');
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success("Link copied to clipboard!");
-    }
-  };
-
-  const toggleBookmark = async () => {
-    if (!pb.authStore.isValid) {
-      toast.error("Please log in to save careers");
-      navigate('/login');
-      return;
-    }
-    
-    if (!career?.id) return;
-    
-    try {
-      if (isBookmarked) {
-        const record = await pb.collection('savedCareers').getFirstListItem(`careerPath="${career.id}" && userId="${pb.authStore.model.id}"`, { $autoCancel: false });
-        await pb.collection('savedCareers').delete(record.id, { $autoCancel: false });
-        setIsBookmarked(false);
-        toast.success("Career removed from saved list");
-      } else {
-        await pb.collection('savedCareers').create({
-          userId: pb.authStore.model.id,
-          careerPath: career.id
-        }, { $autoCancel: false });
-        setIsBookmarked(true);
-        toast.success("Career saved successfully!");
-      }
-    } catch (err) {
-      toast.error("Action failed. Please try again.");
-    }
-  };
-
-  const getQuestionsForLevel = (level) => {
-    return quizzes
-      .filter(q => normalizeDifficulty(q.difficulty) === level)
-      .sort((a, b) => (a.questionNumber || 0) - (b.questionNumber || 0))
-      .slice(0, 10);
-  };
-
-  const startExam = (level) => {
-    const levelQuestions = getQuestionsForLevel(level);
-    if (levelQuestions.length < 10) {
-      toast.error(`${level} level needs at least 10 questions. Currently found ${levelQuestions.length}.`);
-      return;
-    }
-
-    setActiveExamLevel(level);
-    setExamQuestions(levelQuestions);
-    setExamAnswers({});
-    setExamCurrentIndex(0);
-    setExamTimeLeft(QUIZ_LEVELS[level].minutes * 60);
-    setExamSubmitted(false);
-    setAutoSubmitted(false);
-  };
-
-  const resetExam = () => {
-    setActiveExamLevel(null);
-    setExamQuestions([]);
-    setExamAnswers({});
-    setExamCurrentIndex(0);
-    setExamTimeLeft(0);
-    setExamSubmitted(false);
-    setAutoSubmitted(false);
-  };
-
-  const submitExam = (isAuto = false) => {
-    setAutoSubmitted(isAuto);
-    setExamSubmitted(true);
-  };
-
-  const currentQuestion = examQuestions[examCurrentIndex];
-  const answeredCount = Object.keys(examAnswers).length;
-  const correctCount = examQuestions.reduce((acc, q) => {
-    return acc + (examAnswers[q.id] === q.correctAnswer ? 1 : 0);
-  }, 0);
-  const scorePercent = examQuestions.length ? Math.round((correctCount / examQuestions.length) * 100) : 0;
-
-  if (loading.career) {
+  if (!career) {
     return (
-      <div className="min-h-[100dvh] bg-background pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
-        <Skeleton className="h-4 w-64 mb-8" />
-        <Skeleton className="h-64 w-full rounded-2xl" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Skeleton className="h-72 w-full rounded-2xl" />
-          <Skeleton className="h-72 w-full rounded-2xl" />
+      <main className="min-h-screen bg-[#f8fafc] px-4 py-32 dark:bg-[#080b12]">
+        <div className="mx-auto max-w-4xl rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-white/10 dark:bg-white/10">
+          <h1 className="text-3xl font-extrabold">This career is queued for expansion</h1>
+          <p className="mx-auto mt-3 text-slate-600 dark:text-slate-300">AI Engineer and Frontend Engineer are fully complete. The full 50-career catalog is already in the data model.</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {allCareerSummaries.slice(0, 12).map((item) => (
+              <span key={item.slug} className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">{item.name}</span>
+            ))}
+          </div>
+          <Button asChild className="mt-8 rounded-md"><Link to="/careers/ai-engineer">Open AI Engineer</Link></Button>
         </div>
-      </div>
+      </main>
     );
   }
 
-  if (errors.career || !career) {
-    return (
-      <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center p-4 text-center">
-        <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-6">
-          <MapIcon className="w-10 h-10 text-muted-foreground" />
-        </div>
-        <h1 className="text-3xl font-bold mb-4 text-foreground">Career Not Found</h1>
-        <p className="text-muted-foreground mb-8 max-w-md">{errors.career}</p>
-        <div className="flex gap-4">
-          <Button onClick={fetchCareer} variant="outline">Try Again</Button>
-          <Button onClick={() => navigate('/careers')}>Browse Careers</Button>
-        </div>
-      </div>
-    );
-  }
+  const totalChecklist = career.roadmap.reduce((sum, phase) => sum + phase.checklist.length, 0);
+  const completedChecklist = Object.values(checkedItems).filter(Boolean).length;
+  const roadmapCompletion = Math.round((completedChecklist / totalChecklist) * 100);
+  const answeredQuiz = career.quizzes.filter((item) => answers[item.id]);
+  const correctQuiz = answeredQuiz.filter((item) => answers[item.id] === item.correctAnswer);
+  const quizScore = answeredQuiz.length ? Math.round((correctQuiz.length / answeredQuiz.length) * 100) : 0;
+  const interviewCompletion = Math.round((Object.values(practiced).filter(Boolean).length / career.interviewQuestions.length) * 100);
+  const readiness = calculateReadinessScore({ roadmapCompletion, quizScore, interviewCompletion });
+  const totalWeeks = career.roadmap.reduce((sum, phase) => sum + phase.timelineWeeks, 0);
 
-  const salaryInfo = getCareerSalaryInfo(career);
-  const avgSalaryConverted = salaryInfo.avg !== null ? convertSalary(salaryInfo.avg) : null;
-  const entrySalaryConverted = salaryInfo.entry !== null ? convertSalary(salaryInfo.entry) : null;
-  const seniorSalaryConverted = salaryInfo.senior !== null ? convertSalary(salaryInfo.senior) : null;
+  const salaryData = career.analytics.salary.map(([level, salary]) => ({ level, salary }));
+  const quizQuestions = career.quizzes.filter((item) => item.difficulty === activeQuizLevel);
+  const currentQuiz = quizQuestions[quizIndex] || quizQuestions[0];
+  const activeAnswered = quizQuestions.filter((item) => answers[item.id]);
+  const activeCorrect = activeAnswered.filter((item) => answers[item.id] === item.correctAnswer);
+  const activeScore = activeAnswered.length ? Math.round((activeCorrect.length / activeAnswered.length) * 100) : 0;
 
-  const formatConvertedSalary = (amount) => {
-    if (amount === null || amount === undefined || Number.isNaN(amount)) {
-      return 'N/A';
-    }
-    return `${getCurrencySymbol()}${amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  };
+  const faqs = [
+    ['How long does it take to become job-ready?', `This ${career.name} roadmap is structured for about ${totalWeeks} focused weeks.`],
+    ['What tools should I learn?', career.tools.join(', ')],
+    ['What should I build?', career.roadmap.map((phase) => phase.miniProject).join(' ')]
+  ];
+  const capstoneScore = scoreProject(projectSubmission, career);
 
   return (
-    <div className="min-h-[100dvh] bg-background pb-24">
-      <SEOHead 
-        title={`${career.name} Career Path, Salary & Roadmap | Career2Day`}
-        description={career.description || `Comprehensive guide to becoming a ${career.name}. Explore salary ranges, required skills, daily responsibilities, and a complete learning roadmap.`}
+    <main className="min-h-screen bg-[#f8fafc] pb-20 text-slate-950 dark:bg-[#080b12] dark:text-white">
+      <SEOHead
+        title={career.seo?.title || `${career.name} Roadmap, Salary, Interview Questions and CV | Career2Day`}
+        description={career.seo?.description || career.description}
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: `${career.name} Career Roadmap`,
+          description: career.description,
+          mainEntity: (career.faqs || faqs.map(([question, answer]) => ({ question, answer }))).map((faq) => ({
+            '@type': 'Question',
+            name: faq.question,
+            acceptedAnswer: { '@type': 'Answer', text: faq.answer }
+          }))
+        }}
       />
 
-      {usingFallbackCareer && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 px-4 py-3 text-sm">
-            Live server data is temporarily unavailable. Showing local fallback career information.
+      <nav className="border-b border-slate-200 bg-white/90 backdrop-blur dark:border-white/10 dark:bg-[#080b12]/90">
+        <div className="mx-auto flex max-w-7xl items-center px-4 py-3 text-sm text-slate-500 sm:px-6 lg:px-8">
+          <Link to="/" className="hover:text-slate-950 dark:hover:text-white">Home</Link>
+          <ChevronRight className="mx-2 h-4 w-4" />
+          <Link to="/careers" className="hover:text-slate-950 dark:hover:text-white">Careers</Link>
+          <ChevronRight className="mx-2 h-4 w-4" />
+          <span className="font-bold text-slate-950 dark:text-white">{career.name}</span>
+        </div>
+      </nav>
+
+      <div className="sticky top-16 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-white/10 dark:bg-[#080b12]/95">
+        <div className="mx-auto flex max-w-7xl gap-5 overflow-x-auto px-4 py-2 text-sm font-bold sm:px-6 lg:px-8">
+          {[
+            ['Overview', '#overview'],
+            ['Roadmap', '#roadmap'],
+            ['Skills', '#skills'],
+            ['Interview', '#interview'],
+            ['Quiz', '#quiz'],
+            ['Project upload', '#final-project']
+          ].map(([label, href]) => (
+            <a key={href} href={href} className="whitespace-nowrap border-b-2 border-transparent py-2 text-slate-500 transition hover:border-slate-900 hover:text-slate-950 dark:text-slate-300 dark:hover:border-white dark:hover:text-white">
+              {label}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <section className="px-4 py-12 sm:px-6 lg:px-8" id="overview">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_340px]">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">{career.category}</p>
+            <h1 className="mt-2 text-4xl font-extrabold tracking-tight sm:text-6xl">{career.name}</h1>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600 dark:text-slate-300">{career.description}</p>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <InfoCard label="Demand" value={career.demandLevel} />
+              <InfoCard label="Difficulty" value={career.beginnerFriendliness === 'High' ? 'Moderate' : 'Advanced'} />
+              <InfoCard label="Time to job-ready" value={`${totalWeeks} weeks`} />
+              <InfoCard label="Beginner fit" value={career.beginnerFriendliness} />
+              <InfoCard label="Key tools" value={career.tools.slice(0, 3).join(', ')} />
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild className="rounded-md"><Link to="#roadmap">View Roadmap <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+              <Button asChild variant="outline" className="rounded-md"><Link to="#skills">Skills to Learn</Link></Button>
+              <Button asChild variant="outline" className="rounded-md"><Link to={`/interview-questions/${career.slug}`}>Interview Questions</Link></Button>
+              <Button asChild variant="outline" className="rounded-md"><Link to={`/cv-builder?role=${career.slug}`}>Build CV</Link></Button>
+            </div>
+            {(career.responsibilities || career.industries) && (
+              <div className="mt-8 grid gap-4 lg:grid-cols-2">
+                {career.responsibilities && <PlainPanel title="Typical responsibilities" items={career.responsibilities} />}
+                {career.industries && <PlainPanel title="Industries hiring this role" items={career.industries} />}
+              </div>
+            )}
+          </div>
+          <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+            <p className="text-sm font-bold text-slate-500">Readiness score</p>
+            <div className="mt-2 text-5xl font-extrabold">{readiness.score}%</div>
+            <p className="mt-2 font-semibold">{readiness.level}</p>
+            <div className="mt-5 h-2 rounded-full bg-slate-100 dark:bg-white/10"><div className="h-2 rounded-full bg-slate-900 dark:bg-white" style={{ width: `${readiness.score}%` }} /></div>
+            <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+              <MiniMetric label="Roadmap" value={`${roadmapCompletion}%`} />
+              <MiniMetric label="Quiz" value={`${quizScore}%`} />
+              <MiniMetric label="Interview" value={`${interviewCompletion}%`} />
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <Section id="salary" eyebrow="Salary" title="Salary progression">
+        <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={salaryData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="level" tickLine={false} axisLine={false} />
+                <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}k`} />
+                <Tooltip formatter={(value) => `$${value}k`} />
+                <Bar dataKey="salary" fill="#0f172a" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="grid gap-3">
+            {salaryData.slice(0, 3).map((item, index) => <InfoCard key={item.level} label={`${item.level} level`} value={formatSalaryRange(item.salary, index)} />)}
+            <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+              {career.salaryNote || 'Salaries vary by country, company, experience and market conditions. These are estimated global USD ranges.'}
+            </div>
           </div>
         </div>
+      </Section>
+
+      <Section id="skills" eyebrow="Skills and tools" title="Learn these skills in order">
+        <div className="grid gap-5 lg:grid-cols-4">
+          <SkillCategory title="Core skills" items={career.skillsDetailed?.core || career.requiredSkills.map((name) => ({ name, explanation: `Core ${career.name} capability.`, whyItMatters: 'This skill appears repeatedly in job descriptions and interview tasks.' }))} />
+          <SkillCategory title="Technical skills" items={career.skillsDetailed?.technical || []} />
+          <SkillCategory title="Tools" items={career.skillsDetailed?.tools || career.tools.map((name) => ({ name, explanation: `Practical tool used by ${career.name}s.`, whyItMatters: 'Employers expect candidates to show hands-on practice, not only theory.' }))} />
+          <SkillCategory title="Soft skills" items={career.skillsDetailed?.soft || []} />
+        </div>
+      </Section>
+
+      <Section id="roadmap" eyebrow="Roadmap" title="Follow this path in order">
+        <div className="sticky top-20 z-20 mb-5 rounded-lg border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#080b12]/95">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="font-extrabold">Progress: {roadmapCompletion}%</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Weekly goal: {retention.completedActions}/{retention.weeklyGoal}. Continue with the next unchecked roadmap item.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild className="rounded-md"><Link to={`/cv-builder?role=${career.slug}`}>Build CV</Link></Button>
+              <Button asChild variant="outline" className="rounded-md"><Link to={`/interview-questions/${career.slug}`}>Practice Interview</Link></Button>
+              <Button asChild variant="outline" className="rounded-md"><Link to="#quiz">Take Quiz</Link></Button>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {badges.length ? badges.map((badge) => <span key={badge} className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold dark:bg-white/10">{badge}</span>) : <span className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500 dark:bg-white/10">No badges yet</span>}
+          </div>
+        </div>
+        <div className="grid gap-4">
+          {career.roadmap.map((phase, phaseIndex) => {
+            const phaseComplete = phase.checklist.filter((_, itemIndex) => checkedItems[`${phaseIndex}-${itemIndex}`]).length;
+            const percent = Math.round((phaseComplete / phase.checklist.length) * 100);
+            return (
+              <article key={phase.phase} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+                <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+                  <div>
+                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-slate-900 text-sm font-extrabold text-white dark:bg-white dark:text-slate-950">{phaseIndex + 1}</div>
+                    <h3 className="text-2xl font-extrabold">{phase.phase}</h3>
+                    <p className="mt-1 text-sm font-bold text-slate-500">{phase.timelineWeeks} weeks</p>
+                    <div className="mt-4 h-2 rounded-full bg-slate-100 dark:bg-white/10"><div className="h-2 rounded-full bg-slate-900 dark:bg-white" style={{ width: `${percent}%` }} /></div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <DetailedSkillBlock phase={phase} phaseIndex={phaseIndex} career={career} />
+                    <ListBlock title="Tools to practise" items={phase.tools} />
+                    <div className="rounded-lg bg-slate-50 p-4 dark:bg-white/5 md:col-span-2">
+                      <h4 className="font-extrabold">Mini project</h4>
+                      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{phase.miniProject}</p>
+                      <h4 className="mt-4 font-extrabold">Outcome</h4>
+                      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{phase.outcome}</p>
+                      {phase.nextAction && (
+                        <>
+                          <h4 className="mt-4 font-extrabold">Next action</h4>
+                          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{phase.nextAction}</p>
+                        </>
+                      )}
+                    </div>
+                    <div className="grid gap-2 md:col-span-2">
+                      {phase.checklist.map((item, itemIndex) => {
+                        const id = `${phaseIndex}-${itemIndex}`;
+                        return (
+                          <button key={item} type="button" onClick={() => {
+                            setCheckedItems((current) => ({ ...current, [id]: !current[id] }));
+                            if (!checkedItems[id]) completeAction(`Completed ${phase.phase}: ${item}`);
+                          }} className="flex items-center gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-sm font-semibold transition hover:border-slate-500 dark:border-white/10 dark:bg-white/5">
+                            <span className={`flex h-5 w-5 items-center justify-center rounded border ${checkedItems[id] ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-950' : 'border-slate-300'}`}>{checkedItems[id] && <CheckCircle2 className="h-4 w-4" />}</span>
+                            {item}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </Section>
+
+      {career.projects && (
+        <Section id="projects" eyebrow="Portfolio projects" title="Build proof employers can inspect">
+          <div className="grid gap-4 lg:grid-cols-2">
+            {career.projects.map((project) => (
+              <article key={project.title} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+                <h3 className="text-xl font-extrabold">{project.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{project.description}</p>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <ListBlock title="Skills used" items={project.skillsUsed} />
+                  <ListBlock title="Tools used" items={project.toolsUsed} />
+                </div>
+                <Callout title="Why it helps applications" text={project.applicationValue} className="mt-4 bg-slate-50 dark:bg-white/5" />
+              </article>
+            ))}
+          </div>
+        </Section>
       )}
 
-      <div className="border-b border-border bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <Link to="/careers" className="hover:text-foreground transition-colors">Careers</Link>
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <span className="text-foreground font-medium">{career.name}</span>
-        </div>
-      </div>
-
-      <div className="bg-card border-b border-border pt-10 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Button variant="ghost" onClick={() => navigate('/careers')} className="mb-6 -ml-4 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Careers
-          </Button>
-          
-          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-            <div className="max-w-3xl">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground tracking-tight text-balance mb-4">
-                {career.name}
-              </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed text-balance mb-8">
-                {career.description || "In-depth career profile, compensation analytics, and professional roadmap."}
-              </p>
-              
-              <div className="flex flex-wrap gap-4 mt-4 pb-4">
-                <Badge variant="secondary" className="px-4 py-2 text-sm font-medium">
-                  <TrendingUp className="w-4 h-4 mr-2 text-emerald-500" />
-                  Avg: {formatConvertedSalary(avgSalaryConverted)}
-                </Badge>
-                <Badge variant="secondary" className="px-4 py-2 text-sm font-medium">
-                  <Briefcase className="w-4 h-4 mr-2 text-blue-500" />
-                  {career.jobDemand || 'Medium'} Demand
-                </Badge>
-              </div>
+      <Section id="final-project" eyebrow="Final project" title="Build and submit a job-ready capstone">
+        <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+            <h3 className="text-2xl font-extrabold">{career.name} capstone brief</h3>
+            <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+              Build one complete project that combines the roadmap skills, tools, documentation, and interview story. This stays in your browser for now; you can share the URL or exported file with a mentor for manual review.
+            </p>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <Callout title="Project scope" text={career.roadmap[career.roadmap.length - 1].miniProject} />
+              <Callout title="Required evidence" text="README, screenshots or demo, tools used, tradeoffs, known limitations, and one measurable result or learning." />
             </div>
-            
-            <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-3 shrink-0 pt-2">
-              <div className="flex items-center gap-3">
-                <Button onClick={toggleBookmark} variant={isBookmarked ? "secondary" : "outline"} size="icon" className="rounded-full w-12 h-12" aria-label="Save Career">
-                  {isBookmarked ? <BookmarkCheck className="w-5 h-5 text-primary" /> : <BookmarkPlus className="w-5 h-5" />}
-                </Button>
-                <Button onClick={handleShare} variant="outline" size="icon" className="rounded-full w-12 h-12" aria-label="Share Career">
-                  <Share2 className="w-5 h-5" />
-                </Button>
-              </div>
-              <Button asChild className="gap-2 rounded-full w-full sm:w-auto" variant="default">
-                <Link to={`/interview-questions/${career.slug}`}>
-                  <UserCheck className="w-4 h-4" /> Practice Interview
-                </Link>
-              </Button>
+            <div className="mt-5 grid gap-4">
+              <label className="grid gap-2 text-sm font-bold">Project title<Input className="rounded-md" value={projectSubmission.title} onChange={(event) => setProjectSubmission((current) => ({ ...current, title: event.target.value }))} /></label>
+              <label className="grid gap-2 text-sm font-bold">Project URL or portfolio link<Input className="rounded-md" value={projectSubmission.url} onChange={(event) => setProjectSubmission((current) => ({ ...current, url: event.target.value }))} /></label>
+              <label className="grid gap-2 text-sm font-bold">Project notes, tools, decisions, and result<textarea className="min-h-32 rounded-md border border-slate-200 bg-white p-3 text-sm dark:border-white/10 dark:bg-white/10" value={projectSubmission.notes} onChange={(event) => setProjectSubmission((current) => ({ ...current, notes: event.target.value }))} /></label>
+              <label className="grid gap-2 text-sm font-bold">Self-review: what would you improve?<textarea className="min-h-24 rounded-md border border-slate-200 bg-white p-3 text-sm dark:border-white/10 dark:bg-white/10" value={projectSubmission.selfReview} onChange={(event) => setProjectSubmission((current) => ({ ...current, selfReview: event.target.value }))} /></label>
+              <label className="flex cursor-pointer items-center justify-center gap-3 rounded-md border border-dashed border-slate-300 bg-slate-50 p-5 text-sm font-bold text-slate-600 dark:border-white/20 dark:bg-white/5 dark:text-slate-300">
+                <Upload className="h-5 w-5" />
+                {projectSubmission.fileName || 'Attach project brief, screenshot, or PDF locally'}
+                <input type="file" className="hidden" onChange={(event) => setProjectSubmission((current) => ({ ...current, fileName: event.target.files?.[0]?.name || '' }))} />
+              </label>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="w-full justify-start border-b border-border rounded-none bg-transparent h-auto p-0 mb-10 overflow-x-auto hide-scrollbar flex-nowrap">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-4 font-semibold text-base whitespace-nowrap">
-              <Target className="w-4 h-4 mr-2" /> Overview
-            </TabsTrigger>
-            <TabsTrigger value="skills" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-4 font-semibold text-base whitespace-nowrap">
-              <Zap className="w-4 h-4 mr-2" /> Skills
-            </TabsTrigger>
-            <TabsTrigger value="roadmap" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-4 font-semibold text-base whitespace-nowrap">
-              <MapIcon className="w-4 h-4 mr-2" /> Roadmap
-            </TabsTrigger>
-            <TabsTrigger value="interview" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-4 font-semibold text-base whitespace-nowrap text-amber-600 data-[state=active]:text-amber-600 data-[state=active]:border-amber-500">
-              <BrainCircuit className="w-4 h-4 mr-2" /> Interview Prep
-            </TabsTrigger>
-            <TabsTrigger value="quiz" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-4 font-semibold text-base whitespace-nowrap text-violet-600 data-[state=active]:text-violet-600 data-[state=active]:border-violet-500">
-              <CheckCircle2 className="w-4 h-4 mr-2" /> Career Quiz
-            </TabsTrigger>
-          </TabsList>
-
-          <AnimatePresence mode="wait">
-            <div className="min-h-[50vh]">
-              
-              {/* OVERVIEW TAB */}
-              <TabsContent value="overview" className="animate-in fade-in-50 duration-500 m-0">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2 space-y-8">
-                    <Card className="border-border shadow-sm bg-card">
-                      <CardHeader>
-                        <CardTitle className="text-2xl">About this Role</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                          {career.overview || career.description || "No detailed overview available for this career."}
-                        </p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card className="border-border shadow-sm bg-primary/5">
-                      <CardHeader>
-                        <CardTitle className="text-xl flex items-center text-primary">
-                          <UserCheck className="w-5 h-5 mr-2" /> Prepare for the Interview
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground mb-6">
-                          Ready to test your knowledge? We have curated a list of specific interview questions designed for {career.name} roles.
-                        </p>
-                        <Button asChild>
-                          <Link to={`/interview-questions/${career.slug}`}>
-                            View Interview Questions <ArrowRight className="w-4 h-4 ml-2" />
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                  <div className="space-y-6">
-                    <Card className="border-border shadow-sm bg-card">
-                      <CardHeader>
-                        <CardTitle className="text-xl">Salary Expectations</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex justify-between items-center pb-4 border-b border-border">
-                          <span className="text-muted-foreground">Entry Level</span>
-                          <span className="font-semibold">{formatConvertedSalary(entrySalaryConverted)}</span>
-                        </div>
-                        <div className="flex justify-between items-center pb-4 border-b border-border">
-                          <span className="text-muted-foreground">Mid Level</span>
-                          <span className="font-semibold text-primary">{formatConvertedSalary(avgSalaryConverted)}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground">Senior Level</span>
-                          <span className="font-semibold">{formatConvertedSalary(seniorSalaryConverted)}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-                {/* Salary Chart — full width below the two-column layout */}
-                <div className="mt-8">
-                  <CareerSalaryChart career={career} />
-                </div>
-                {/* Market Insights — full width */}
-                <div className="mt-8">
-                  <CareerInsightsSection career={career} />
-                </div>
-              </TabsContent>
-
-              {/* SKILLS TAB */}
-              <TabsContent value="skills" className="animate-in fade-in-50 duration-500 m-0">
-                <div className="mb-8">
-                  <h2 className="text-3xl font-bold text-foreground mb-3">Required Proficiencies</h2>
-                  <p className="text-lg text-muted-foreground">Technical abilities, soft skills, and credentials employers look for.</p>
-                </div>
-                <CareerSkillsSection skills={skills} loading={loading.skills} error={errors.skills} />
-              </TabsContent>
-
-              {/* ROADMAP TAB */}
-              <TabsContent value="roadmap" className="animate-in fade-in-50 duration-500 m-0">
-                <div className="mb-8 max-w-3xl">
-                  <h2 className="text-3xl font-bold text-foreground mb-3">Career Progression Roadmap</h2>
-                  <p className="text-lg text-muted-foreground">Your step-by-step guide to advancing from foundational learning to professional mastery.</p>
-                </div>
-                <CareerRoadmapTimeline roadmaps={roadmaps} loading={loading.roadmaps} error={errors.roadmaps} />
-              </TabsContent>
-
-              {/* INTERVIEW QUESTIONS TAB */}
-              <TabsContent value="interview" className="animate-in fade-in-50 duration-500 m-0">
-                <div className="mb-8">
-                  <h2 className="text-3xl font-bold text-foreground mb-3">Interview Questions</h2>
-                  <p className="text-lg text-muted-foreground">Practice with {interviewQuestions.length} specific questions curated for {career.name}.</p>
-                </div>
-                
-                {loading.interviewQuestions ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
-                  </div>
-                ) : errors.interviewQuestions ? (
-                  <ErrorState message={errors.interviewQuestions} onRetry={fetchInterviewQuestions} />
-                ) : interviewQuestions.length === 0 ? (
-                  <EmptyState icon={BrainCircuit} title="No interview questions available" message="We are currently building the interview question database for this career." />
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {interviewQuestions.slice(0, 6).map((q, idx) => (
-                        <Card key={q.id} className="bg-card border border-border shadow-sm hover:shadow-md transition-shadow hover:border-primary/50 cursor-pointer">
-                          <CardContent className="p-5">
-                            <div className="flex items-start justify-between gap-3 mb-3">
-                              <Badge variant="outline" className="text-xs font-semibold bg-amber-500/10 text-amber-700 border-amber-200">Q{idx + 1}</Badge>
-                              {q.difficulty && (
-                                <Badge variant="secondary" className="text-xs font-medium">
-                                  {q.difficulty}
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm font-semibold text-foreground line-clamp-3">{q.question}</p>
-                            {q.category && (
-                              <p className="text-xs text-muted-foreground mt-3">📂 {q.category}</p>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    <Button asChild className="w-full mt-6 h-12 text-base font-semibold rounded-xl bg-amber-600 hover:bg-amber-700 text-white gap-2">
-                      <Link to={`/interview-questions/${careerSlug}`}>
-                        <BrainCircuit className="w-4 h-4" />
-                        Start Full Practice Session ({interviewQuestions.length} questions)
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
-
-              {/* QUIZ TAB */}
-              <TabsContent value="quiz" className="animate-in fade-in-50 duration-500 m-0">
-                <div className="mb-8">
-                  <h2 className="text-3xl font-bold text-foreground mb-3">Career Knowledge Quiz</h2>
-                  <p className="text-lg text-muted-foreground">Exam mode: 3 levels, 10 questions each, timed sessions, and instant scoring.</p>
-                </div>
-                
-                {loading.quizzes ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
-                  </div>
-                ) : errors.quizzes ? (
-                  <ErrorState message={errors.quizzes} onRetry={fetchQuizzes} />
-                ) : quizzes.length === 0 ? (
-                  <EmptyState icon={CheckCircle2} title="No quizzes available yet" message="Quiz questions for this career are coming soon." />
-                ) : activeExamLevel && !examSubmitted ? (
-                  <div className="space-y-6">
-                    <Card className="border border-border/50 bg-card">
-                      <CardContent className="p-5">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                          <div>
-                            <p className="text-sm text-muted-foreground">{activeExamLevel} Exam</p>
-                            <h3 className="text-xl font-bold">Question {examCurrentIndex + 1} of {examQuestions.length}</h3>
-                          </div>
-                          <div className={`text-lg font-bold ${examTimeLeft <= 60 ? 'text-red-600' : 'text-primary'}`}>
-                            Time Left: {formatTimer(examTimeLeft)}
-                          </div>
-                        </div>
-                        <div className="w-full h-2 rounded-full bg-muted mt-4">
-                          <div
-                            className="h-2 rounded-full bg-primary transition-all"
-                            style={{ width: `${((examCurrentIndex + 1) / examQuestions.length) * 100}%` }}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {currentQuestion && (
-                      <Card className="border border-border/50 bg-card">
-                        <CardContent className="p-6">
-                          <Badge variant="outline" className="mb-4">Q{currentQuestion.questionNumber || examCurrentIndex + 1}</Badge>
-                          <h4 className="text-xl font-semibold mb-6">{currentQuestion.question}</h4>
-                          <div className="space-y-3">
-                            {parseOptions(currentQuestion.options).map((opt, idx) => {
-                              const isSelected = examAnswers[currentQuestion.id] === opt;
-                              return (
-                                <button
-                                  key={`${currentQuestion.id}-${idx}`}
-                                  type="button"
-                                  onClick={() => setExamAnswers(prev => ({ ...prev, [currentQuestion.id]: opt }))}
-                                  className={`w-full text-left p-4 rounded-xl border transition-all ${isSelected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}
-                                >
-                                  <span className="font-semibold mr-2">{String.fromCharCode(65 + idx)}.</span> {opt}
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                            <Button
-                              variant="outline"
-                              disabled={examCurrentIndex === 0}
-                              onClick={() => setExamCurrentIndex(prev => Math.max(0, prev - 1))}
-                            >
-                              Previous
-                            </Button>
-                            {examCurrentIndex < examQuestions.length - 1 ? (
-                              <Button onClick={() => setExamCurrentIndex(prev => Math.min(examQuestions.length - 1, prev + 1))}>
-                                Next Question
-                              </Button>
-                            ) : (
-                              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => submitExam(false)}>
-                                Submit Exam
-                              </Button>
-                            )}
-                            <Button variant="ghost" className="sm:ml-auto" onClick={resetExam}>
-                              Exit Exam
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                ) : activeExamLevel && examSubmitted ? (
-                  <Card className="border border-border/50 bg-card">
-                    <CardContent className="p-8 space-y-6">
-                      <div className="text-center">
-                        <h3 className="text-3xl font-bold mb-2">{activeExamLevel} Exam Result</h3>
-                        <p className="text-muted-foreground">{autoSubmitted ? 'Time is up. Your exam was auto-submitted.' : 'Exam submitted successfully.'}</p>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="rounded-xl border border-border p-4 text-center">
-                          <p className="text-sm text-muted-foreground">Score</p>
-                          <p className="text-2xl font-bold">{scorePercent}%</p>
-                        </div>
-                        <div className="rounded-xl border border-border p-4 text-center">
-                          <p className="text-sm text-muted-foreground">Correct</p>
-                          <p className="text-2xl font-bold text-emerald-600">{correctCount}/10</p>
-                        </div>
-                        <div className="rounded-xl border border-border p-4 text-center">
-                          <p className="text-sm text-muted-foreground">Answered</p>
-                          <p className="text-2xl font-bold">{answeredCount}/10</p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <Button onClick={() => startExam(activeExamLevel)} className="bg-primary">
-                          <RotateCcw className="w-4 h-4 mr-2" /> Retake {activeExamLevel}
-                        </Button>
-                        <Button variant="outline" onClick={resetExam}>Choose Another Level</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="space-y-6">
-                    {['Basic', 'Intermediate', 'Advanced'].map(difficulty => {
-                      const diffQuizzes = getQuestionsForLevel(difficulty);
-                      if (diffQuizzes.length === 0) return null;
-                      
-                      const difficultyColor = difficulty === 'Basic' ? 'text-green-600' : difficulty === 'Intermediate' ? 'text-amber-600' : 'text-red-600';
-                      const difficultyBg = difficulty === 'Basic' ? 'bg-green-50 dark:bg-green-950' : difficulty === 'Intermediate' ? 'bg-amber-50 dark:bg-amber-950' : 'bg-red-50 dark:bg-red-950';
-                      
-                      return (
-                        <div key={difficulty} className={`${difficultyBg} rounded-2xl p-6 border border-border/50`}>
-                          <h3 className={`text-xl font-bold mb-4 flex items-center gap-2 ${difficultyColor}`}>
-                            {difficulty === 'Basic' ? '🟢' : difficulty === 'Intermediate' ? '🟡' : '🔴'} {difficulty} Level Exam
-                          </h3>
-                          <p className="text-sm text-muted-foreground mb-4">10 questions • {QUIZ_LEVELS[difficulty].minutes} minutes • auto-submit on timeout</p>
-                          
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                            {diffQuizzes.slice(0, 2).map((q, idx) => (
-                              <Card key={q.id} className="bg-card border border-border/50 shadow-sm">
-                                <CardContent className="p-4">
-                                  <div className="flex items-start justify-between gap-3 mb-2">
-                                    <Badge variant="outline" className="text-xs font-semibold">Q{q.questionNumber}</Badge>
-                                  </div>
-                                  <p className="text-sm font-semibold text-foreground line-clamp-2 mb-2">{q.question}</p>
-                                  <div className="space-y-1">
-                                    {parseOptions(q.options).slice(0, 2).map((opt, idx) => (
-                                      <p key={idx} className="text-xs text-muted-foreground">• {opt}</p>
-                                    ))}
-                                    {parseOptions(q.options).length > 2 && <p className="text-xs text-muted-foreground">• +{parseOptions(q.options).length - 2} more</p>}
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                          
-                          <Button onClick={() => startExam(difficulty)} className={`w-full font-semibold gap-2 ${difficulty === 'Basic' ? 'bg-green-600 hover:bg-green-700' : difficulty === 'Intermediate' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-red-600 hover:bg-red-700'} text-white`}>
-                            <CheckCircle2 className="w-4 h-4" />
-                            Start {difficulty} Exam (10 Questions)
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </TabsContent>
+          <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+            <div className="flex items-center gap-3">
+              <FileCheck2 className="h-8 w-8 text-slate-700 dark:text-slate-200" />
+              <div>
+                <p className="text-sm font-bold text-slate-500">Autonomous project rating</p>
+                <div className="text-4xl font-extrabold">{capstoneScore.score}%</div>
+              </div>
             </div>
-          </AnimatePresence>
-        </Tabs>
+            <div className="mt-5 h-2 rounded-full bg-slate-100 dark:bg-white/10"><div className="h-2 rounded-full bg-slate-900 dark:bg-white" style={{ width: `${capstoneScore.score}%` }} /></div>
+            <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{capstoneScore.feedback}</p>
+            <div className="mt-5 grid gap-2">
+              {capstoneScore.rubric.map((item) => (
+                <div key={item.label} className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-sm dark:bg-white/5">
+                  <span>{item.label}</span>
+                  <span className="font-extrabold">{item.points}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-5 rounded-md bg-slate-50 p-3 text-xs font-semibold text-slate-500 dark:bg-white/5">
+              Manual mentor rating can be added later with a backend review queue. This version gives private local feedback only.
+            </p>
+          </aside>
+        </div>
+      </Section>
+
+      <Section id="interview" eyebrow="Interview practice" title={`Open all 100 ${career.name} interview questions`}>
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/10">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
+                Interview practice opens on a dedicated page so the career roadmap stays clean. The interview page includes search, difficulty and topic filters, collapsible answers, common mistakes, practical examples, and local progress tracking.
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <MiniMetric label="Beginner" value={career.interviewQuestions.filter((item) => item.difficulty === 'beginner').length} />
+                <MiniMetric label="Intermediate" value={career.interviewQuestions.filter((item) => item.difficulty === 'intermediate').length} />
+                <MiniMetric label="Advanced" value={career.interviewQuestions.filter((item) => item.difficulty === 'advanced').length} />
+              </div>
+            </div>
+            <Button asChild className="rounded-md">
+              <Link to={`/interview-questions/${career.slug}`}>Open interview questions <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            </Button>
+          </div>
+        </div>
+      </Section>
+
+      <Section id="quiz" eyebrow="Quiz" title="Test your readiness">
+        <div className="mb-5 flex flex-wrap gap-2">
+          {['beginner', 'intermediate', 'advanced'].map((level) => (
+            <Button key={level} variant={activeQuizLevel === level ? 'default' : 'outline'} className="rounded-md capitalize" onClick={() => {
+              setActiveQuizLevel(level);
+              setQuizIndex(0);
+              setQuizDone(false);
+            }}>{level}</Button>
+          ))}
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/10">
+          {quizDone ? (
+            <div className="py-8 text-center">
+              <h3 className="text-3xl font-extrabold">Quiz complete</h3>
+              <p className="mt-3 text-slate-600 dark:text-slate-300">Score: {activeScore}% ({activeCorrect.length}/{quizQuestions.length})</p>
+              <Button className="mt-6 rounded-md" onClick={() => {
+                setQuizDone(false);
+                setQuizIndex(0);
+              }}>Retry</Button>
+            </div>
+          ) : currentQuiz && (
+            <>
+              <div className="mb-5 flex justify-between text-sm font-bold text-slate-500">
+                <span>Question {quizIndex + 1} of {quizQuestions.length}</span>
+                <span className="capitalize">{activeQuizLevel}</span>
+              </div>
+              <div className="mb-6 h-2 rounded-full bg-slate-100 dark:bg-white/10"><div className="h-2 rounded-full bg-slate-900 dark:bg-white" style={{ width: `${((quizIndex + 1) / quizQuestions.length) * 100}%` }} /></div>
+              <h3 className="text-2xl font-extrabold">{currentQuiz.question}</h3>
+              <div className="mt-6 grid gap-3">
+                {currentQuiz.options.map((option) => {
+                  const selected = answers[currentQuiz.id] === option;
+                  const correct = option === currentQuiz.correctAnswer;
+                  return (
+                    <button key={option} type="button" className={`rounded-md border p-4 text-left text-sm font-semibold transition ${selected ? 'border-slate-900 bg-slate-50 dark:border-white dark:bg-white/10' : 'border-slate-200 bg-white hover:border-slate-500 dark:border-white/10 dark:bg-white/5'} ${selected && correct ? 'border-emerald-700' : ''}`} onClick={() => setAnswers((current) => ({ ...current, [currentQuiz.id]: option }))}>{option}</button>
+                  );
+                })}
+              </div>
+              {answers[currentQuiz.id] && <Callout title={answers[currentQuiz.id] === currentQuiz.correctAnswer ? 'Correct' : `Correct answer: ${currentQuiz.correctAnswer}`} text={currentQuiz.explanation} className="mt-5" />}
+              <div className="mt-6 flex justify-between">
+                <Button variant="outline" className="rounded-md" disabled={quizIndex === 0} onClick={() => setQuizIndex((value) => Math.max(0, value - 1))}>Previous</Button>
+                {quizIndex === quizQuestions.length - 1 ? <Button className="rounded-md" onClick={() => setQuizDone(true)}>Finish quiz</Button> : <Button className="rounded-md" onClick={() => setQuizIndex((value) => Math.min(quizQuestions.length - 1, value + 1))}>Next</Button>}
+              </div>
+            </>
+          )}
+        </div>
+      </Section>
+
+      {(career.faqs || faqs.length > 0) && (
+        <Section id="faqs" eyebrow="FAQs" title={`${career.name} career questions`}>
+          <div className="grid gap-3">
+            {(career.faqs || faqs.map(([question, answer]) => ({ question, answer }))).map((faq) => (
+              <article key={faq.question} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+                <h3 className="font-extrabold">{faq.question}</h3>
+                <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">{faq.answer}</p>
+              </article>
+            ))}
+          </div>
+        </Section>
+      )}
+    </main>
+  );
+}
+
+function Section({ id, eyebrow, title, children }) {
+  return (
+    <section id={id} className="px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <p className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">{eyebrow}</p>
+        <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h2>
+        <div className="mt-6">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+function InfoCard({ label, value }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/10">
+      <div className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</div>
+      <div className="mt-2 text-sm font-extrabold leading-5">{value}</div>
+    </div>
+  );
+}
+
+function MiniMetric({ label, value }) {
+  return (
+    <div className="rounded-md bg-slate-50 p-3 dark:bg-white/5">
+      <div className="font-extrabold">{value}</div>
+      <div className="text-[11px] font-bold uppercase text-slate-500">{label}</div>
+    </div>
+  );
+}
+
+function ListBlock({ title, items }) {
+  return (
+    <div className="rounded-lg bg-slate-50 p-4 dark:bg-white/5">
+      <h4 className="font-extrabold">{title}</h4>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {items.map((item) => <span key={item} className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-slate-700 dark:bg-white/10 dark:text-slate-200">{item}</span>)}
       </div>
     </div>
   );
 }
 
-function ErrorState({ message, onRetry }) {
+function SkillCategory({ title, items }) {
   return (
-    <div className="text-center py-12 bg-destructive/5 rounded-2xl border border-destructive/20">
-      <AlertCircle className="w-10 h-10 text-destructive mx-auto mb-4" />
-      <h3 className="text-lg font-bold text-foreground mb-2">Failed to load content</h3>
-      <p className="text-muted-foreground mb-6">{message}</p>
-      <Button onClick={onRetry} variant="outline" className="gap-2">
-        <RefreshCcw className="w-4 h-4" /> Try Again
-      </Button>
+    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+      <h3 className="text-xl font-extrabold">{title}</h3>
+      <div className="mt-4 grid gap-3">
+        {items.map((item) => (
+          <div key={item.name} className="rounded-md bg-slate-50 p-3 dark:bg-white/5">
+            <p className="font-extrabold">{item.name}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{item.explanation}</p>
+            <p className="mt-2 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">{item.whyItMatters}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-function EmptyState({ icon: Icon, title, message }) {
+function PlainPanel({ title, items }) {
   return (
-    <div className="text-center py-16 bg-card rounded-2xl border border-border shadow-sm">
-      <Icon className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-      <h3 className="text-xl font-bold text-foreground mb-2">{title}</h3>
-      <p className="text-muted-foreground">{message}</p>
+    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+      <h2 className="font-extrabold">{title}</h2>
+      <ul className="mt-3 grid gap-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+        {items.map((item) => <li key={item}>- {item}</li>)}
+      </ul>
     </div>
   );
+}
+
+function formatSalaryRange(value, index) {
+  const spreads = [
+    [0, 15],
+    [-10, 15],
+    [-15, 20]
+  ];
+  const [low, high] = spreads[index] || [-10, 15];
+  return `$${Math.max(25, value + low)}k-$${value + high}k`;
+}
+
+function DetailedSkillBlock({ phase, phaseIndex, career }) {
+  const levelCopy = [
+    'Foundation skills you must understand before moving into tools and workflows.',
+    'Working skills that connect concepts into usable professional output.',
+    'Production skills that improve quality, reliability, scale, and decision making.',
+    'Job-ready skills that turn your work into portfolio proof, interview stories, and applications.'
+  ];
+
+  return (
+    <div className="rounded-lg bg-slate-50 p-4 dark:bg-white/5">
+      <h4 className="font-extrabold">Skills to master</h4>
+      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{levelCopy[phaseIndex]}</p>
+      <div className="mt-4 grid gap-3">
+        {phase.topics.map((skill, index) => (
+          <div key={skill} className="rounded-md border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-extrabold">{skill}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                  Learn the concept, practise it with {phase.tools[index % phase.tools.length]}, then explain how it affects real {career.name} work.
+                </p>
+              </div>
+              <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">Level {phaseIndex + 1}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Callout({ title, text, className = '' }) {
+  return (
+    <div className={`rounded-md bg-white p-4 text-sm shadow-sm dark:bg-white/10 ${className}`}>
+      <h4 className="mb-2 flex items-center gap-2 font-extrabold"><Target className="h-4 w-4" /> {title}</h4>
+      <p className="leading-6 text-slate-600 dark:text-slate-300">{text}</p>
+    </div>
+  );
+}
+
+function scoreProject(submission, career) {
+  const notes = `${submission.notes} ${submission.selfReview}`.toLowerCase();
+  const hasTitle = submission.title.trim().length > 4;
+  const hasUrl = /^https?:\/\//.test(submission.url.trim()) || submission.url.includes('.');
+  const hasFile = Boolean(submission.fileName);
+  const hasDepth = submission.notes.trim().length > 180;
+  const hasReflection = submission.selfReview.trim().length > 80;
+  const mentionsTools = career.tools.some((tool) => notes.includes(tool.toLowerCase().split(' ')[0]));
+  const mentionsOutcome = ['result', 'improved', 'measured', 'metric', 'outcome', 'learned'].some((word) => notes.includes(word));
+  const mentionsTradeoff = ['tradeoff', 'limitation', 'challenge', 'improve', 'risk'].some((word) => notes.includes(word));
+
+  const rubric = [
+    { label: 'Clear title', points: hasTitle ? 10 : 0 },
+    { label: 'Project link', points: hasUrl ? 15 : 0 },
+    { label: 'Attachment', points: hasFile ? 10 : 0 },
+    { label: 'Detailed notes', points: hasDepth ? 20 : 0 },
+    { label: 'Tools mentioned', points: mentionsTools ? 15 : 0 },
+    { label: 'Outcome evidence', points: mentionsOutcome ? 15 : 0 },
+    { label: 'Reflection', points: hasReflection && mentionsTradeoff ? 15 : hasReflection ? 8 : 0 }
+  ];
+  const score = rubric.reduce((sum, item) => sum + item.points, 0);
+
+  let feedback = 'Add a title, link, detailed notes, and reflection to receive a meaningful project rating.';
+  if (score >= 85) feedback = 'Strong capstone. It includes proof, tools, outcome evidence, and reflection. This is close to portfolio-ready.';
+  else if (score >= 65) feedback = 'Good progress. Add more measurable outcomes, tradeoffs, or documentation to make it recruiter-ready.';
+  else if (score >= 40) feedback = 'Early draft. The idea is visible, but the submission needs clearer evidence, tools, and reflection.';
+
+  return { score, feedback, rubric };
+}
+
+function useLocalState(key, initialValue) {
+  const [value, setValue] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
+
+  const setPersistedValue = (nextValue) => {
+    setValue((currentValue) => {
+      const resolved = typeof nextValue === 'function' ? nextValue(currentValue) : nextValue;
+      window.localStorage.setItem(key, JSON.stringify(resolved));
+      return resolved;
+    });
+  };
+
+  return [value, setPersistedValue];
 }

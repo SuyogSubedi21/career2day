@@ -9,9 +9,8 @@ const AdminAuthContext = createContext({
   logout: () => {}
 });
 
-// Only this email + password can access the admin panel
-const ADMIN_EMAIL = 'suyogsubedivlogs@gmail.com';
-const ADMIN_PASSWORD = 'Admin1234!';
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '';
 
 export const useAdminAuth = () => useContext(AdminAuthContext);
 
@@ -45,6 +44,9 @@ export const AdminAuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+      throw new Error('Admin login is disabled. Configure admin authentication on the server before enabling this panel.');
+    }
     if (email.toLowerCase().trim() !== ADMIN_EMAIL) {
       throw new Error('Access denied: unauthorized email address.');
     }
@@ -65,4 +67,3 @@ export const AdminAuthProvider = ({ children }) => {
     </AdminAuthContext.Provider>
   );
 };
-

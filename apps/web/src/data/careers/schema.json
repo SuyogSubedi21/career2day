@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://career2day.com/schemas/career-content.schema.json",
+  "title": "Career2Day Career Content",
+  "type": "object",
+  "required": ["slug", "name", "overview", "skills", "salary", "roadmap", "projects", "interviewQuestions", "quizQuestions", "faqs", "seo"],
+  "properties": {
+    "slug": { "type": "string", "examples": ["data-analyst"] },
+    "name": { "type": "string", "examples": ["Data Analyst"] },
+    "overview": {
+      "type": "object",
+      "required": ["description", "demandLevel", "difficultyLevel", "beginnerFriendliness", "estimatedTimeToJobReady", "responsibilities", "industries"],
+      "properties": {
+        "description": { "type": "string" },
+        "demandLevel": { "type": "string" },
+        "difficultyLevel": { "type": "string" },
+        "beginnerFriendliness": { "type": "string" },
+        "estimatedTimeToJobReady": { "type": "string" },
+        "responsibilities": { "type": "array", "items": { "type": "string" } },
+        "industries": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "skills": {
+      "type": "object",
+      "required": ["core", "technical", "tools", "soft"],
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["name", "explanation", "whyItMatters"],
+          "properties": {
+            "name": { "type": "string" },
+            "explanation": { "type": "string" },
+            "whyItMatters": { "type": "string" }
+          }
+        }
+      }
+    },
+    "salary": {
+      "type": "object",
+      "required": ["currency", "note", "ranges"],
+      "properties": {
+        "currency": { "type": "string", "const": "USD" },
+        "note": { "type": "string" },
+        "ranges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["level", "low", "high"],
+            "properties": {
+              "level": { "type": "string" },
+              "low": { "type": "number" },
+              "high": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "roadmap": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["phase", "timelineWeeks", "topics", "tools", "checklist", "miniProject", "expectedOutcome", "nextAction"],
+        "properties": {
+          "phase": { "enum": ["Beginner", "Intermediate", "Advanced", "Job-ready"] },
+          "timelineWeeks": { "type": "number" },
+          "topics": { "type": "array", "items": { "type": "string" } },
+          "tools": { "type": "array", "items": { "type": "string" } },
+          "checklist": { "type": "array", "items": { "type": "string" } },
+          "miniProject": { "type": "string" },
+          "expectedOutcome": { "type": "string" },
+          "nextAction": { "type": "string" }
+        }
+      }
+    },
+    "projects": { "type": "array" },
+    "interviewQuestions": { "type": "array", "minItems": 100, "maxItems": 100 },
+    "quizQuestions": { "type": "array", "minItems": 30, "maxItems": 30 },
+    "faqs": { "type": "array" },
+    "seo": { "type": "object" }
+  }
+}

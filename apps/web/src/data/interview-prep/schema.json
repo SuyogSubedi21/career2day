@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Career2Day Interview Prep Role Content",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "careerSlug",
+    "role",
+    "totalQuestions",
+    "distribution",
+    "questions"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "careerSlug": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "totalQuestions": {
+      "const": 100
+    },
+    "distribution": {
+      "type": "object",
+      "required": [
+        "beginner",
+        "intermediate",
+        "advanced"
+      ],
+      "properties": {
+        "beginner": {
+          "const": 30
+        },
+        "intermediate": {
+          "const": 40
+        },
+        "advanced": {
+          "const": 30
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 100,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "careerSlug",
+          "questionNumber",
+          "question",
+          "shortAnswer",
+          "detailedAnswer",
+          "difficulty",
+          "topic",
+          "relatedSkill",
+          "quizOptions",
+          "correctAnswer",
+          "explanation"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "careerSlug": {
+            "type": "string"
+          },
+          "questionNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "question": {
+            "type": "string"
+          },
+          "shortAnswer": {
+            "type": "string"
+          },
+          "detailedAnswer": {
+            "type": "string"
+          },
+          "difficulty": {
+            "enum": [
+              "beginner",
+              "intermediate",
+              "advanced"
+            ]
+          },
+          "topic": {
+            "type": "string"
+          },
+          "relatedSkill": {
+            "type": "string"
+          },
+          "quizOptions": {
+            "type": "object",
+            "required": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "properties": {
+              "A": {
+                "type": "string"
+              },
+              "B": {
+                "type": "string"
+              },
+              "C": {
+                "type": "string"
+              },
+              "D": {
+                "type": "string"
+              }
+            }
+          },
+          "correctAnswer": {
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ]
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

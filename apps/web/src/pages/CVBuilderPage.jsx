@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect, Suspense, useRef } from 'react';
+import React, { useState, useEffect, Suspense, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { Save, Download, ArrowLeft, ZoomIn, ZoomOut, RotateCcw, Loader2, AlertCircle, Crown } from 'lucide-react';
+import { Save, Download, ArrowLeft, ZoomIn, ZoomOut, RotateCcw, Loader2, AlertCircle, Crown, Sparkles, CheckCircle2, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useSubscription } from '@/hooks/useSubscription.js';
@@ -13,6 +13,39 @@ import CVPreviewRenderer from '@/components/cv-builder/CVPreviewRenderer.jsx';
 import CVDownloadModal from '@/components/cv-builder/CVDownloadModal.jsx';
 import BookmarkButton from '@/components/BookmarkButton.jsx';
 import { getTemplateById } from '@/data/cvTemplatesData.js';
+import { getRoleKit } from '@/data/connectedCareerData.js';
+
+const createBlankCV = (templateId = 'ModernClean') => ({
+  personalInfo: { fullName: '', jobTitle: '', email: '', phone: '', location: '' },
+  professionalSummary: '',
+  experience: [],
+  education: [],
+  skills: [],
+  certifications: [],
+  languages: [],
+  projects: [],
+  volunteer: [],
+  templateId
+});
+
+const createRoleAwareCV = (roleKit, templateId = 'ModernClean') => {
+  if (!roleKit) return createBlankCV(templateId);
+
+  return {
+    ...createBlankCV(templateId),
+    personalInfo: { fullName: '', jobTitle: roleKit.name, email: '', phone: '', location: '' },
+    professionalSummary: roleKit.summary,
+    skills: roleKit.skills.slice(0, 8).map((skill, index) => ({
+      name: skill,
+      level: index < 3 ? 'Strong' : 'Working'
+    })),
+    projects: roleKit.projects.slice(0, 3).map((project) => ({
+      name: project,
+      duration: 'Portfolio project',
+      description: `Built a ${project.toLowerCase()} to demonstrate ${roleKit.skills.slice(0, 3).join(', ')} and role-ready problem solving.`
+    }))
+  };
+};
 
 class BuilderErrorBoundary extends React.Component {
   constructor(props) {
@@ -43,23 +76,14 @@ class BuilderErrorBoundary extends React.Component {
 export default function CVBuilderPage() {
   const [searchParams] = useSearchParams();
   const cvId = searchParams.get('cvId');
-  const templateIdParam = searchParams.get('template') || searchParams.get('templateId');
+  const roleParam = searchParams.get('role') || searchParams.get('careerSlug') || '';
+  const roleKit = useMemo(() => getRoleKit(roleParam), [roleParam]);
+  const templateIdParam = searchParams.get('template') || searchParams.get('templateId') || (roleKit ? 'ModernClean' : null);
   const navigate = useNavigate();
   const { currentUser, isAuthenticated } = useAuth();
   const { isPremium, loading: subLoading } = useSubscription();
   
-  const [cvData, setCvData] = useState({
-    personalInfo: { fullName: '', jobTitle: '', email: '', phone: '', location: '' },
-    professionalSummary: '',
-    experience: [],
-    education: [],
-    skills: [],
-    certifications: [],
-    languages: [],
-    projects: [],
-    volunteer: [],
-    templateId: templateIdParam || 'ModernClean'
-  });
+  const [cvData, setCvData] = useState(() => createRoleAwareCV(roleKit, templateIdParam || 'ModernClean'));
   
   const activeTemplateId = templateIdParam || cvData.templateId || 'ModernClean';
   const activeTemplate = getTemplateById(activeTemplateId);
@@ -74,7 +98,7 @@ export default function CVBuilderPage() {
 
   useEffect(() => {
     // If no cvId and no template, redirect to templates page
-    if (!cvId && !templateIdParam) {
+    if (!cvId && !templateIdParam && !roleKit) {
       navigate('/cv-templates', { replace: true });
       return;
     }
@@ -131,6 +155,16 @@ export default function CVBuilderPage() {
       
       loadCV();
     } else {
+      if (roleKit && !cvId) {
+        setCvData(prev => {
+          const seeded = createRoleAwareCV(roleKit, templateIdParam || prev.templateId || 'ModernClean');
+          return {
+            ...seeded,
+            personalInfo: { ...seeded.personalInfo, ...(prev.personalInfo || {}), jobTitle: prev.personalInfo?.jobTitle || roleKit.name },
+            templateId: templateIdParam || prev.templateId || 'ModernClean'
+          };
+        });
+      }
       initialLoadDone.current = true;
       setLoading(false);
     }
@@ -139,7 +173,7 @@ export default function CVBuilderPage() {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [cvId, templateIdParam, isAuthenticated, navigate, currentUser]);
+  }, [cvId, templateIdParam, isAuthenticated, navigate, currentUser, roleKit]);
 
   // Auto-save logic
   useEffect(() => {
@@ -257,7 +291,7 @@ export default function CVBuilderPage() {
           </Button>
           <div>
             <h1 className="font-bold text-foreground text-lg hidden sm:flex items-center">
-              CV Editor 
+              {roleKit ? `${roleKit.name} CV` : 'CV Editor'} 
               <span className={`ml-2 px-2 py-0.5 text-xs rounded-md font-semibold ${activeTemplate.category === 'Premium' ? 'bg-amber-500/10 text-amber-600' : 'bg-secondary text-secondary-foreground'}`}>
                 {activeTemplate.category === 'Premium' && <Crown className="w-3 h-3 inline-block mr-1 mb-0.5" />}
                 {activeTemplate.name}
@@ -309,6 +343,9 @@ export default function CVBuilderPage() {
         {/* Editor Panel */}
         <div className="col-span-1 lg:col-span-5 bg-card overflow-y-auto hide-scrollbar border-l border-border z-10 shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.1)]">
           <BuilderErrorBoundary>
+            {roleKit && (
+              <RoleAwarePanel roleKit={roleKit} setCvData={setCvData} />
+            )}
             <CVBuilderForm cvData={cvData} setCvData={setCvData} templateId={activeTemplateId} />
           </BuilderErrorBoundary>
         </div>
@@ -322,6 +359,84 @@ export default function CVBuilderPage() {
           cvId={currentCVId}
         />
       )}
+    </div>
+  );
+}
+
+function RoleAwarePanel({ roleKit, setCvData }) {
+  const applyRoleKit = () => {
+    setCvData(prev => {
+      const seeded = createRoleAwareCV(roleKit, prev.templateId || 'ModernClean');
+      return {
+        ...prev,
+        personalInfo: {
+          ...(prev.personalInfo || {}),
+          jobTitle: prev.personalInfo?.jobTitle || roleKit.name
+        },
+        professionalSummary: prev.professionalSummary || seeded.professionalSummary,
+        skills: prev.skills?.length ? prev.skills : seeded.skills,
+        projects: prev.projects?.length ? prev.projects : seeded.projects
+      };
+    });
+    toast.success(`${roleKit.name} suggestions applied`);
+  };
+
+  const addKeywordsToSummary = () => {
+    setCvData(prev => {
+      const currentSummary = prev.professionalSummary || '';
+      const keywordLine = ` ATS focus: ${roleKit.keywords.slice(0, 6).join(', ')}.`;
+      if (currentSummary.includes('ATS focus:')) return prev;
+      return {
+        ...prev,
+        professionalSummary: `${currentSummary}${currentSummary ? '\n\n' : ''}${keywordLine.trim()}`
+      };
+    });
+    toast.success('ATS keywords added to summary');
+  };
+
+  return (
+    <div className="border-b border-border bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 dark:from-sky-950/30 dark:via-card dark:to-emerald-950/20">
+      <div className="rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-white/10">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="mb-2 inline-flex items-center rounded-full bg-slate-950 px-3 py-1 text-xs font-bold text-white dark:bg-white dark:text-slate-950">
+              <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+              Role-aware builder
+            </div>
+            <h2 className="text-xl font-extrabold text-foreground">{roleKit.name}</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">{roleKit.tagline}</p>
+          </div>
+          <Button size="sm" onClick={applyRoleKit} className="shrink-0 rounded-xl font-bold">
+            <Wand2 className="mr-2 h-4 w-4" /> Apply
+          </Button>
+        </div>
+
+        <div className="mt-4 grid gap-3">
+          <SuggestionGroup title="Suggested skills" items={roleKit.skills.slice(0, 6)} />
+          <SuggestionGroup title="Project ideas" items={roleKit.projects.slice(0, 2)} />
+          <SuggestionGroup title="ATS keywords" items={roleKit.keywords.slice(0, 6)} />
+        </div>
+
+        <Button variant="outline" size="sm" onClick={addKeywordsToSummary} className="mt-4 w-full rounded-xl border-dashed font-bold">
+          Add ATS Keywords to Summary
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function SuggestionGroup({ title, items }) {
+  return (
+    <div>
+      <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">{title}</p>
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => (
+          <span key={item} className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground">
+            <CheckCircle2 className="mr-1.5 h-3.5 w-3.5 text-emerald-500" />
+            {item}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

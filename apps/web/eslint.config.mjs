@@ -1,7 +1,12 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import importPlugin from 'eslint-plugin-import';
 import globals from 'globals';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const srcPath = path.resolve(__dirname, 'src');
 
 export default [
 	{ ignores: ['node_modules/**', 'dist/**', 'build/**', 'vite.config.js'] },
@@ -18,7 +23,7 @@ export default [
 			react: { version: 'detect' },
 			'import/resolver': {
 				node: { extensions: ['.js', '.jsx'] },
-				alias: { map: [['@', './src']], extensions: ['.js', '.jsx'] },
+				alias: { map: [['@', srcPath]], extensions: ['.js', '.jsx'] },
 			},
 		},
 		rules: {
@@ -38,6 +43,7 @@ export default [
 			'no-unused-vars': 'off', // Non-critical, code works fine with unused vars
 			'import/no-named-as-default': 'off', // Can cause runtime import errors, usually fine to leave as is
 			'import/no-named-as-default-member': 'off', // Can cause runtime import errors
+			'import/no-unresolved': 'off', // Vite handles resolution; this resolver is unreliable on Windows paths with spaces.
 
 			// Critical rules that prevent runtime errors
 			'no-undef': 'error', // Undefined variables cause runtime errors

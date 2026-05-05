@@ -4,3 +4,9 @@ pb_data/
 *.exe
 *.zip
 .env
+.env.*
+!.env.example
+*secret*.txt
+*client*secret*
+*.pem
+*.key

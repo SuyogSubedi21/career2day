@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "1.0.0",
+  "roles": [
+    {
+      "slug": "data-analyst",
+      "role": "Data Analyst",
+      "totalQuestions": 100,
+      "distribution": {
+        "beginner": 30,
+        "intermediate": 40,
+        "advanced": 30
+      },
+      "file": "./roles/data-analyst.json"
+    },
+    {
+      "slug": "frontend-developer",
+      "role": "Frontend Developer",
+      "totalQuestions": 100,
+      "distribution": {
+        "beginner": 30,
+        "intermediate": 40,
+        "advanced": 30
+      },
+      "file": "./roles/frontend-developer.json"
+    },
+    {
+      "slug": "backend-developer",
+      "role": "Backend Developer",
+      "totalQuestions": 100,
+      "distribution": {
+        "beginner": 30,
+        "intermediate": 40,
+        "advanced": 30
+      },
+      "file": "./roles/backend-developer.json"
+    },
+    {
+      "slug": "full-stack-developer",
+      "role": "Full Stack Developer",
+      "totalQuestions": 100,
+      "distribution": {
+        "beginner": 30,
+        "intermediate": 40,
+        "advanced": 30
+      },
+      "file": "./roles/full-stack-developer.json"
+    },
+    {
+      "slug": "data-scientist",
+      "role": "Data Scientist",
+      "totalQuestions": 100,
+      "distribution": {
+        "beginner": 30,
+        "intermediate": 40,
+        "advanced": 30
+      },
+      "file": "./roles/data-scientist.json"
+    }
+  ]
+}

@@ -33,7 +33,6 @@ export default function Navbar() {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Careers', path: '/careers' },
-    { name: 'Interview Questions', path: '/interview-questions' },
     { name: 'CV Builder', path: '/cv-builder' },
     { name: 'Blog', path: '/blog' },
     { name: 'Pricing', path: '/pricing' }

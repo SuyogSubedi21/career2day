@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead.jsx';
 import pb from '@/lib/pocketbaseClient.js';
+import { getCareerBlogArticle, getRelatedCareerBlogArticles } from '@/data/careerBlogArticles.js';
 
 const fallbackImages = [
   'https://images.unsplash.com/photo-1661366051086-f2d182076556?auto=format&fit=crop&w=800&q=80',
@@ -40,15 +41,24 @@ export default function BlogArticlePage() {
         window.scrollTo(0, 0);
 
         // Fetch main article from blogArticles collection
-        const record = await pb.collection('blogArticles').getFirstListItem(`slug="${slug}"`, {
-          $autoCancel: false
-        });
+        let record;
+        try {
+          record = await pb.collection('blogArticles').getFirstListItem(`slug="${slug}"`, {
+            $autoCancel: false
+          });
+        } catch {
+          record = getCareerBlogArticle(slug);
+        }
+
+        if (!record) throw new Error('Article not found');
         
         setArticle(record);
 
         // Fetch related articles
         let relatedItems = [];
-        if (record.relatedArticles && Array.isArray(record.relatedArticles) && record.relatedArticles.length > 0) {
+        if (record.id?.startsWith('local-')) {
+          relatedItems = getRelatedCareerBlogArticles(record);
+        } else if (record.relatedArticles && Array.isArray(record.relatedArticles) && record.relatedArticles.length > 0) {
           // If relatedArticles JSON array is populated, fetch those specific IDs
           const idFilter = record.relatedArticles.map(id => `id="${id}"`).join(' || ');
           const relatedRes = await pb.collection('blogArticles').getList(1, 3, {
@@ -89,6 +99,10 @@ export default function BlogArticlePage() {
   const getImageUrl = (item) => {
     if (item?.featuredImage) {
       return pb.files.getUrl(item, item.featuredImage);
+    }
+    if (item?.id?.startsWith('local-')) {
+      const index = item.slug ? item.slug.length % fallbackImages.length : 0;
+      return fallbackImages[index];
     }
     // Deterministic fallback based on ID character code to ensure consistent image across renders
     const index = item?.id ? item.id.charCodeAt(0) % fallbackImages.length : 0;

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import SEOHead from '@/components/SEOHead.jsx';
 import pb from '@/lib/pocketbaseClient.js';
+import { careerBlogArticles } from '@/data/careerBlogArticles.js';
 
 // Pre-defined Unsplash URLs from instructions
 const fallbackImages = [
@@ -44,10 +45,13 @@ export default function BlogPage() {
         sort: '-publishedAt,-created',
         $autoCancel: false
       });
-      setArticles(records.items);
+      const remoteArticles = records.items || [];
+      const remoteSlugs = new Set(remoteArticles.map((item) => item.slug));
+      setArticles([...careerBlogArticles.filter((item) => !remoteSlugs.has(item.slug)), ...remoteArticles]);
     } catch (err) {
       console.error('Error fetching blog articles:', err);
-      setError('Failed to load articles. Please try again later.');
+      setArticles(careerBlogArticles);
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -76,6 +80,9 @@ export default function BlogPage() {
   const getImageUrl = (article, index) => {
     if (article.featuredImage) {
       return pb.files.getUrl(article, article.featuredImage);
+    }
+    if (article.id?.startsWith('local-')) {
+      return fallbackImages[index % fallbackImages.length];
     }
     // Use the explicit fallback images mapped by index to ensure all provided images are used
     return fallbackImages[index % fallbackImages.length];
