@@ -44,6 +44,7 @@ import ComingSoonPage from '@/pages/ComingSoonPage.jsx';
 import AdminLoginPage from '@/pages/admin/AdminLoginPage.jsx';
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage.jsx';
 import AdminUserManagementPage from '@/pages/admin/AdminUserManagementPage.jsx';
+import AdminSubscriptionsPage from '@/pages/admin/AdminSubscriptionsPage.jsx';
 
 // Features & Account
 import DashboardPage from '@/pages/DashboardPage.jsx';
@@ -116,7 +117,7 @@ export default function App() {
                   <Route element={<AdminLayout />}>
                     <Route path="/admin" element={<AdminDashboardPage />} />
                     <Route path="/admin/users" element={<AdminUserManagementPage />} />
-                    <Route path="/admin/subscriptions" element={<div className="p-8 text-center text-muted-foreground bg-card rounded-2xl border border-border m-4">Subscriptions Management Placeholder</div>} />
+                    <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
                     <Route path="/admin/data" element={<div className="p-8 text-center text-muted-foreground bg-card rounded-2xl border border-border m-4">Data Management Placeholder</div>} />
                   </Route>
                 </Route>

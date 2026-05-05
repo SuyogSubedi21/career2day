@@ -1,18 +1,29 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { RefreshCw, AlertCircle, Database } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Activity, CreditCard, Database, Eye, FileText, RefreshCw, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import pb from '@/lib/pocketbaseClient.js';
 
-
-const COLORS = ['hsl(var(--primary))', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#64748B'];
+const countCollection = async (name, options = {}) => {
+  try {
+    const result = await pb.collection(name).getList(1, 1, { ...options, $autoCancel: false });
+    return result.totalItems || 0;
+  } catch {
+    return 0;
+  }
+};
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState({
+    users: 0,
+    subscriptions: 0,
+    activeSubscriptions: 0,
+    pageViews: 0,
+    userActivity: 0,
+    cvs: 0,
     careers: 0,
     skills: 0,
     interviewQuestions: 0,
@@ -24,22 +35,47 @@ export default function AdminDashboardPage() {
   const loadStats = async () => {
     try {
       setLoading(true);
-      const [c, s, iq, q, r] = await Promise.all([
-        pb.collection('careers').getList(1, 1, { $autoCancel: false }),
-        pb.collection('careerSkills').getList(1, 1, { $autoCancel: false }),
-        pb.collection('careerInterviewQuestions').getList(1, 1, { $autoCancel: false }),
-        pb.collection('careerQuizzes').getList(1, 1, { $autoCancel: false }),
-        pb.collection('careerRoadmaps').getList(1, 1, { $autoCancel: false })
+      const [
+        users,
+        subscriptions,
+        activeSubscriptions,
+        pageViews,
+        userActivity,
+        cvs,
+        careers,
+        skills,
+        interviewQuestions,
+        quizzes,
+        roadmaps
+      ] = await Promise.all([
+        countCollection('users'),
+        countCollection('subscriptions_stripe'),
+        countCollection('subscriptions_stripe', { filter: 'status = "active"' }),
+        countCollection('page_views'),
+        countCollection('user_activity'),
+        countCollection('userCVs'),
+        countCollection('careers'),
+        countCollection('careerSkills'),
+        countCollection('careerInterviewQuestions'),
+        countCollection('careerQuizzes'),
+        countCollection('careerRoadmaps')
       ]);
+
       setStats({
-        careers: c.totalItems,
-        skills: s.totalItems,
-        interviewQuestions: iq.totalItems,
-        quizzes: q.totalItems,
-        roadmaps: r.totalItems
+        users,
+        subscriptions,
+        activeSubscriptions,
+        pageViews,
+        userActivity,
+        cvs,
+        careers,
+        skills,
+        interviewQuestions,
+        quizzes,
+        roadmaps
       });
     } catch (e) {
-      toast.error('Failed to load stats: ' + e.message);
+      toast.error('Failed to load admin dashboard: ' + e.message);
     } finally {
       setLoading(false);
     }
@@ -49,13 +85,14 @@ export default function AdminDashboardPage() {
     loadStats();
   }, []);
 
-  const StatCard = ({ title, value, icon: Icon }) => (
+  const StatCard = ({ title, value, icon: Icon, hint }) => (
     <Card className="bg-card border border-border shadow-sm">
       <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm text-muted-foreground mb-2">{title}</p>
-            <p className="text-3xl font-bold">{loading ? '—' : value}</p>
+            <p className="text-3xl font-bold">{loading ? '-' : value}</p>
+            {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
           </div>
           <Icon className="w-10 h-10 text-primary/50" />
         </div>
@@ -66,15 +103,14 @@ export default function AdminDashboardPage() {
   return (
     <>
       <Helmet>
-        <title>Admin Dashboard - Career Management</title>
+        <title>Admin Dashboard | Career2Day</title>
       </Helmet>
 
       <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground mt-2">Manage career data and content</p>
+            <p className="text-muted-foreground mt-2">Users, subscriptions, views, activity, and career content.</p>
           </div>
           <Button onClick={loadStats} variant="outline" size="sm" className="gap-2">
             <RefreshCw className="w-4 h-4" />
@@ -82,8 +118,12 @@ export default function AdminDashboardPage() {
           </Button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <StatCard title="Users" value={stats.users} icon={Users} hint="Registered accounts" />
+          <StatCard title="Subscriptions" value={stats.subscriptions} icon={CreditCard} hint={`${stats.activeSubscriptions} active`} />
+          <StatCard title="Page Views" value={stats.pageViews} icon={Eye} hint="Tracked visits" />
+          <StatCard title="User Activity" value={stats.userActivity} icon={Activity} hint="Logged actions" />
+          <StatCard title="Saved CVs" value={stats.cvs} icon={FileText} />
           <StatCard title="Careers" value={stats.careers} icon={Database} />
           <StatCard title="Skills" value={stats.skills} icon={Database} />
           <StatCard title="Interview Q's" value={stats.interviewQuestions} icon={Database} />
@@ -91,7 +131,6 @@ export default function AdminDashboardPage() {
           <StatCard title="Roadmaps" value={stats.roadmaps} icon={Database} />
         </div>
 
-        {/* Status */}
         <Card className="bg-card border border-border shadow-sm">
           <CardHeader>
             <CardTitle>System Status</CardTitle>
@@ -102,12 +141,12 @@ export default function AdminDashboardPage() {
               <Badge className="bg-green-500/20 text-green-700">Connected</Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm">Data Integrity</span>
-              <Badge className="bg-green-500/20 text-green-700">Healthy</Badge>
-            </div>
-            <div className="flex items-center justify-between">
               <span className="text-sm">API Status</span>
               <Badge className="bg-green-500/20 text-green-700">Online</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">User Privacy</span>
+              <Badge variant="secondary">Users page shows name and email only</Badge>
             </div>
           </CardContent>
         </Card>
