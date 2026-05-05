@@ -163,16 +163,21 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center space-x-2 pl-2">
                 <Button asChild variant="ghost">
-                  <Link to="/login">Sign In</Link>
+                  <Link to="/login">Login</Link>
                 </Button>
                 <Button asChild>
-                  <Link to="/signup">Get Started</Link>
+                  <Link to="/signup">Register</Link>
                 </Button>
               </div>
             )}
           </div>
 
           <div className="flex items-center md:hidden gap-1">
+            {!currentUser && (
+              <Button asChild variant="ghost" size="sm" className="px-3 font-semibold">
+                <Link to="/login">Login</Link>
+              </Button>
+            )}
             <CurrencySelector />
             <Button 
               variant="ghost" 
@@ -255,13 +260,13 @@ export default function Navbar() {
                   to="/login"
                   className="block w-full text-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-primary bg-primary/10 hover:bg-primary/20"
                 >
-                  Sign In
+                  Login
                 </Link>
                 <Link
                   to="/signup"
                   className="block w-full text-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-primary-foreground bg-primary hover:bg-primary/90"
                 >
-                  Get Started
+                  Register
                 </Link>
               </div>
             )}

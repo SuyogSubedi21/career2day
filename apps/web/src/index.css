@@ -193,17 +193,17 @@
 
   /* Blog Layout & Card Utilities */
   .blog-grid {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8;
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7;
   }
 
   .blog-card {
     background-color: hsl(var(--blog-card-bg));
-    @apply flex flex-col h-full rounded-lg border border-border overflow-hidden transition-all duration-300 relative;
+    @apply flex flex-col h-full rounded-lg border border-border overflow-hidden transition-all duration-300 relative shadow-sm;
   }
 
   .blog-card:hover {
     background-color: hsl(var(--blog-card-hover));
-    @apply shadow-md;
+    @apply shadow-lg -translate-y-0.5;
   }
 
   .blog-card-image-wrapper {
@@ -226,6 +226,30 @@
 
   .blog-card:hover .blog-card-image-overlay {
     @apply opacity-100;
+  }
+
+  .blog-article-content {
+    @apply text-[1.05rem] leading-8;
+  }
+
+  .blog-article-content p {
+    @apply my-5 max-w-none text-foreground/90;
+  }
+
+  .blog-article-content h2 {
+    @apply mt-12 mb-4 text-2xl font-extrabold tracking-tight text-foreground;
+  }
+
+  .blog-article-content h3 {
+    @apply mt-8 mb-3 text-xl font-bold text-foreground;
+  }
+
+  .blog-article-content ul {
+    @apply my-6 space-y-3 rounded-lg border border-border bg-muted/30 p-5;
+  }
+
+  .blog-article-content li {
+    @apply pl-1 text-foreground/90;
   }
 }
 

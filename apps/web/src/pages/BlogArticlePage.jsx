@@ -172,7 +172,7 @@ export default function BlogArticlePage() {
       />
 
       {/* Hero Header */}
-      <header className="pt-24 pb-12 px-4 bg-muted/30 border-b border-border">
+      <header className="pt-24 pb-10 px-4 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto">
           <Link to="/blog" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors mb-8">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to all articles
@@ -191,9 +191,15 @@ export default function BlogArticlePage() {
             )}
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-8 leading-tight text-balance tracking-tight">
+          <h1 className="text-3xl md:text-5xl font-extrabold text-foreground mb-6 leading-tight text-balance tracking-tight">
             {article.title}
           </h1>
+
+          {article.excerpt && (
+            <p className="max-w-3xl text-lg leading-8 text-muted-foreground mb-8">
+              {article.excerpt}
+            </p>
+          )}
           
           <div className="flex flex-wrap items-center justify-between gap-6 border-t border-border/50 pt-6">
             <div className="flex items-center gap-4">
@@ -229,9 +235,9 @@ export default function BlogArticlePage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <article>
-          <div className="rounded-2xl overflow-hidden mb-12 shadow-lg border border-border">
+          <div className="rounded-lg overflow-hidden mb-10 shadow-sm border border-border">
             <img 
               src={getImageUrl(article)} 
               alt={article.title} 
@@ -239,7 +245,7 @@ export default function BlogArticlePage() {
             />
           </div>
           
-          <div className="prose prose-lg dark:prose-invert max-w-none text-foreground leading-relaxed">
+          <div className="blog-article-content prose prose-lg dark:prose-invert max-w-none text-foreground">
             {article.content?.includes('<') ? (
               <div dangerouslySetInnerHTML={{ __html: article.content }} />
             ) : (
@@ -262,14 +268,14 @@ export default function BlogArticlePage() {
           )}
           
           {/* Author Bio Box */}
-          <div className="mt-16 p-8 bg-muted/50 rounded-2xl border border-border flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <div className="mt-14 p-6 bg-muted/40 rounded-lg border border-border flex flex-col sm:flex-row items-center sm:items-start gap-5">
             <div className="w-20 h-20 shrink-0 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-3xl shadow-md">
               {article.author ? article.author.charAt(0).toUpperCase() : 'A'}
             </div>
             <div className="text-center sm:text-left">
               <h3 className="text-xl font-bold text-foreground mb-2">Written by {article.author || 'Author'}</h3>
               <p className="text-muted-foreground leading-relaxed">
-                {article.authorBio || 'Passionate about helping professionals navigate the tech industry, improve their skills, and land their dream jobs. We provide actionable insights for every stage of your career journey.'}
+                {article.authorBio || 'Career2Day writes practical guides for learners who want clearer roadmaps, stronger CVs, better interview answers, and portfolio work they can explain with confidence.'}
               </p>
             </div>
           </div>

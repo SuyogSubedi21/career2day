@@ -7,9 +7,9 @@ ${section.items ? `<ul>${section.items.map((item) => `<li>${item}</li>`).join(''
 `).join('')}
 <h2>${checklistTitle}</h2>
 <ul>
-  <li>Choose one clear next action before opening another tutorial.</li>
-  <li>Turn every learning block into a project, note, CV bullet, or interview story.</li>
-  <li>Review progress weekly so your preparation becomes visible and measurable.</li>
+  <li>Pick one small next step before opening another tutorial.</li>
+  <li>Turn the lesson into something visible: a note, a project update, a CV bullet, or an interview story.</li>
+  <li>Check progress at the end of the week and make the next week smaller if you feel stuck.</li>
 </ul>`;
 
 export const careerBlogArticles = [
