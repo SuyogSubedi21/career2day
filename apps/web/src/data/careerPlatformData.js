@@ -103,6 +103,30 @@ const roleContext = (career) => {
     };
   }
 
+  if (/ai engineer|generative|machine learning|mlops|nlp|vision|rag|llm|embedding|model serving|fine-tuning|vector database/.test(joined)) {
+    return {
+      domain: 'AI product workflow',
+      system: 'an AI product with retrieval, prompts, model or API calls, evaluation, latency budgets, privacy controls, and user-facing feedback',
+      artifact: 'RAG evaluation report, prompt/version log, model card, latency profile, safety review, or deployment runbook',
+      metric: 'groundedness, retrieval precision and recall, hallucination rate, latency, token cost, drift, and user correction rate',
+      risk: 'hallucinated answers, private data leakage, weak retrieval, biased outputs, runaway inference cost, and brittle prompt behavior',
+      deployment: 'versioned AI service with evaluation gates, observability, fallback behavior, cost controls, and rollback notes',
+      testing: 'golden datasets, retrieval evaluation, prompt regression tests, red-team cases, latency tests, and human review of edge cases'
+    };
+  }
+
+  if (/backend|full stack|software architect|qa automation|blockchain|smart contract|api design|authentication|caching|queues/.test(joined)) {
+    return {
+      domain: 'production software system',
+      system: 'a service or product workflow with APIs, persistence, authentication, caching, testing, deployment, and operational visibility',
+      artifact: 'working application, API contract, architecture note, test suite, dashboard, or deployment guide',
+      metric: 'latency, error rate, throughput, data correctness, maintainability, security, and user impact',
+      risk: 'unclear requirements, brittle architecture, poor observability, race conditions, regressions, and security gaps',
+      deployment: 'staged release with automated tests, smoke checks, monitoring, rollback, and documented operational ownership',
+      testing: 'unit tests, integration tests, contract tests, smoke tests, code review, and production-like validation'
+    };
+  }
+
   if (/data engineer|analytics|database|big data|scientist|mlops|machine learning|\bai\b|nlp|vision|rag|llm/.test(joined)) {
     return {
       domain: 'data and AI workflow',
@@ -153,69 +177,174 @@ const roleContext = (career) => {
 const fillTemplate = (template, values) =>
   Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, value), template);
 
+const sentenceCase = (value = '') => {
+  const text = String(value);
+  return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}` : text;
+};
+
+const roleInterviewProfile = (career) => {
+  const name = `${career.name || ''} ${(career.skills || career.requiredSkills || []).join(' ')} ${(career.tools || []).join(' ')}`.toLowerCase();
+
+  if (/security|soc|penetration|ciso|appsec|vulnerability|siem|owasp/.test(name)) {
+    return {
+      focusAreas: ['SIEM triage', 'threat detection', 'incident response', 'vulnerability management', 'identity controls', 'OWASP risk', 'log correlation', 'privilege escalation prevention'],
+      systems: ['a SaaS tenant with SSO, audit logs, cloud workloads, and endpoint alerts', 'a SOC queue with noisy alerts and incomplete asset inventory', 'an internet-facing API with authentication and dependency risk'],
+      incidents: ['a suspicious login pattern appears after a phishing campaign', 'a critical vulnerability is reported on a public service', 'a privileged account performs unusual actions after hours'],
+      constraints: ['keep the work defensive, preserve evidence, and avoid disrupting production', 'separate exploitability from theoretical severity', 'communicate business risk without exaggerating certainty'],
+      signals: ['alert fidelity, blast radius, dwell time, exploitability, remediation SLA, and false positives']
+    };
+  }
+
+  if (/devops|sre|platform|cloud|kubernetes|terraform|reliability/.test(name)) {
+    return {
+      focusAreas: ['CI/CD rollback', 'Terraform drift', 'Kubernetes scheduling', 'Docker image hardening', 'Prometheus alerts', 'Grafana dashboards', 'cloud networking', 'release safety'],
+      systems: ['a Kubernetes-backed API with autoscaling, ingress, secrets, and observability', 'a Terraform-managed cloud environment shared by multiple teams', 'a CI/CD pipeline deploying containers to staging and production'],
+      incidents: ['pods enter CrashLoopBackOff after a rollout', 'memory usage rises sharply after a deployment', 'Terraform plans show unexpected changes in production infrastructure'],
+      constraints: ['restore service first, preserve logs, and avoid broad manual changes', 'keep changes reviewable through infrastructure as code', 'reduce lead time without weakening release controls'],
+      signals: ['latency, saturation, error budget burn, deployment frequency, MTTR, change failure rate, and cloud cost']
+    };
+  }
+
+  if (/ai engineer|generative|machine learning|mlops|nlp|vision|scientist|rag|llm|embedding|model serving|fine-tuning|vector/.test(name)) {
+    return {
+      focusAreas: ['RAG retrieval quality', 'vector database design', 'embedding strategy', 'hallucination reduction', 'LLM evaluation', 'fine-tuning tradeoffs', 'GPU utilization', 'inference latency'],
+      systems: ['a RAG assistant answering from internal documents with citations', 'a model-serving API with latency and cost limits', 'an ML pipeline with versioned datasets, features, and evaluation reports'],
+      incidents: ['An LLM gives confident answers that are not supported by retrieved sources', 'Model latency doubles after traffic increases', 'Offline evaluation improves but production quality drops'],
+      constraints: ['protect private data and cite sources where possible', 'measure model quality before changing prompts or models', 'control cost while keeping acceptable answer quality'],
+      signals: ['groundedness, retrieval precision, recall, latency, token cost, drift, false positives, and user correction rate']
+    };
+  }
+
+  if (/backend|full stack|software architect|qa automation|api design|authentication|caching|queues|server-side/.test(name)) {
+    return {
+      focusAreas: ['API scaling', 'database optimization', 'authentication flow', 'cache invalidation', 'background jobs', 'contract testing', 'deployment rollback', 'observability'],
+      systems: ['a production API with authentication, PostgreSQL, Redis caching, and background jobs', 'a full-stack product workflow with React screens, server APIs, and database writes', 'a backend service handling traffic spikes and concurrent user updates'],
+      incidents: ['A critical endpoint becomes slow after a release', 'Users see inconsistent account state after concurrent updates', 'A background job queue grows faster than workers can process it'],
+      constraints: ['preserve data correctness before optimizing speed', 'avoid weakening authentication or authorization', 'keep API changes backward compatible where clients depend on them'],
+      signals: ['p95 latency, error rate, throughput, database load, cache hit rate, queue depth, and failed login patterns']
+    };
+  }
+
+  if (/data engineer|analytics|database|big data|spark|airflow|warehouse|dbt/.test(name)) {
+    return {
+      focusAreas: ['ETL fault tolerance', 'ELT modeling', 'Airflow orchestration', 'Spark performance', 'warehouse partitioning', 'data contracts', 'freshness checks', 'batch versus streaming'],
+      systems: ['a daily pipeline processing millions of records into a warehouse', 'a streaming ingestion flow with late events and downstream dashboards', 'a dbt analytics layer with shared metric definitions'],
+      incidents: ['a scheduled pipeline succeeds but downstream numbers are wrong', 'a Spark job becomes three times slower after a schema change', 'an Airflow DAG keeps retrying and creates duplicate warehouse rows'],
+      constraints: ['protect historical correctness and support safe backfills', 'keep metric definitions stable for business users', 'balance cost, freshness, and operational simplicity'],
+      signals: ['freshness, completeness, row counts, schema drift, job duration, cost per run, data quality failures, and lineage impact']
+    };
+  }
+
+  if (/frontend|mobile|ios|android|ux|designer|product designer|ar\/vr|game/.test(name)) {
+    return {
+      focusAreas: ['rendering performance', 'state management', 'accessibility', 'API error states', 'responsive layout', 'bundle optimization', 'real-device debugging', 'release quality'],
+      systems: ['a large dashboard with filters, charts, forms, and real-time updates', 'a mobile app with offline state, push notifications, and API sync', 'a design system used by multiple product teams'],
+      incidents: ['users report slow interactions after a new dashboard release', 'a form loses user input after an API error', 'mobile crash reports spike on one OS version'],
+      constraints: ['keep accessibility and user trust intact while improving speed', 'support slow networks and real device constraints', 'avoid hiding important failures behind loading states'],
+      signals: ['Core Web Vitals, interaction latency, crash-free sessions, accessibility violations, conversion, and task completion']
+    };
+  }
+
+  if (/product manager|engineering manager|architect|manager|ciso/.test(name)) {
+    return {
+      focusAreas: ['technical tradeoff framing', 'roadmap risk', 'architecture decision records', 'incident leadership', 'stakeholder alignment', 'quality metrics', 'team execution', 'operational readiness'],
+      systems: ['a cross-functional product initiative with engineering, security, data, and customer support dependencies', 'a platform migration with delivery risk and unclear ownership', 'a high-priority feature launch with reliability concerns'],
+      incidents: ['a launch is blocked by unresolved technical risk', 'two senior stakeholders disagree on the architecture direction', 'a production incident exposes a gap in ownership and communication'],
+      constraints: ['make the decision reversible where possible', 'communicate uncertainty clearly to executives and engineers', 'balance speed, risk, customer value, and team capacity'],
+      signals: ['adoption, delivery predictability, reliability, support load, customer impact, quality trend, and team health']
+    };
+  }
+
+  return {
+    focusAreas: ['API design', 'database performance', 'authentication', 'caching', 'observability', 'deployment safety', 'async processing', 'service boundaries'],
+    systems: ['a production web application with APIs, persistence, background jobs, and user-facing workflows', 'a service that must scale through traffic spikes while preserving correctness', 'a multi-team codebase with legacy modules and uneven test coverage'],
+    incidents: ['error rates increase after a release', 'a database query slows down a critical endpoint', 'users see inconsistent state after concurrent updates'],
+    constraints: ['restore correctness before optimizing prematurely', 'keep changes testable and reviewable', 'balance delivery speed with security and maintainability'],
+    signals: ['latency, error rate, throughput, cache hit rate, database load, security events, and user impact']
+  };
+};
+
 const interviewBlueprints = {
   beginner: [
-    'Walk me through how you would use {topic} in {system}. What would you build first and what would you intentionally leave out?',
-    'A teammate implemented {topic} with {tool}, but the output is inconsistent. What would you inspect first?',
-    'How would you explain the tradeoff between {topic} and {contrast} to a non-specialist stakeholder?',
-    'What signals would tell you that {topic} is working well enough for a junior-level production task?',
-    'You inherit a small project using {tool}. What files, logs, tests, or docs would you read before changing {topic}?',
-    'Describe a safe debugging workflow when {topic} fails in {system}.',
-    'What common beginner mistake in {topic} creates downstream production risk?',
-    'How would you turn a small {topic} exercise into a portfolio artifact a hiring manager can trust?',
-    'Which quality check would you add before shipping work that depends on {topic}?',
-    'Tell me about a time you had to learn a tool like {tool}. How would you prove you learned it beyond a tutorial?'
+    { type: 'Conceptual', q: 'When would you use {topic} in {system}, and what would be the smallest production-like version you would build first?' },
+    { type: 'Debugging', q: 'A junior teammate says {topic} works on their machine but fails in review. What exact checks would you ask them to run before changing code?' },
+    { type: 'Best Practices', q: 'What would you look for in a pull request that introduces {topic} so it is not just a tutorial implementation?' },
+    { type: 'Troubleshooting', q: '{tool} returns an unexpected result while working on {topic}. How would you isolate whether the issue is input data, configuration, code, or environment?' },
+    { type: 'Security', q: 'What security or privacy mistake can happen when using {topic}, and how would you prevent it early?' },
+    { type: 'Monitoring & Logging', q: 'What logs, metrics, screenshots, traces, or test output would prove that {topic} is behaving correctly?' },
+    { type: 'Deployment', q: 'If you had to deploy a small {topic} project, what setup notes, environment variables, and smoke checks would you include?' },
+    { type: 'Performance Optimisation', q: 'What would you measure before trying to optimize {topic}, and why might an early optimization be harmful?' },
+    { type: 'System Design Basics', q: 'Where should {topic} sit in the flow of {system}, and what should be kept outside that boundary?' },
+    { type: 'Behavioural Technical', q: 'Tell me about how you would explain a {topic} tradeoff to someone who cares about delivery date more than implementation detail.' }
   ],
   intermediate: [
-    'Design a production-minded workflow for {topic} in {system}. Include validation, testing, deployment, and monitoring.',
-    'A release involving {topic} increased errors after deployment. How would you triage, rollback, and prevent recurrence?',
-    'How would you measure {topic} using {metric}, and what metric would you avoid over-trusting?',
-    'What architecture boundary would you draw around {topic} so the system remains maintainable?',
-    'How would you review a pull request that changes {topic} and touches security, performance, or reliability?',
-    'A stakeholder asks for a faster delivery path that weakens {topic}. How would you explain the risk and propose a compromise?',
-    'How would you document {topic} so another engineer or analyst can operate it without you?',
-    'What failure mode would you simulate before trusting {topic} in {system}?',
-    'How would you compare {tool} with an alternative for {topic} in terms of team skill, cost, lock-in, and operability?',
-    'Describe a realistic incident, bug, or outage involving {topic}. What would your postmortem include?'
+    { type: 'Scenario-Based', q: 'You are asked to add {topic} to {system}. Walk through the design, data or request flow, failure cases, tests, and rollout plan.' },
+    { type: 'Production Incident', q: '{incident}. How would you triage impact, find the likely cause, communicate status, and decide whether {focus} should be rolled back or patched forward?' },
+    { type: 'Debugging', q: 'A recent change around {topic} passes tests but fails for a subset of users. How would you reproduce and narrow the issue?' },
+    { type: 'Architecture', q: 'What boundary would you draw around {topic} so future changes do not create hidden coupling with {contrast}?' },
+    { type: 'Performance Optimisation', q: '{signal} is trending in the wrong direction after work on {topic}. What would you inspect first, and what would you avoid guessing?' },
+    { type: 'Security', q: 'How would you review {topic} for access control, data exposure, dependency risk, or abuse cases before release?' },
+    { type: 'Deployment', q: 'A deployment involving {topic} has to happen during business hours. What release strategy, checks, and rollback criteria would you use?' },
+    { type: 'Monitoring & Logging', q: 'What dashboard or alert would you build for {topic}, and how would you keep it actionable rather than noisy?' },
+    { type: 'Troubleshooting', q: '{tool} behaves differently in staging and production while supporting {topic}. What differences would you compare first?' },
+    { type: 'Best Practices', q: 'What documentation would make {topic} maintainable for the next engineer, analyst, operator, or reviewer?' },
+    { type: 'System Design Basics', q: 'How would you split responsibilities between {topic}, {contrast}, storage, validation, and user-facing behavior?' },
+    { type: 'Behavioural Technical', q: 'A stakeholder wants a shortcut that weakens {topic}. How would you explain the risk and offer a safer compromise?' },
+    { type: 'Scaling', q: 'Usage doubles and {topic} becomes a bottleneck. What is your first scaling move, and what evidence would justify it?' },
+    { type: 'Conceptual', q: 'Compare {topic} with {contrast}. In what situation would the simpler option be the better engineering decision?' }
   ],
   advanced: [
-    'How would you scale {topic} across multiple teams while preserving ownership, standards, and local autonomy?',
-    'What would your reference architecture for {career} work look like if {system} had strict reliability and security requirements?',
-    'How would you reduce operational risk in {topic} without slowing delivery to a halt?',
-    'A production dashboard shows healthy top-line metrics, but users still complain. How would you investigate {topic} deeper?',
-    'How would you mentor a junior teammate through a hard {topic} issue without taking over the work?',
-    'Where would you add automation, policy, or guardrails around {topic}, and where would you keep human review?',
-    'How would you plan a migration from a fragile {topic} implementation to a more robust architecture?',
-    'What would you include in an executive explanation of {topic}: impact, risk, cost, and next decision?',
-    'How would you test disaster recovery, rollback, or fallback behavior for {topic}?',
-    'What are the signs that {topic} has become over-engineered for the current product stage?'
+    { type: 'Architecture', q: 'Design a reference architecture for {career} work where {topic} must support multiple teams, auditability, and clear ownership.' },
+    { type: 'Scaling', q: '{system} grows from one team to many teams. How would you scale {topic} without creating a central bottleneck or inconsistent standards?' },
+    { type: 'Production Incident', q: '{incident}. The first mitigation works, but the root cause is still unclear. How would you investigate whether {focus}, process, or architecture caused it?' },
+    { type: 'Performance Optimisation', q: 'How would you identify the real bottleneck when {topic} appears slow but {signal} gives conflicting signals?' },
+    { type: 'Security', q: 'What threat model or control review would you run before making {topic} a shared production capability?' },
+    { type: 'Deployment', q: 'How would you migrate from a fragile {topic} implementation to a safer design with rollback, compatibility, and monitoring?' },
+    { type: 'Monitoring & Logging', q: 'What would an executive-level and an operator-level view of {topic} show, and how would those views differ?' },
+    { type: 'Troubleshooting', q: 'A team keeps patching symptoms around {topic}. How would you prove whether the issue is architecture, process, data quality, or tooling?' },
+    { type: 'Best Practices', q: 'Where would you add automation or policy for {topic}, and where would you deliberately keep human review?' },
+    { type: 'Behavioural Technical', q: 'How would you mentor a junior engineer through a high-pressure {topic} incident without taking over the keyboard?' },
+    { type: 'System Design Basics', q: 'What tradeoffs would you document in an ADR for {topic}: consistency, cost, latency, operability, and risk?' },
+    { type: 'Scenario-Based', q: 'A senior interviewer asks you to defend your {topic} design under {constraint}. What would you say, and what would you change if the constraint changed?' }
   ]
 };
 
-const answerBlueprints = {
-  beginner: 'A strong answer should identify the business or user outcome, explain the smallest useful implementation, name the main failure mode, and describe one concrete validation step. It should avoid definitions-only answers and show how the candidate would inspect real inputs, logs, tests, or user behavior.',
-  intermediate: 'A strong answer should describe the workflow from requirements to production: boundaries, data or request flow, validation, testing, deployment, monitoring, and rollback. It should call out tradeoffs, operational ownership, and how the candidate would communicate risk.',
-  advanced: 'A strong answer should reason about scale, maintainability, security, reliability, cost, and team process. It should include a migration or incident perspective, measurable success criteria, and a clear explanation of when simpler solutions are better.'
+const answerGuides = {
+  'Conceptual': 'Explain the role of the concept in a real workflow, name the input and output, and describe the tradeoff rather than giving a dictionary definition.',
+  'Scenario-Based': 'Start with requirements and constraints, sketch the flow, call out failure modes, then describe validation, rollout, and ownership.',
+  'Debugging': 'Reproduce the issue, narrow variables, inspect logs or traces, compare known-good behavior, form a hypothesis, and verify the fix with a regression check.',
+  'Troubleshooting': 'Separate environment, configuration, data, dependency, and code causes before changing the system. Preserve evidence and avoid broad rewrites.',
+  'Architecture': 'Define boundaries, contracts, data flow, failure handling, operational ownership, and the reasons one design is simpler or safer than alternatives.',
+  'Performance Optimisation': 'Measure first, identify the bottleneck, test one change at a time, and balance latency, throughput, cost, and maintainability.',
+  'Deployment': 'Use staged rollout, smoke checks, feature flags or rollback plans where appropriate, and monitor user-impact metrics after release.',
+  'Security': 'Discuss least privilege, input validation, secrets, data exposure, abuse cases, dependency risk, and review controls. Keep examples defensive and safe.',
+  'System Design Basics': 'Describe components, responsibilities, data or request flow, storage choices, integration points, and what happens when dependencies fail.',
+  'Behavioural Technical': 'Show communication, judgment, prioritization, and ownership while still grounding the answer in technical evidence.',
+  'Production Incident': 'Prioritize user impact, stabilize the system, communicate clearly, preserve diagnostic evidence, then run a blameless root-cause review.',
+  'Scaling': 'Identify the scaling dimension first, remove the current bottleneck, add observability, and avoid distributed complexity until evidence justifies it.',
+  'Monitoring & Logging': 'Choose actionable signals, include context for diagnosis, reduce noise, and tie alerts to clear ownership and runbook steps.',
+  'Best Practices': 'Focus on repeatability, reviewability, documentation, tests, secure defaults, and maintainable ownership.'
 };
 
-const interviewScenarios = {
-  beginner: [
-    'use a small sample project with one happy path and one realistic error case',
-    'assume the work must be reviewed by a senior teammate tomorrow',
-    'assume the project must run from a clean checkout on another machine'
-  ],
-  intermediate: [
-    'assume the change affects real users during business hours',
-    'assume two teams depend on the output and disagree on priorities',
-    'assume the system has partial monitoring but weak ownership',
-    'assume a rollback is possible but expensive'
-  ],
-  advanced: [
-    'assume the decision will become a reference pattern for future teams',
-    'assume strict security, compliance, and reliability constraints',
-    'assume the current system is fragile but still business-critical'
-  ]
+const difficultyGuides = {
+  beginner: 'A hiring-quality beginner answer should be concrete: describe the smallest useful implementation, one risk, one test or check, and how to explain the result.',
+  intermediate: 'A strong intermediate answer should connect design, debugging, testing, deployment, monitoring, rollback, and communication under realistic constraints.',
+  advanced: 'A strong advanced answer should reason about scale, incident response, architecture tradeoffs, risk, cost, operability, and how teams maintain the system over time.'
 };
+
+const interviewRoundContexts = [
+  'a first-round technical screen where clarity and fundamentals matter',
+  'a live debugging round where the interviewer cares about your investigation order',
+  'a system design discussion where tradeoffs matter more than tool memorization',
+  'a production incident review where user impact and evidence come first',
+  'a senior peer review where maintainability and operational ownership are challenged',
+  'a hiring-manager conversation where communication and judgment matter',
+  'a take-home project review where reproducibility and documentation are inspected',
+  'a scaling discussion where the simplest safe improvement should be justified'
+];
+
+const answerTemplate = ({ career, context, topic, difficulty, type, focus, constraint, signal }) =>
+  `${answerGuides[type]} ${difficultyGuides[difficulty]} For ${career.name}, a good answer should tie ${topic.name} to ${focus}, validate the work with ${context.testing}, watch ${signal}, and explain tradeoffs under ${constraint}. It should mention how the change reaches ${context.deployment} and how risks such as ${context.risk} would be reduced.`;
 
 const makeQuestions = (career, topics) => {
   const levels = [
@@ -224,39 +353,52 @@ const makeQuestions = (career, topics) => {
     ['advanced', 30]
   ];
   const context = roleContext(career);
+  const profile = roleInterviewProfile(career);
   const safeTopics = topics?.length ? topics : buildTopics(career);
 
   let count = 1;
   return levels.flatMap(([difficulty, total]) =>
     Array.from({ length: total }, (_, index) => {
       const templateSet = interviewBlueprints[difficulty];
-      const scenarioSet = interviewScenarios[difficulty];
       const cycle = Math.floor(index / templateSet.length);
       const topic = safeTopics[(index + cycle) % safeTopics.length];
       const contrast = safeTopics[(index + cycle + 3) % safeTopics.length]?.name || career.requiredSkills?.[0] || 'the alternative approach';
       const tools = topic.tools?.length ? topic.tools : career.tools || ['documentation'];
       const tool = tools[(index + cycle) % tools.length];
-      const template = templateSet[index % templateSet.length];
-      const scenario = scenarioSet[cycle % scenarioSet.length];
+      const blueprint = templateSet[index % templateSet.length];
+      const focus = profile.focusAreas[(index + cycle) % profile.focusAreas.length];
+      const system = profile.systems[(index + cycle) % profile.systems.length];
+      const incident = profile.incidents[(index + cycle) % profile.incidents.length];
+      const constraint = profile.constraints[(index + cycle) % profile.constraints.length];
+      const signal = profile.signals[(index + cycle) % profile.signals.length];
+      const roundContext = interviewRoundContexts[(index + cycle * 2) % interviewRoundContexts.length];
       const values = {
         career: career.name,
         topic: topic.name,
         contrast,
         tool,
+        focus,
+        system,
+        incident: sentenceCase(incident),
+        constraint,
+        signal,
+        roundContext,
         ...context
       };
-      const question = `${fillTemplate(template, values)} Scenario: ${scenario}.`;
+      const question = `${fillTemplate(blueprint.q, values)} Frame your answer for ${roundContext}.`;
+      const answer = answerTemplate({ career, context, topic, difficulty, type: blueprint.type, focus, constraint, signal });
 
       return {
         id: `${career.slug}-iq-${count++}`,
         question,
-        shortAnswer: `${answerBlueprints[difficulty]} For ${career.name}, anchor the answer in ${context.artifact} and use ${context.metric} as evidence.`,
-        detailedAnswer: `${answerBlueprints[difficulty]} A production-quality response should mention ${context.testing}, describe how the work reaches ${context.deployment}, and acknowledge risks such as ${context.risk}. The best candidates connect ${topic.name} to a concrete ${career.name} workflow rather than treating it as isolated theory.`,
+        shortAnswer: answer,
+        detailedAnswer: `${answer} A top interview response should be specific about the first diagnostic step, the evidence that would confirm or reject the hypothesis, the release or mitigation path, and what would be monitored afterward. It should avoid vague tool-name answers and show judgment about when a simpler design is safer.`,
         difficulty,
         topic: topic.name,
+        type: blueprint.type,
         relatedSkill: topic.skill || topic.name,
         commonMistake: topic.mistake || `Treating ${topic.name} as a checklist item instead of validating it in a real ${career.name} workflow.`,
-        realWorldExample: topic.example || `Using ${topic.name} inside ${context.system}.`,
+        realWorldExample: topic.example || `Using ${topic.name} inside ${system}.`,
         unlocked: true
       };
     })
