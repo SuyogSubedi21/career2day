@@ -1,4 +1,6 @@
 node_modules/
+.npm-cache/
+.npm-cache-api/
 app.tar.gz
 pb_data/
 *.exe

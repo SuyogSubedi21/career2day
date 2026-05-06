@@ -3,9 +3,9 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 
 export default function SEOHead({ 
-  title = 'Career2Day - Career Roadmaps, CV Builder and Interview Prep', 
-  description = 'Career2Day helps learners move from beginner to job-ready with career roadmaps, quizzes, interview preparation, readiness tracking, and a private browser-based CV builder.', 
-  keywords = 'IT career, interview prep, CV builder, coding practice, tech jobs', 
+  title = 'Free Career Roadmaps, CV Builder & Interview Prep | Career2Day', 
+  description = 'Get hired faster with free career roadmaps, a CV builder, interview prep and quizzes. Plan your path and build a job-ready CV in minutes - 100% free.', 
+  keywords = 'free career roadmaps, interview prep, CV builder, career quiz, job-ready CV, tech jobs', 
   ogImage = 'https://career2day.com/og-image.jpg', 
   ogUrl = 'https://career2day.com', 
   type = 'website',

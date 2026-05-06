@@ -10,6 +10,7 @@ const distRoot = path.resolve(webRoot, '../../dist/apps/web');
 const templatePath = path.join(distRoot, 'index.html');
 
 const siteUrl = 'https://career2day.com';
+const sitemapLastmod = '2026-05-06';
 
 const escapeHtml = (value = '') =>
   String(value)
@@ -29,6 +30,74 @@ const stripHtml = (value = '') =>
 
 const paragraph = (text) => `<p>${escapeHtml(text)}</p>`;
 const list = (items = []) => `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+const linkList = (items = []) => `<ul>${items.map((item) => `<li><a href="${item.href}">${escapeHtml(item.label)}</a></li>`).join('')}</ul>`;
+
+const homepageFaqs = [
+  ['Is Career2Day free?', 'Yes. Career2Day gives learners free access to career roadmaps, interview preparation, quizzes, readiness tracking, and the browser-based CV builder.'],
+  ['Who is Career2Day for?', 'Career2Day is built for students, career switchers, and early-career professionals who want a clearer route from learning to portfolio proof and job applications.'],
+  ['How does the CV builder connect to roadmaps?', 'Roadmaps help you build skills and projects, then the CV builder turns that work into role-aware summaries, skills, project bullets, and ATS-friendly wording.'],
+  ['What careers can I plan on Career2Day?', 'Career2Day includes technology career tracks such as AI Engineer, Frontend Engineer, Data Analyst, Data Scientist, Machine Learning Engineer, and more.']
+];
+
+const ensureMeta = (html, selector, tag) => (selector.test(html) ? html.replace(selector, tag) : html.replace('</head>', `  ${tag}\n</head>`));
+
+const careerUrl = (career) => `${siteUrl}/careers/${career.slug}`;
+
+const relatedCareers = (career, limit = 5) => {
+  const sameCategory = careerPlatformData.filter((item) => item.slug !== career.slug && item.category === career.category);
+  const fallback = careerPlatformData.filter((item) => item.slug !== career.slug && item.category !== career.category);
+  return [...sameCategory, ...fallback].slice(0, limit);
+};
+
+const careerAliases = [
+  { alias: 'frontend-developer', target: 'frontend-engineer', label: 'Frontend Developer' },
+  { alias: 'backend-developer', target: 'backend-engineer', label: 'Backend Developer' },
+  { alias: 'cybersecurity-analyst', target: 'soc-analyst', label: 'Cybersecurity Analyst' }
+];
+
+const breadcrumbSchema = (items) => ({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: items.map((item, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: item.name,
+    item: item.url
+  }))
+});
+
+const faqSchema = (faqs = []) => ({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((faq) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.answer
+    }
+  }))
+});
+
+const webSiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Career2Day',
+  url: siteUrl,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: `${siteUrl}/careers?search={search_term_string}`,
+    'query-input': 'required name=search_term_string'
+  }
+};
+
+const graphSchema = (...items) => ({
+  '@context': 'https://schema.org',
+  '@graph': items.filter(Boolean).map((item) => {
+    const { '@context': _context, ...rest } = item;
+    return rest;
+  })
+});
 
 const blogChartSummaries = {
   'how-to-follow-a-career-roadmap-without-getting-overwhelmed': {
@@ -107,6 +176,10 @@ const layout = ({ title, description, canonical, content, schema }) => {
   html = html.replace(/<meta property="og:url" content="[^"]*" \/>/, `<meta property="og:url" content="${canonical}" />`);
   html = html.replace(/<meta property="og:title" content="[^"]*" \/>/, `<meta property="og:title" content="${escapeHtml(title)}" />`);
   html = html.replace(/<meta property="og:description" content="[^"]*" \/>/, `<meta property="og:description" content="${escapeHtml(description)}" />`);
+  html = ensureMeta(html, /<meta property="twitter:url" content="[^"]*" \/>/, `<meta property="twitter:url" content="${canonical}" />`);
+  html = ensureMeta(html, /<meta property="twitter:title" content="[^"]*" \/>/, `<meta property="twitter:title" content="${escapeHtml(title)}" />`);
+  html = ensureMeta(html, /<meta property="twitter:description" content="[^"]*" \/>/, `<meta property="twitter:description" content="${escapeHtml(description)}" />`);
+  html = ensureMeta(html, /<meta property="twitter:image" content="[^"]*" \/>/, '<meta property="twitter:image" content="https://career2day.com/og-image.jpg" />');
 
   const schemaScript = schema
     ? `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
@@ -134,14 +207,17 @@ const pageSchema = (route, title, description) => ({
 });
 
 const homeContent = () => `
-  <h1>Career2Day - Career Roadmaps, CV Builder and Interview Prep</h1>
-  ${paragraph('Career2Day helps learners move from beginner to job-ready with practical career roadmaps, interview preparation, quizzes, project guidance, and a role-aware CV builder.')}
+  <h1>Free Career Roadmaps, CV Builder and Interview Prep</h1>
+  ${paragraph('Career2Day helps learners move from lost to job-ready with free career roadmaps, interview preparation, quizzes, project guidance, readiness tracking, and a role-aware CV builder.')}
+  <h2>What is Career2Day?</h2>
+  ${paragraph('Career2Day is a free career readiness platform for learners who want more than a list of tutorials. It connects role-specific career roadmaps, interview practice, quizzes, project guidance, readiness tracking, and a browser-based CV builder so every step supports the same job goal.')}
+  ${paragraph('Start by choosing a target career such as AI Engineer, Frontend Engineer, Data Analyst, or Data Scientist. Each path shows the skills to learn, tools to practise, projects to build, and interview topics to review. As you complete work, Career2Day helps turn that proof into stronger CV sections, clearer project bullets, and better answers for recruiters and hiring managers.')}
   <h2>What Career2Day offers</h2>
-  ${list(['Step-by-step career roadmaps for technology roles.', 'Interview questions and quiz practice connected to each career path.', 'A browser-based CV builder that helps turn skills and projects into application-ready content.', 'Career articles about learning, portfolios, ATS keywords, interviews, and first-role preparation.'])}
+  ${list(['Step-by-step career roadmaps for technology roles.', 'Interview questions and quiz practice connected to each career path.', 'A browser-based CV builder that helps turn skills and projects into application-ready content.', 'Latest career guides about learning, portfolios, ATS keywords, interviews, and first-role preparation.', 'Weekly career tips for roadmap progress, CV improvements, interview prep, and portfolio ideas.'])}
   <h2>Featured career paths</h2>
   ${list(careerPlatformData.map((career) => `${career.name}: ${career.description || career.tagline}`))}
-  <h2>Why the platform exists</h2>
-  ${paragraph('Many learners collect tutorials without a clear path to proof. Career2Day organizes learning into outcomes, projects, readiness signals, and CV material so preparation becomes visible and useful.')}
+  <h2>Frequently asked questions</h2>
+  ${homepageFaqs.map(([question, answer]) => `<h3>${escapeHtml(question)}</h3>${paragraph(answer)}`).join('')}
 `;
 
 const careersContent = () => `
@@ -156,26 +232,55 @@ const careersContent = () => `
   `).join('')}
 `;
 
+const careerFaqs = (career) => {
+  const totalWeeks = (career.roadmap || []).reduce((sum, phase) => sum + Number(phase.timelineWeeks || 0), 0);
+  return (career.faqs && career.faqs.length ? career.faqs : [
+    { question: `How long does it take to become a ${career.name}?`, answer: `This ${career.name} roadmap is structured for about ${totalWeeks || 'several'} focused weeks of learning, projects, interview practice and CV preparation.` },
+    { question: `What tools should a ${career.name} learn?`, answer: `${career.name} learners should practise tools such as ${(career.tools || []).join(', ')}.` },
+    { question: `What projects should I build for ${career.name} roles?`, answer: `Build projects that prove role-specific skills, such as ${(career.projects || []).slice(0, 3).join(', ')}.` }
+  ]);
+};
+
 const careerContent = (career) => `
   <h1>${escapeHtml(career.name)} Roadmap</h1>
   ${paragraph(career.description || career.tagline || `${career.name} career roadmap and preparation guide.`)}
+  <nav aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li><a href="/careers">Careers</a></li>
+      <li>${escapeHtml(career.name)}</li>
+    </ol>
+  </nav>
   <h2>Core skills</h2>
   ${list(career.requiredSkills || [])}
   <h2>Tools to practise</h2>
   ${list(career.tools || [])}
+  <h2>Projects for ${escapeHtml(career.name)} learners</h2>
+  ${list(career.projects || [])}
   <h2>Learning roadmap</h2>
   ${(career.roadmap || []).map((phase) => `
     <section>
       <h3>${escapeHtml(phase.phase)} - ${escapeHtml(String(phase.timelineWeeks || ''))} weeks</h3>
-      ${paragraph((phase.skills || []).join(', '))}
+      <h4>Skills to learn</h4>
+      ${list(phase.skills || [])}
+      <h4>Checklist</h4>
+      ${list(phase.checklist || [])}
+      <h4>Tools</h4>
+      ${list(phase.tools || [])}
       ${paragraph(`Project: ${phase.miniProject || 'Build a portfolio-ready proof point.'}`)}
       ${paragraph(`Outcome: ${phase.outcome || 'Demonstrate practical readiness for the role.'}`)}
     </section>
   `).join('')}
   <h2>Interview preparation</h2>
-  ${list((career.interviewQuestions || []).slice(0, 20).map((item) => item.question || item.q || String(item)))}
+  ${list((career.interviewQuestions || []).slice(0, 80).map((item) => item.question || item.q || String(item)))}
+  <p><a href="/interview-questions/${career.slug}">Open all ${escapeHtml(career.name)} interview questions</a></p>
+  <h2>Quiz questions</h2>
+  ${list((career.quizzes || []).map((item) => `${item.question} Answer: ${item.correctAnswer}. Explanation: ${item.explanation}`))}
+  <p><a href="/quiz/${career.slug}">Open ${escapeHtml(career.name)} quiz practice</a></p>
+  <h2>Related careers</h2>
+  ${linkList(relatedCareers(career).map((item) => ({ href: `/careers/${item.slug}`, label: item.name })))}
   <h2>Frequently asked questions</h2>
-  ${(career.faqs || []).map((faq) => `<h3>${escapeHtml(faq.question)}</h3>${paragraph(faq.answer)}`).join('')}
+  ${careerFaqs(career).map((faq) => `<h3>${escapeHtml(faq.question)}</h3>${paragraph(faq.answer)}`).join('')}
 `;
 
 const blogListContent = () => `
@@ -196,7 +301,77 @@ const blogArticleContent = (article) => `
     <p><strong>Category:</strong> ${escapeHtml(article.category)} | <strong>Reading time:</strong> ${escapeHtml(article.readingTime)} minutes</p>
     ${article.content}
     ${blogChartContent(article.slug)}
+    <h2>Related career roadmaps</h2>
+    ${linkList(careerPlatformData.slice(0, 6).map((career) => ({ href: `/careers/${career.slug}`, label: career.name })))}
   </article>
+`;
+
+const quizIndexContent = () => `
+  <h1>Career Quizzes</h1>
+  ${paragraph('Use Career2Day quizzes to review role-specific concepts and identify the next learning action for each career path.')}
+  ${linkList(careerPlatformData.map((career) => ({ href: `/quiz/${career.slug}`, label: `${career.name} quiz questions` })))}
+`;
+
+const interviewIndexContent = () => `
+  <h1>Career Interview Questions</h1>
+  ${paragraph('Browse role-specific interview questions for every Career2Day roadmap. Each interview page includes beginner, intermediate and advanced prompts connected to skills, tools, projects and quiz topics.')}
+  ${linkList(careerPlatformData.map((career) => ({ href: `/interview-questions/${career.slug}`, label: `${career.name} interview questions` })))}
+`;
+
+const quizContent = (career) => `
+  <h1>${escapeHtml(career.name)} Quiz Questions</h1>
+  ${paragraph(`Practise ${career.name} quiz questions with answer explanations connected to the ${career.name} roadmap, projects and interview preparation.`)}
+  <nav aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li><a href="/quiz">Quizzes</a></li>
+      <li>${escapeHtml(career.name)}</li>
+    </ol>
+  </nav>
+  ${(career.quizzes || []).map((item, index) => `
+    <section>
+      <h2>Question ${index + 1}: ${escapeHtml(item.topic || career.name)}</h2>
+      ${paragraph(item.question)}
+      <h3>Answer choices</h3>
+      ${list(item.options || [])}
+      ${paragraph(`Correct answer: ${item.correctAnswer}`)}
+      ${paragraph(`Explanation: ${item.explanation}`)}
+    </section>
+  `).join('')}
+  <h2>Continue learning</h2>
+  ${linkList([
+    { href: `/careers/${career.slug}`, label: `${career.name} roadmap` },
+    { href: `/interview-questions/${career.slug}`, label: `${career.name} interview questions` },
+    { href: '/careers', label: 'All career roadmaps' }
+  ])}
+`;
+
+const interviewContent = (career) => `
+  <h1>${escapeHtml(career.name)} Interview Questions</h1>
+  ${paragraph(`Practice ${career.name} interview questions with beginner, intermediate and advanced prompts. These questions connect to the ${career.name} roadmap, quiz topics, tools and projects.`)}
+  <nav aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li><a href="/interview-questions">Interview Questions</a></li>
+      <li>${escapeHtml(career.name)}</li>
+    </ol>
+  </nav>
+  ${(career.interviewQuestions || []).map((item, index) => `
+    <section>
+      <h2>Question ${index + 1}: ${escapeHtml(item.topic || item.relatedSkill || career.name)}</h2>
+      ${paragraph(item.question || item.q || String(item))}
+      ${item.shortAnswer ? paragraph(`Short answer: ${item.shortAnswer}`) : ''}
+      ${item.detailedAnswer ? paragraph(`Detailed answer: ${item.detailedAnswer}`) : ''}
+      ${item.commonMistake ? paragraph(`Common mistake: ${item.commonMistake}`) : ''}
+      ${item.realWorldExample ? paragraph(`Real-world example: ${item.realWorldExample}`) : ''}
+    </section>
+  `).join('')}
+  <h2>Continue learning</h2>
+  ${linkList([
+    { href: `/careers/${career.slug}`, label: `${career.name} roadmap` },
+    { href: `/quiz/${career.slug}`, label: `${career.name} quiz questions` },
+    { href: '/careers', label: 'All career roadmaps' }
+  ])}
 `;
 
 const simplePage = (title, description, sections) => `
@@ -214,25 +389,67 @@ const baseTemplate = fs.readFileSync(templatePath, 'utf8');
 
 const routes = [
   ['/', {
-    title: 'Career2Day - Career Roadmaps, CV Builder and Interview Prep',
-    description: 'Career roadmaps, CV builder, interview prep, quizzes and readiness tracking in one connected career platform.',
+    title: 'Free Career Roadmaps, CV Builder & Interview Prep | Career2Day',
+    description: 'Get hired faster with free career roadmaps, a CV builder, interview prep and quizzes. Plan your path and build a job-ready CV in minutes - 100% free.',
     canonical: `${siteUrl}/`,
     content: homeContent(),
-    schema: pageSchema('/', 'Career2Day', 'Career roadmaps, CV builder and interview prep.')
+    schema: graphSchema(
+      webSiteSchema,
+      faqSchema(homepageFaqs.map(([question, answer]) => ({ question, answer }))),
+      breadcrumbSchema([{ name: 'Home', url: `${siteUrl}/` }])
+    )
   }],
   ['/careers', {
     title: 'Career Roadmaps | Career2Day',
     description: 'Browse technology career roadmaps with skills, tools, projects, interview questions, quizzes and CV guidance.',
     canonical: `${siteUrl}/careers`,
     content: careersContent(),
-    schema: pageSchema('/careers', 'Career Roadmaps', 'Browse technology career roadmaps.')
+    schema: graphSchema(
+      pageSchema('/careers', 'Career Roadmaps', 'Browse technology career roadmaps.'),
+      breadcrumbSchema([
+        { name: 'Home', url: `${siteUrl}/` },
+        { name: 'Careers', url: `${siteUrl}/careers` }
+      ])
+    )
   }],
   ['/blog', {
     title: 'Career Blog | Career2Day',
     description: 'Career articles about roadmaps, resumes, interview practice, portfolios, ATS keywords and first job preparation.',
     canonical: `${siteUrl}/blog`,
     content: blogListContent(),
-    schema: pageSchema('/blog', 'Career Blog', 'Career articles and job readiness guides.')
+    schema: graphSchema(
+      pageSchema('/blog', 'Career Blog', 'Career articles and job readiness guides.'),
+      breadcrumbSchema([
+        { name: 'Home', url: `${siteUrl}/` },
+        { name: 'Blog', url: `${siteUrl}/blog` }
+      ])
+    )
+  }],
+  ['/quiz', {
+    title: 'Career Quizzes | Career2Day',
+    description: 'Browse career quiz questions for every Career2Day roadmap, with answer explanations connected to role-specific skills, tools and projects.',
+    canonical: `${siteUrl}/quiz`,
+    content: quizIndexContent(),
+    schema: graphSchema(
+      pageSchema('/quiz', 'Career Quizzes', 'Career quiz questions for every roadmap.'),
+      breadcrumbSchema([
+        { name: 'Home', url: `${siteUrl}/` },
+        { name: 'Quizzes', url: `${siteUrl}/quiz` }
+      ])
+    )
+  }],
+  ['/interview-questions', {
+    title: 'Career Interview Questions | Career2Day',
+    description: 'Browse role-specific interview questions for every Career2Day roadmap, including beginner, intermediate and advanced preparation prompts.',
+    canonical: `${siteUrl}/interview-questions`,
+    content: interviewIndexContent(),
+    schema: graphSchema(
+      pageSchema('/interview-questions', 'Career Interview Questions', 'Role-specific interview questions for every roadmap.'),
+      breadcrumbSchema([
+        { name: 'Home', url: `${siteUrl}/` },
+        { name: 'Interview Questions', url: `${siteUrl}/interview-questions` }
+      ])
+    )
   }],
   ['/about', {
     title: 'About Career2Day',
@@ -314,43 +531,111 @@ const routes = [
 for (const career of careerPlatformData) {
   const title = career.seo?.title || `${career.name} Roadmap, Skills, Salary and Interview Questions | Career2Day`;
   const description = career.seo?.description || career.description || `${career.name} roadmap with skills, tools, projects and interview preparation.`;
+  const faqs = careerFaqs(career);
   routes.push([`/careers/${career.slug}`, {
     title,
     description,
-    canonical: `${siteUrl}/careers/${career.slug}`,
+    canonical: careerUrl(career),
     content: careerContent(career),
-    schema: {
-      '@context': 'https://schema.org',
-      '@type': 'Article',
-      headline: `${career.name} Career Roadmap`,
-      description,
-      url: `${siteUrl}/careers/${career.slug}`
-    }
+    schema: graphSchema(
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: `${career.name} Career Roadmap`,
+        description,
+        url: careerUrl(career),
+        mainEntityOfPage: careerUrl(career),
+        author: { '@type': 'Organization', name: 'Career2Day' },
+        publisher: { '@type': 'Organization', name: 'Career2Day', logo: { '@type': 'ImageObject', url: `${siteUrl}/favicon.svg` } }
+      },
+      faqSchema(faqs),
+      breadcrumbSchema([
+        { name: 'Home', url: `${siteUrl}/` },
+        { name: 'Careers', url: `${siteUrl}/careers` },
+        { name: career.name, url: careerUrl(career) }
+      ])
+    )
   }]);
   routes.push([`/interview-questions/${career.slug}`, {
     title: `${career.name} Interview Questions | Career2Day`,
     description: `Practice ${career.name} interview questions with beginner, intermediate and advanced prompts.`,
     canonical: `${siteUrl}/interview-questions/${career.slug}`,
-    content: `<h1>${escapeHtml(career.name)} Interview Questions</h1>${paragraph(`Practice interview questions for the ${career.name} path.`)}${list((career.interviewQuestions || []).slice(0, 60).map((item) => item.question || item.q || String(item)))}`,
-    schema: pageSchema(`/interview-questions/${career.slug}`, `${career.name} Interview Questions`, `Interview questions for ${career.name}.`)
+    content: interviewContent(career),
+    schema: graphSchema(
+      pageSchema(`/interview-questions/${career.slug}`, `${career.name} Interview Questions`, `Interview questions for ${career.name}.`),
+      breadcrumbSchema([
+        { name: 'Home', url: `${siteUrl}/` },
+        { name: 'Interview Questions', url: `${siteUrl}/interview-questions` },
+        { name: career.name, url: `${siteUrl}/interview-questions/${career.slug}` }
+      ])
+    )
+  }]);
+  routes.push([`/quiz/${career.slug}`, {
+    title: `${career.name} Quiz Questions | Career2Day`,
+    description: `Practice ${career.name} quiz questions with answer explanations connected to roadmap skills, projects and interview preparation.`,
+    canonical: `${siteUrl}/quiz/${career.slug}`,
+    content: quizContent(career),
+    schema: graphSchema(
+      pageSchema(`/quiz/${career.slug}`, `${career.name} Quiz Questions`, `Quiz questions for ${career.name}.`),
+      breadcrumbSchema([
+        { name: 'Home', url: `${siteUrl}/` },
+        { name: 'Quizzes', url: `${siteUrl}/quiz` },
+        { name: career.name, url: `${siteUrl}/quiz/${career.slug}` }
+      ])
+    )
+  }]);
+}
+
+for (const alias of careerAliases) {
+  const career = careerPlatformData.find((item) => item.slug === alias.target);
+  if (!career) continue;
+  const title = `${alias.label} Roadmap, Skills, Interview Questions and Quiz | Career2Day`;
+  const description = `Follow a practical ${alias.label} roadmap with skills, tools, projects, interview questions, quiz practice and CV guidance.`;
+  routes.push([`/careers/${alias.alias}`, {
+    title,
+    description,
+    canonical: careerUrl(career),
+    content: `
+      <h1>${escapeHtml(alias.label)} Roadmap</h1>
+      ${paragraph(`${alias.label} learners can use the ${career.name} roadmap as the closest Career2Day path for skills, projects, interview preparation, quiz practice and CV guidance.`)}
+      ${careerContent(career).replace(/<h1>[\s\S]*?<\/h1>/, '')}
+    `,
+    schema: graphSchema(
+      pageSchema(`/careers/${alias.alias}`, title, description),
+      breadcrumbSchema([
+        { name: 'Home', url: `${siteUrl}/` },
+        { name: 'Careers', url: `${siteUrl}/careers` },
+        { name: alias.label, url: `${siteUrl}/careers/${alias.alias}` }
+      ])
+    )
   }]);
 }
 
 for (const article of careerBlogArticles) {
+  const articleUrl = `${siteUrl}/blog/${article.slug}`;
   routes.push([`/blog/${article.slug}`, {
     title: `${article.title} | Career2Day`,
     description: article.excerpt,
-    canonical: `${siteUrl}/blog/${article.slug}`,
+    canonical: articleUrl,
     content: blogArticleContent(article),
-    schema: {
-      '@context': 'https://schema.org',
-      '@type': 'Article',
-      headline: article.title,
-      description: article.excerpt,
-      datePublished: article.publishedAt,
-      author: { '@type': 'Organization', name: article.author || 'Career2Day' },
-      url: `${siteUrl}/blog/${article.slug}`
-    }
+    schema: graphSchema(
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: article.title,
+        description: article.excerpt,
+        datePublished: article.publishedAt,
+        author: { '@type': 'Organization', name: article.author || 'Career2Day' },
+        url: articleUrl,
+        mainEntityOfPage: articleUrl,
+        publisher: { '@type': 'Organization', name: 'Career2Day', logo: { '@type': 'ImageObject', url: `${siteUrl}/favicon.svg` } }
+      },
+      breadcrumbSchema([
+        { name: 'Home', url: `${siteUrl}/` },
+        { name: 'Blog', url: `${siteUrl}/blog` },
+        { name: article.title, url: articleUrl }
+      ])
+    )
   }]);
 }
 
@@ -360,9 +645,16 @@ for (const [route, page] of routes) {
 
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${routes.map(([route]) => `  <url><loc>${siteUrl}${route === '/' ? '/' : route}</loc><lastmod>2026-05-05</lastmod><changefreq>${route === '/' ? 'weekly' : 'monthly'}</changefreq><priority>${route === '/' ? '1.0' : '0.8'}</priority></url>`).join('\n')}
+${routes.map(([route]) => `  <url><loc>${siteUrl}${route === '/' ? '/' : route}</loc><lastmod>${sitemapLastmod}</lastmod><changefreq>${route === '/' ? 'weekly' : 'monthly'}</changefreq><priority>${route === '/' ? '1.0' : '0.8'}</priority></url>`).join('\n')}
 </urlset>
 `;
 fs.writeFileSync(path.join(distRoot, 'sitemap.xml'), sitemap);
+
+const robots = `User-agent: *
+Allow: /
+
+Sitemap: ${siteUrl}/sitemap.xml
+`;
+fs.writeFileSync(path.join(distRoot, 'robots.txt'), robots);
 
 console.log(`[prerender-seo-pages] Wrote ${routes.length} crawlable route snapshots.`);
