@@ -5,8 +5,28 @@ import { toast } from 'sonner';
 import { logActivity } from '@/hooks/useUserActivityTracking.js';
 
 const AuthContext = createContext();
+const AUTH_REFRESH_STORAGE_KEY = 'career2day_last_auth_refresh';
+const AUTH_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const AUTH_REFRESH_EXPIRY_WINDOW_SECONDS = 24 * 60 * 60;
 
 export const useAuth = () => useContext(AuthContext);
+
+const getTokenExpiry = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return Number(payload.exp || 0);
+  } catch {
+    return 0;
+  }
+};
+
+const shouldRefreshAuth = () => {
+  const tokenExpiry = getTokenExpiry(pb.authStore.token || '');
+  const secondsUntilExpiry = tokenExpiry - Math.floor(Date.now() / 1000);
+  const lastRefresh = Number(localStorage.getItem(AUTH_REFRESH_STORAGE_KEY) || 0);
+
+  return secondsUntilExpiry < AUTH_REFRESH_EXPIRY_WINDOW_SECONDS && Date.now() - lastRefresh > AUTH_REFRESH_INTERVAL_MS;
+};
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(pb.authStore.isValid ? pb.authStore.model : null);
@@ -16,7 +36,10 @@ export const AuthProvider = ({ children }) => {
     const initAuth = async () => {
       if (pb.authStore.isValid) {
         try {
-          await pb.collection('users').authRefresh({ $autoCancel: false });
+          if (shouldRefreshAuth()) {
+            await pb.collection('users').authRefresh({ $autoCancel: false });
+            localStorage.setItem(AUTH_REFRESH_STORAGE_KEY, String(Date.now()));
+          }
           setCurrentUser(pb.authStore.model);
         } catch (error) {
           console.error('Session expired or invalid:', error);
