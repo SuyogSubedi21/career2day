@@ -11,6 +11,15 @@
   "devDependencies": {
     "concurrently": "^9.1.2"
   },
+  "overrides": {
+    "express-rate-limit": {
+      "ip-address": "10.2.0"
+    },
+    "ip-address": "10.2.0",
+    "lodash": "4.18.1",
+    "postcss": "8.5.14",
+    "vite": "8.0.10"
+  },
   "workspaces": [
     "apps/*"
   ]
