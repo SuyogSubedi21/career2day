@@ -31,6 +31,11 @@ const stripHtml = (value = '') =>
 const paragraph = (text) => `<p>${escapeHtml(text)}</p>`;
 const list = (items = []) => `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
 const linkList = (items = []) => `<ul>${items.map((item) => `<li><a href="${item.href}">${escapeHtml(item.label)}</a></li>`).join('')}</ul>`;
+const textList = (items = []) => list(items.map((item) => {
+  if (typeof item === 'string') return item;
+  if (!item) return '';
+  return item.description || item.title || JSON.stringify(item);
+}));
 
 const homepageFaqs = [
   ['Is Career2Day free?', 'Yes. Career2Day gives learners free access to career roadmaps, interview preparation, quizzes, readiness tracking, and the browser-based CV builder.'],
@@ -234,10 +239,13 @@ const careersContent = () => `
 
 const careerFaqs = (career) => {
   const totalWeeks = (career.roadmap || []).reduce((sum, phase) => sum + Number(phase.timelineWeeks || 0), 0);
+  const projectTitles = (career.projects || []).slice(0, 3).map((project) => (
+    typeof project === 'string' ? project : project.title || project.description
+  )).filter(Boolean);
   return (career.faqs && career.faqs.length ? career.faqs : [
     { question: `How long does it take to become a ${career.name}?`, answer: `This ${career.name} roadmap is structured for about ${totalWeeks || 'several'} focused weeks of learning, projects, interview practice and CV preparation.` },
     { question: `What tools should a ${career.name} learn?`, answer: `${career.name} learners should practise tools such as ${(career.tools || []).join(', ')}.` },
-    { question: `What projects should I build for ${career.name} roles?`, answer: `Build projects that prove role-specific skills, such as ${(career.projects || []).slice(0, 3).join(', ')}.` }
+    { question: `What projects should I build for ${career.name} roles?`, answer: `Build projects that prove role-specific skills, such as ${projectTitles.join(', ')}.` }
   ]);
 };
 
@@ -253,29 +261,71 @@ const careerContent = (career) => `
   </nav>
   <h2>Core skills</h2>
   ${list(career.requiredSkills || [])}
+  <h2>Detailed skill guide</h2>
+  ${Object.entries(career.skillsDetailed || {}).map(([group, skills]) => `
+    <section>
+      <h3>${escapeHtml(group)} skills</h3>
+      ${(skills || []).map((skill) => `
+        <article>
+          <h4>${escapeHtml(skill.name || String(skill))}</h4>
+          ${skill.explanation ? paragraph(skill.explanation) : ''}
+          ${skill.whyItMatters ? paragraph(`Why it matters: ${skill.whyItMatters}`) : ''}
+        </article>
+      `).join('')}
+    </section>
+  `).join('')}
   <h2>Tools to practise</h2>
   ${list(career.tools || [])}
   <h2>Projects for ${escapeHtml(career.name)} learners</h2>
-  ${list(career.projects || [])}
+  ${(career.projects || []).map((project, index) => `
+    <article>
+      <h3>Project ${index + 1}: ${escapeHtml(project.title || `Portfolio project ${index + 1}`)}</h3>
+      ${paragraph(project.description || String(project))}
+      ${project.difficulty ? paragraph(`Difficulty: ${project.difficulty}`) : ''}
+      ${(project.technologies || project.toolsUsed)?.length ? `<h4>Technologies used</h4>${list(project.technologies || project.toolsUsed)}` : ''}
+      ${project.skillsUsed?.length ? `<h4>Skills used</h4>${list(project.skillsUsed)}` : ''}
+      ${project.deployment ? paragraph(`Deployment suggestion: ${project.deployment}`) : ''}
+      ${project.learningOutcomes?.length ? `<h4>Learning outcomes</h4>${list(project.learningOutcomes)}` : ''}
+      ${project.applicationValue ? paragraph(`Portfolio value: ${project.applicationValue}`) : ''}
+    </article>
+  `).join('') || textList(career.projects || [])}
   <h2>Learning roadmap</h2>
   ${(career.roadmap || []).map((phase) => `
     <section>
       <h3>${escapeHtml(phase.phase)} - ${escapeHtml(String(phase.timelineWeeks || ''))} weeks</h3>
-      <h4>Skills to learn</h4>
-      ${list(phase.skills || [])}
+      <h4>Topics to learn</h4>
+      ${list(phase.topics || phase.skills || [])}
       <h4>Checklist</h4>
       ${list(phase.checklist || [])}
       <h4>Tools</h4>
       ${list(phase.tools || [])}
       ${paragraph(`Project: ${phase.miniProject || 'Build a portfolio-ready proof point.'}`)}
       ${paragraph(`Outcome: ${phase.outcome || 'Demonstrate practical readiness for the role.'}`)}
+      ${phase.nextAction ? paragraph(`Next action: ${phase.nextAction}`) : ''}
     </section>
   `).join('')}
   <h2>Interview preparation</h2>
-  ${list((career.interviewQuestions || []).slice(0, 80).map((item) => item.question || item.q || String(item)))}
+  ${(career.interviewQuestions || []).map((item, index) => `
+    <section>
+      <h3>Interview question ${index + 1}: ${escapeHtml(item.topic || item.relatedSkill || career.name)}</h3>
+      ${paragraph(item.question || item.q || String(item))}
+      ${item.shortAnswer ? paragraph(`Short answer: ${item.shortAnswer}`) : ''}
+      ${item.detailedAnswer ? paragraph(`Detailed answer: ${item.detailedAnswer}`) : ''}
+      ${item.commonMistake ? paragraph(`Common mistake: ${item.commonMistake}`) : ''}
+      ${item.realWorldExample ? paragraph(`Real-world example: ${item.realWorldExample}`) : ''}
+    </section>
+  `).join('')}
   <p><a href="/interview-questions/${career.slug}">Open all ${escapeHtml(career.name)} interview questions</a></p>
   <h2>Quiz questions</h2>
-  ${list((career.quizzes || []).map((item) => `${item.question} Answer: ${item.correctAnswer}. Explanation: ${item.explanation}`))}
+  ${(career.quizzes || []).map((item, index) => `
+    <section>
+      <h3>Quiz question ${index + 1}: ${escapeHtml(item.topic || career.name)}</h3>
+      ${paragraph(item.question)}
+      ${item.options?.length ? `<h4>Answer choices</h4>${list(item.options)}` : ''}
+      ${paragraph(`Correct answer: ${item.correctAnswer}`)}
+      ${paragraph(`Explanation: ${item.explanation}`)}
+    </section>
+  `).join('')}
   <p><a href="/quiz/${career.slug}">Open ${escapeHtml(career.name)} quiz practice</a></p>
   <h2>Related careers</h2>
   ${linkList(relatedCareers(career).map((item) => ({ href: `/careers/${item.slug}`, label: item.name })))}
