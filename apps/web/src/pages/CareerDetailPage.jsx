@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowRight, CheckCircle2, ChevronRight, FileCheck2, Target, Upload } from 'lucide-react';
+import { ArrowRight, BookOpenCheck, CheckCircle2, ChevronRight, FileCheck2, FileText, FolderKanban, Target, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SEOHead from '@/components/SEOHead.jsx';
@@ -29,6 +29,7 @@ export default function CareerDetailPage() {
   const [quizIndex, setQuizIndex] = useState(0);
   const [quizDone, setQuizDone] = useState(false);
   const [activeQuizLevel, setActiveQuizLevel] = useState('beginner');
+  const [activePanel, setActivePanel] = useState('overview');
   const { retention, badges, completeAction } = useRetention(career);
 
   if (!career) {
@@ -73,7 +74,7 @@ export default function CareerDetailPage() {
   const capstoneScore = scoreProject(projectSubmission, career);
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] pb-20 text-slate-950 dark:bg-[#080b12] dark:text-white">
+    <main className="min-h-screen bg-slate-50 pb-20 text-slate-950 dark:bg-[#080b12] dark:text-white">
       <SEOHead
         title={career.seo?.title || `${career.name} Roadmap, Salary, Interview Questions and CV | Career2Day`}
         description={career.seo?.description || career.description}
@@ -100,24 +101,7 @@ export default function CareerDetailPage() {
         </div>
       </nav>
 
-      <div className="sticky top-16 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-white/10 dark:bg-[#080b12]/95">
-        <div className="mx-auto flex max-w-7xl gap-5 overflow-x-auto px-4 py-2 text-sm font-bold sm:px-6 lg:px-8">
-          {[
-            ['Overview', '#overview'],
-            ['Roadmap', '#roadmap'],
-            ['Skills', '#skills'],
-            ['Interview', '#interview'],
-            ['Quiz', '#quiz'],
-            ['Project upload', '#final-project']
-          ].map(([label, href]) => (
-            <a key={href} href={href} className="whitespace-nowrap border-b-2 border-transparent py-2 text-slate-500 transition hover:border-slate-900 hover:text-slate-950 dark:text-slate-300 dark:hover:border-white dark:hover:text-white">
-              {label}
-            </a>
-          ))}
-        </div>
-      </div>
-
-      <section className="px-4 py-12 sm:px-6 lg:px-8" id="overview">
+      <section className="border-b border-slate-200/70 bg-white px-4 py-12 sm:px-6 lg:px-8 dark:border-white/10 dark:bg-[#080b12]" id="overview">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_340px]">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">{career.category}</p>
@@ -130,20 +114,44 @@ export default function CareerDetailPage() {
               <InfoCard label="Beginner fit" value={career.beginnerFriendliness} />
               <InfoCard label="Key tools" value={career.tools.slice(0, 3).join(', ')} />
             </div>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild className="rounded-md"><Link to="#roadmap">View Roadmap <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
-              <Button asChild variant="outline" className="rounded-md"><Link to="#skills">Skills to Learn</Link></Button>
-              <Button asChild variant="outline" className="rounded-md"><Link to={`/interview-questions/${career.slug}`}>Interview Questions</Link></Button>
-              <Button asChild variant="outline" className="rounded-md"><Link to={`/cv-builder?role=${career.slug}`}>Build CV</Link></Button>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              {[
+                ['overview', 'Overview', CheckCircle2],
+                ['roadmap', 'Roadmap', BookOpenCheck],
+                ['projects', 'Projects', FolderKanban],
+                ['quiz', 'Quiz', FileCheck2]
+              ].map(([panel, label, Icon]) => {
+                const active = activePanel === panel;
+                return (
+                  <button
+                    key={panel}
+                    type="button"
+                    onClick={() => setActivePanel(panel)}
+                    className={`flex min-h-14 items-center justify-between rounded-lg border px-5 py-3 text-left text-base font-bold shadow-sm transition ${
+                      active
+                        ? 'border-blue-600 bg-blue-600 text-white shadow-blue-600/20'
+                        : 'border-slate-300 bg-white text-slate-950 hover:border-slate-500 hover:bg-slate-50 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="flex items-center gap-3"><Icon className="h-5 w-5" />{label}</span>
+                    <ArrowRight className={`h-4 w-4 transition ${active ? 'translate-x-0.5' : ''}`} />
+                  </button>
+                );
+              })}
             </div>
-            {(career.responsibilities || career.industries) && (
-              <div className="mt-8 grid gap-4 lg:grid-cols-2">
-                {career.responsibilities && <PlainPanel title="Typical responsibilities" items={career.responsibilities} />}
-                {career.industries && <PlainPanel title="Industries hiring this role" items={career.industries} />}
-              </div>
-            )}
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Button asChild variant="outline" className="rounded-md">
+                <Link to={`/interview-questions/${career.slug}`}><Target className="mr-2 h-4 w-4" />Interview Questions</Link>
+              </Button>
+              <Button asChild variant="outline" className="rounded-md">
+                <Link to={`/cv-builder?role=${career.slug}`}><FileText className="mr-2 h-4 w-4" />Build CV</Link>
+              </Button>
+              <Button asChild variant="outline" className="rounded-md">
+                <Link to="/careers">All Careers</Link>
+              </Button>
+            </div>
           </div>
-          <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+          <aside className="rounded-lg border border-slate-200 bg-slate-50 p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
             <p className="text-sm font-bold text-slate-500">Readiness score</p>
             <div className="mt-2 text-5xl font-extrabold">{readiness.score}%</div>
             <p className="mt-2 font-semibold">{readiness.level}</p>
@@ -157,105 +165,138 @@ export default function CareerDetailPage() {
         </div>
       </section>
 
-      <Section id="salary" eyebrow="Salary" title="Salary progression">
-        <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={salaryData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="level" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}k`} />
-                <Tooltip formatter={(value) => `$${value}k`} />
-                <Bar dataKey="salary" fill="#0f172a" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="grid gap-3">
-            {salaryData.slice(0, 3).map((item, index) => <InfoCard key={item.level} label={`${item.level} level`} value={formatSalaryRange(item.salary, index)} />)}
-            <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
-              {career.salaryNote || 'Salaries vary by country, company, experience and market conditions. These are estimated global USD ranges.'}
+      {activePanel === 'overview' && (
+        <Section id="overview-panel" eyebrow="Overview" title={`${career.name} role snapshot`}>
+          <div className="grid gap-5">
+            <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+              <div className="grid gap-4 lg:grid-cols-2">
+                {career.responsibilities && <PlainPanel title="Typical responsibilities" items={career.responsibilities} />}
+                {career.industries && <PlainPanel title="Industries hiring this role" items={career.industries} />}
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+                <h3 className="font-extrabold">Next best actions</h3>
+                <div className="mt-4 grid gap-2">
+                  <Button asChild className="rounded-md"><Link to={`/cv-builder?role=${career.slug}`}><FileText className="mr-2 h-4 w-4" />Build CV</Link></Button>
+                  <Button asChild variant="outline" className="rounded-md"><Link to={`/interview-questions/${career.slug}`}><Target className="mr-2 h-4 w-4" />Interview Questions</Link></Button>
+                  <Button variant="outline" className="rounded-md" onClick={() => setActivePanel('roadmap')}><BookOpenCheck className="mr-2 h-4 w-4" />Open Roadmap</Button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </Section>
-
-      <Section id="skills" eyebrow="Skills and tools" title="Learn these skills in order">
-        <div className="grid gap-5 lg:grid-cols-4">
-          <SkillCategory title="Core skills" items={career.skillsDetailed?.core || career.requiredSkills.map((name) => ({ name, explanation: `Core ${career.name} capability.`, whyItMatters: 'This skill appears repeatedly in job descriptions and interview tasks.' }))} />
-          <SkillCategory title="Technical skills" items={career.skillsDetailed?.technical || []} />
-          <SkillCategory title="Tools" items={career.skillsDetailed?.tools || career.tools.map((name) => ({ name, explanation: `Practical tool used by ${career.name}s.`, whyItMatters: 'Employers expect candidates to show hands-on practice, not only theory.' }))} />
-          <SkillCategory title="Soft skills" items={career.skillsDetailed?.soft || []} />
-        </div>
-      </Section>
-
-      <Section id="roadmap" eyebrow="Roadmap" title="Follow this path in order">
-        <div className="sticky top-20 z-20 mb-5 rounded-lg border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#080b12]/95">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="font-extrabold">Progress: {roadmapCompletion}%</p>
-              <p className="text-sm text-slate-600 dark:text-slate-300">Weekly goal: {retention.completedActions}/{retention.weeklyGoal}. Continue with the next unchecked roadmap item.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button asChild className="rounded-md"><Link to={`/cv-builder?role=${career.slug}`}>Build CV</Link></Button>
-              <Button asChild variant="outline" className="rounded-md"><Link to={`/interview-questions/${career.slug}`}>Practice Interview</Link></Button>
-              <Button asChild variant="outline" className="rounded-md"><Link to="#quiz">Take Quiz</Link></Button>
-            </div>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {badges.length ? badges.map((badge) => <span key={badge} className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold dark:bg-white/10">{badge}</span>) : <span className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500 dark:bg-white/10">No badges yet</span>}
-          </div>
-        </div>
-        <div className="grid gap-4">
-          {career.roadmap.map((phase, phaseIndex) => {
-            const phaseComplete = phase.checklist.filter((_, itemIndex) => checkedItems[`${phaseIndex}-${itemIndex}`]).length;
-            const percent = Math.round((phaseComplete / phase.checklist.length) * 100);
-            return (
-              <article key={phase.phase} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
-                <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-                  <div>
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-slate-900 text-sm font-extrabold text-white dark:bg-white dark:text-slate-950">{phaseIndex + 1}</div>
-                    <h3 className="text-2xl font-extrabold">{phase.phase}</h3>
-                    <p className="mt-1 text-sm font-bold text-slate-500">{phase.timelineWeeks} weeks</p>
-                    <div className="mt-4 h-2 rounded-full bg-slate-100 dark:bg-white/10"><div className="h-2 rounded-full bg-slate-900 dark:bg-white" style={{ width: `${percent}%` }} /></div>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <DetailedSkillBlock phase={phase} phaseIndex={phaseIndex} career={career} />
-                    <ListBlock title="Tools to practise" items={phase.tools} />
-                    <div className="rounded-lg bg-slate-50 p-4 dark:bg-white/5 md:col-span-2">
-                      <h4 className="font-extrabold">Mini project</h4>
-                      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{phase.miniProject}</p>
-                      <h4 className="mt-4 font-extrabold">Outcome</h4>
-                      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{phase.outcome}</p>
-                      {phase.nextAction && (
-                        <>
-                          <h4 className="mt-4 font-extrabold">Next action</h4>
-                          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{phase.nextAction}</p>
-                        </>
-                      )}
-                    </div>
-                    <div className="grid gap-2 md:col-span-2">
-                      {phase.checklist.map((item, itemIndex) => {
-                        const id = `${phaseIndex}-${itemIndex}`;
-                        return (
-                          <button key={item} type="button" onClick={() => {
-                            setCheckedItems((current) => ({ ...current, [id]: !current[id] }));
-                            if (!checkedItems[id]) completeAction(`Completed ${phase.phase}: ${item}`);
-                          }} className="flex items-center gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-sm font-semibold transition hover:border-slate-500 dark:border-white/10 dark:bg-white/5">
-                            <span className={`flex h-5 w-5 items-center justify-center rounded border ${checkedItems[id] ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-950' : 'border-slate-300'}`}>{checkedItems[id] && <CheckCircle2 className="h-4 w-4" />}</span>
-                            {item}
-                          </button>
-                        );
-                      })}
-                    </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+              <div className="mb-5">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Salary</p>
+                <h3 className="mt-1 text-2xl font-extrabold">Salary progression</h3>
+              </div>
+              <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+                <div className="min-h-[300px]">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={salaryData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="level" tickLine={false} axisLine={false} />
+                      <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}k`} />
+                      <Tooltip formatter={(value) => `$${value}k`} />
+                      <Bar dataKey="salary" fill="#0f172a" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="grid gap-3">
+                  {salaryData.slice(0, 3).map((item, index) => <InfoCard key={item.level} label={`${item.level} level`} value={formatSalaryRange(item.salary, index)} />)}
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+                    {career.salaryNote || 'Salaries vary by country, company, experience and market conditions. These are estimated global USD ranges.'}
                   </div>
                 </div>
-              </article>
-            );
-          })}
-        </div>
-      </Section>
+              </div>
+            </div>
+          </div>
+        </Section>
+      )}
 
-      {career.projects && (
+      {activePanel === 'roadmap' && (
+        <Section id="roadmap" eyebrow="Roadmap" title="Follow this path in order">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+            <div className="grid gap-5">
+              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/10">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="font-extrabold">Progress: {roadmapCompletion}%</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">Start at Beginner, finish each checklist, then build the project for that step.</p>
+                  </div>
+                  <Button variant="outline" className="rounded-md" onClick={() => setActivePanel('quiz')}>Take Quiz</Button>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {badges.length ? badges.map((badge) => <span key={badge} className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold dark:bg-white/10">{badge}</span>) : <span className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500 dark:bg-white/10">No badges yet</span>}
+                </div>
+              </div>
+              {career.roadmap.map((phase, phaseIndex) => {
+                const phaseComplete = phase.checklist.filter((_, itemIndex) => checkedItems[`${phaseIndex}-${itemIndex}`]).length;
+                const percent = Math.round((phaseComplete / phase.checklist.length) * 100);
+                return (
+                  <article key={phase.phase} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/10">
+                    <div className="grid gap-0 md:grid-cols-[160px_minmax(0,1fr)]">
+                      <div className="border-b border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-white/5 md:border-b-0 md:border-r">
+                        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 text-sm font-extrabold text-white dark:bg-white dark:text-slate-950">{phaseIndex + 1}</div>
+                        <h3 className="text-xl font-extrabold">Step {phaseIndex + 1}</h3>
+                        <p className="mt-1 font-bold">{phase.phase}</p>
+                        <p className="mt-1 text-sm font-bold text-slate-500">{phase.timelineWeeks} weeks</p>
+                        <div className="mt-4 h-2 rounded-full bg-slate-100 dark:bg-white/10"><div className="h-2 rounded-full bg-slate-900 dark:bg-white" style={{ width: `${percent}%` }} /></div>
+                        <p className="mt-2 text-xs font-bold text-slate-500">{percent}% complete</p>
+                      </div>
+                      <div className="p-5">
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Learn this first</p>
+                        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                          <div className="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/5">
+                            <h4 className="text-sm font-extrabold">Main topics</h4>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {phase.topics.map((topic) => (
+                                <span key={topic} className="rounded-md bg-white px-2 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">{topic}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/5">
+                            <h4 className="text-sm font-extrabold">Tools to practise</h4>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {phase.tools.map((tool) => (
+                                <span key={tool} className="rounded-md bg-white px-2 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">{tool}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-4 grid gap-2">
+                          {phase.checklist.map((item, itemIndex) => {
+                            const id = `${phaseIndex}-${itemIndex}`;
+                            return (
+                              <button key={item} type="button" onClick={() => {
+                                setCheckedItems((current) => ({ ...current, [id]: !current[id] }));
+                                if (!checkedItems[id]) completeAction(`Completed ${phase.phase}: ${item}`);
+                              }} className="flex items-center gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-sm font-semibold transition hover:border-slate-500 hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
+                                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${checkedItems[id] ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-950' : 'border-slate-300'}`}>{checkedItems[id] && <CheckCircle2 className="h-4 w-4" />}</span>
+                                {item}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-5 grid gap-4 md:grid-cols-2">
+                          <Callout title="Build this" text={phase.miniProject} className="border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5" />
+                          <Callout title="You should be able to" text={phase.outcome || phase.expectedOutcome} className="border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5" />
+                        </div>
+                        {phase.nextAction && (
+                          <div className="mt-4 rounded-md border border-slate-200 bg-white p-4 text-sm shadow-sm dark:border-white/10 dark:bg-white/5">
+                            <h4 className="font-extrabold">Next small step</h4>
+                            <p className="mt-2 leading-6 text-slate-600 dark:text-slate-300">{phase.nextAction}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <RoadmapSkillsSidebar career={career} />
+          </div>
+        </Section>
+      )}
+
+      {activePanel === 'projects' && career.projects && (
         <Section id="projects" eyebrow="Portfolio projects" title="Build proof employers can inspect">
           <div className="grid gap-4 lg:grid-cols-2">
             {career.projects.map((project) => (
@@ -273,7 +314,8 @@ export default function CareerDetailPage() {
         </Section>
       )}
 
-      <Section id="final-project" eyebrow="Final project" title="Build and submit a job-ready capstone">
+      {activePanel === 'projects' && (
+        <Section id="final-project" eyebrow="Final project" title="Build and submit a job-ready capstone">
         <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
             <h3 className="text-2xl font-extrabold">{career.name} capstone brief</h3>
@@ -319,29 +361,11 @@ export default function CareerDetailPage() {
             </p>
           </aside>
         </div>
-      </Section>
+        </Section>
+      )}
 
-      <Section id="interview" eyebrow="Interview practice" title={`Open all 100 ${career.name} interview questions`}>
-        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/10">
-          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
-                Interview practice opens on a dedicated page so the career roadmap stays clean. The interview page includes search, difficulty and topic filters, collapsible answers, common mistakes, practical examples, and local progress tracking.
-              </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <MiniMetric label="Beginner" value={career.interviewQuestions.filter((item) => item.difficulty === 'beginner').length} />
-                <MiniMetric label="Intermediate" value={career.interviewQuestions.filter((item) => item.difficulty === 'intermediate').length} />
-                <MiniMetric label="Advanced" value={career.interviewQuestions.filter((item) => item.difficulty === 'advanced').length} />
-              </div>
-            </div>
-            <Button asChild className="rounded-md">
-              <Link to={`/interview-questions/${career.slug}`}>Open interview questions <ArrowRight className="ml-2 h-4 w-4" /></Link>
-            </Button>
-          </div>
-        </div>
-      </Section>
-
-      <Section id="quiz" eyebrow="Quiz" title="Test your readiness">
+      {activePanel === 'quiz' && (
+        <Section id="quiz" eyebrow="Quiz" title="Test your readiness">
         <div className="mb-5 flex flex-wrap gap-2">
           {['beginner', 'intermediate', 'advanced'].map((level) => (
             <Button key={level} variant={activeQuizLevel === level ? 'default' : 'outline'} className="rounded-md capitalize" onClick={() => {
@@ -386,9 +410,10 @@ export default function CareerDetailPage() {
             </>
           )}
         </div>
-      </Section>
+        </Section>
+      )}
 
-      {(career.faqs || faqs.length > 0) && (
+      {activePanel === 'overview' && (career.faqs || faqs.length > 0) && (
         <Section id="faqs" eyebrow="FAQs" title={`${career.name} career questions`}>
           <div className="grid gap-3">
             {(career.faqs || faqs.map(([question, answer]) => ({ question, answer }))).map((faq) => (
@@ -406,7 +431,7 @@ export default function CareerDetailPage() {
 
 function Section({ id, eyebrow, title, children }) {
   return (
-    <section id={id} className="px-4 py-10 sm:px-6 lg:px-8">
+    <section id={id} className="px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <p className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">{eyebrow}</p>
         <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h2>
@@ -418,7 +443,7 @@ function Section({ id, eyebrow, title, children }) {
 
 function InfoCard({ label, value }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/10">
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-white/10 dark:bg-white/10 dark:hover:border-white/20">
       <div className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</div>
       <div className="mt-2 text-sm font-extrabold leading-5">{value}</div>
     </div>
@@ -434,31 +459,50 @@ function MiniMetric({ label, value }) {
   );
 }
 
-function ListBlock({ title, items }) {
+function ListBlock({ title, items, className = '' }) {
   return (
-    <div className="rounded-lg bg-slate-50 p-4 dark:bg-white/5">
+    <div className={`rounded-lg border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/5 ${className}`}>
       <h4 className="font-extrabold">{title}</h4>
       <div className="mt-3 flex flex-wrap gap-2">
-        {items.map((item) => <span key={item} className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-slate-700 dark:bg-white/10 dark:text-slate-200">{item}</span>)}
+        {items.map((item) => <span key={item} className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-slate-200">{item}</span>)}
       </div>
     </div>
   );
 }
 
-function SkillCategory({ title, items }) {
+function RoadmapSkillsSidebar({ career }) {
+  const fallbackCore = career.requiredSkills.map((name) => ({
+    name,
+    explanation: `Core ${career.name} capability.`
+  }));
+  const groups = [
+    ['Core skills', career.skillsDetailed?.core || fallbackCore],
+    ['Technical skills', career.skillsDetailed?.technical || []],
+    ['Tools', career.skillsDetailed?.tools || career.tools.map((name) => ({ name, explanation: 'Tool used in this role.' }))],
+    ['Soft skills', career.skillsDetailed?.soft || []]
+  ].filter(([, items]) => items.length);
+
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
-      <h3 className="text-xl font-extrabold">{title}</h3>
-      <div className="mt-4 grid gap-3">
-        {items.map((item) => (
-          <div key={item.name} className="rounded-md bg-slate-50 p-3 dark:bg-white/5">
-            <p className="font-extrabold">{item.name}</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{item.explanation}</p>
-            <p className="mt-2 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">{item.whyItMatters}</p>
+    <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10 lg:sticky lg:top-24">
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Skills</p>
+      <h3 className="mt-1 text-xl font-extrabold">Skills you will learn</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Use this list as a quick guide. The roadmap shows when to practise each skill.</p>
+      <div className="mt-5 grid gap-5">
+        {groups.map(([title, items]) => (
+          <div key={title}>
+            <h4 className="text-sm font-extrabold">{title}</h4>
+            <div className="mt-3 grid gap-2">
+              {items.slice(0, 6).map((item) => (
+                <div key={item.name} className="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/5">
+                  <p className="text-sm font-bold">{item.name}</p>
+                  {item.explanation && <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{item.explanation}</p>}
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
-    </div>
+    </aside>
   );
 }
 
@@ -481,37 +525,6 @@ function formatSalaryRange(value, index) {
   ];
   const [low, high] = spreads[index] || [-10, 15];
   return `$${Math.max(25, value + low)}k-$${value + high}k`;
-}
-
-function DetailedSkillBlock({ phase, phaseIndex, career }) {
-  const levelCopy = [
-    'Foundation skills you must understand before moving into tools and workflows.',
-    'Working skills that connect concepts into usable professional output.',
-    'Production skills that improve quality, reliability, scale, and decision making.',
-    'Job-ready skills that turn your work into portfolio proof, interview stories, and applications.'
-  ];
-
-  return (
-    <div className="rounded-lg bg-slate-50 p-4 dark:bg-white/5">
-      <h4 className="font-extrabold">Skills to master</h4>
-      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{levelCopy[phaseIndex]}</p>
-      <div className="mt-4 grid gap-3">
-        {phase.topics.map((skill, index) => (
-          <div key={skill} className="rounded-md border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-extrabold">{skill}</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
-                  Learn the concept, practise it with {phase.tools[index % phase.tools.length]}, then explain how it affects real {career.name} work.
-                </p>
-              </div>
-              <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">Level {phaseIndex + 1}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 function Callout({ title, text, className = '' }) {

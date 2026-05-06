@@ -1,129 +1,161 @@
-#!/bin/bash
-# Run this script on your VPS as root:
-# bash <(curl -s https://raw.githubusercontent.com/YOUR_GITHUB/YOUR_REPO/main/deploy/server-setup.sh)
-# OR copy-paste it directly into your SSH terminal
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
+# Career2Day VPS bootstrap for Ubuntu 22.04/24.04.
+# Run as root on the VPS:
+#   bash /var/www/career2day/deploy/server-setup.sh
 
-echo "=== Installing system dependencies ==="
+APP_DIR="/var/www/career2day"
+DOMAIN="${DOMAIN:-career2day.com}"
+PB_VERSION="${PB_VERSION:-0.36.7}"
+
+echo "== Installing system packages =="
 apt-get update -y
-apt-get install -y curl git nginx ufw
+apt-get install -y curl git nginx ufw unzip ca-certificates
 
-echo "=== Installing Node.js 20 ==="
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y nodejs
+if ! command -v node >/dev/null 2>&1; then
+  echo "== Installing Node.js 20 =="
+  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  apt-get install -y nodejs
+fi
 
-echo "=== Installing PM2 ==="
-npm install -g pm2
+if ! command -v pm2 >/dev/null 2>&1; then
+  echo "== Installing PM2 =="
+  npm install -g pm2
+fi
 
-echo "=== Creating app directory ==="
-mkdir -p /var/www/caree2day
-mkdir -p /var/www/caree2day/frontend
-mkdir -p /var/www/caree2day/pocketbase/pb_data
-mkdir -p /var/www/caree2day/pocketbase/pb_migrations
-mkdir -p /var/www/caree2day/pocketbase/pb_hooks
+echo "== Creating directories =="
+mkdir -p "$APP_DIR/dist/apps/web"
+mkdir -p "$APP_DIR/apps/api"
+mkdir -p "$APP_DIR/apps/pocketbase/pb_data"
+mkdir -p "$APP_DIR/apps/pocketbase/pb_migrations"
+mkdir -p "$APP_DIR/apps/pocketbase/pb_hooks"
 
-echo "=== Downloading PocketBase 0.36.7 ==="
-cd /var/www/caree2day/pocketbase
-curl -L https://github.com/pocketbase/pocketbase/releases/download/v0.36.7/pocketbase_0.36.7_linux_amd64.zip -o pb.zip
-apt-get install -y unzip
-unzip -o pb.zip
-rm pb.zip
+echo "== Installing PocketBase ${PB_VERSION} =="
+cd "$APP_DIR/apps/pocketbase"
+curl -L "https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip" -o pocketbase.zip
+unzip -o pocketbase.zip
+rm -f pocketbase.zip
 chmod +x pocketbase
 
-echo "=== Setting up firewall ==="
+echo "== Writing environment template =="
+cat > "$APP_DIR/.env.production.example" << 'EOF'
+# Copy this file to /var/www/career2day/.env.production and fill in real values on the VPS.
+# Never commit the filled file.
+
+DOMAIN=career2day.com
+FRONTEND_URL=https://career2day.com
+CORS_ORIGIN=https://career2day.com
+
+PB_URL=http://127.0.0.1:8090
+PB_SUPERUSER_EMAIL=
+PB_SUPERUSER_PASSWORD=
+
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_SENDER=
+SMTP_SENDER_NAME=Career2Day
+SMTP_TLS=false
+
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PRICE_ID_MONTHLY=
+STRIPE_PRICE_ID_ANNUAL=
+EOF
+
+if [ ! -f "$APP_DIR/.env.production" ]; then
+  cp "$APP_DIR/.env.production.example" "$APP_DIR/.env.production"
+  chmod 600 "$APP_DIR/.env.production"
+fi
+
+echo "== Writing PM2 ecosystem =="
+cat > "$APP_DIR/ecosystem.config.cjs" << EOF
+require('dotenv').config({ path: '${APP_DIR}/.env.production' });
+
+module.exports = {
+  apps: [
+    {
+      name: 'career2day-pocketbase',
+      script: '${APP_DIR}/apps/pocketbase/pocketbase',
+      args: 'serve --http=127.0.0.1:8090 --dir=${APP_DIR}/apps/pocketbase/pb_data --migrationsDir=${APP_DIR}/apps/pocketbase/pb_migrations --hooksDir=${APP_DIR}/apps/pocketbase/pb_hooks',
+      cwd: '${APP_DIR}/apps/pocketbase',
+      restart_delay: 3000,
+      env: process.env
+    },
+    {
+      name: 'career2day-api',
+      script: 'src/main.js',
+      cwd: '${APP_DIR}/apps/api',
+      restart_delay: 3000,
+      env: {
+        ...process.env,
+        NODE_ENV: 'production',
+        PORT: process.env.PORT || '3001'
+      }
+    }
+  ]
+};
+EOF
+
+echo "== Writing nginx config =="
+cat > /etc/nginx/sites-available/career2day << EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN} www.${DOMAIN};
+
+    root ${APP_DIR}/dist/apps/web;
+    index index.html;
+
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+
+    location /pb/ {
+        proxy_pass http://127.0.0.1:8090/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:3001/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff2)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+}
+EOF
+
+ln -sf /etc/nginx/sites-available/career2day /etc/nginx/sites-enabled/career2day
+rm -f /etc/nginx/sites-enabled/default
+nginx -t
+systemctl reload nginx
+
+echo "== Enabling firewall =="
 ufw allow OpenSSH
 ufw allow 80
 ufw allow 443
 ufw --force enable
 
-echo "=== Nginx config ==="
-cat > /etc/nginx/sites-available/caree2day << 'EOF'
-server {
-    listen 80;
-    server_name _;
-
-    # Frontend — React SPA
-    root /var/www/caree2day/frontend;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Express API proxy
-    location /api/ {
-        proxy_pass http://localhost:3001/;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # PocketBase proxy
-    location /pb/ {
-        proxy_pass http://localhost:8090/;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-EOF
-
-ln -sf /etc/nginx/sites-available/caree2day /etc/nginx/sites-enabled/caree2day
-rm -f /etc/nginx/sites-enabled/default
-nginx -t && systemctl reload nginx
-
-echo "=== Creating PM2 ecosystem config ==="
-cat > /var/www/caree2day/ecosystem.config.cjs << 'EOF'
-module.exports = {
-  apps: [
-    {
-      name: 'pocketbase',
-      script: '/var/www/caree2day/pocketbase/pocketbase',
-      args: 'serve --http=0.0.0.0:8090 --dir=/var/www/caree2day/pocketbase/pb_data --migrationsDir=/var/www/caree2day/pocketbase/pb_migrations --hooksDir=/var/www/caree2day/pocketbase/pb_hooks',
-      cwd: '/var/www/caree2day/pocketbase',
-      restart_delay: 3000,
-      env: {
-        PB_SUPERUSER_EMAIL: 'admin@caree2day.com',
-        PB_SUPERUSER_PASSWORD: 'CHANGE_ME_STRONG_PASSWORD',
-        SMTP_HOST: 'smtp.hostinger.com',
-        SMTP_PORT: '587',
-        SMTP_USER: 'your-email@caree2day.com',
-        SMTP_PASSWORD: 'YOUR_EMAIL_PASSWORD',
-        SMTP_SENDER: 'your-email@caree2day.com'
-      }
-    },
-    {
-      name: 'api',
-      script: 'src/main.js',
-      cwd: '/var/www/caree2day/api',
-      restart_delay: 3000,
-      env: {
-        NODE_ENV: 'production',
-        PORT: '3001',
-        POCKETBASE_URL: 'http://localhost:8090',
-        FRONTEND_URL: 'http://93.127.172.30',
-        CORS_ORIGIN: 'http://93.127.172.30',
-        WEBSITE_DOMAIN: '93.127.172.30',
-        STRIPE_SECRET_KEY: 'sk_live_YOUR_KEY',
-        STRIPE_WEBHOOK_SECRET: 'whsec_YOUR_SECRET'
-      }
-    }
-  ]
-}
-EOF
-
-echo ""
-echo "=== Server setup complete! ==="
-echo "Next steps:"
-echo "1. Upload frontend files to /var/www/caree2day/frontend/"
-echo "2. Upload API files to /var/www/caree2day/api/"
-echo "3. Upload pb_migrations/ and pb_hooks/ to /var/www/caree2day/pocketbase/"
-echo "4. Edit /var/www/caree2day/ecosystem.config.cjs and fill in real passwords/keys"
-echo "5. Run: cd /var/www/caree2day && pm2 start ecosystem.config.cjs && pm2 save && pm2 startup"
+echo "== Done =="
+echo "Upload the repo/build files, edit ${APP_DIR}/.env.production, then run:"
+echo "  cd ${APP_DIR} && npm ci && npm ci --prefix apps/api && npm run build --prefix apps/web"
+echo "  pm2 start ecosystem.config.cjs && pm2 save && pm2 startup"
