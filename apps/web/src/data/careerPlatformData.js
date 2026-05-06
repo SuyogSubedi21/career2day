@@ -72,27 +72,148 @@ export const allCareerSummaries = careerNames.map((name) => ({
   category: getCategory(name)
 }));
 
-const questionBlueprints = {
+const roleContext = (career) => {
+  const name = career.name || '';
+  const category = career.category || getCategory(name);
+  const skills = career.skills || career.requiredSkills || [];
+  const tools = career.tools || [];
+  const joined = `${name} ${category} ${skills.join(' ')} ${tools.join(' ')}`.toLowerCase();
+
+  if (/security|soc|penetration|ciso|appsec|vulnerability|siem/.test(joined)) {
+    return {
+      domain: 'security program',
+      system: 'a customer-facing SaaS environment with identity, logs, endpoints, and cloud resources',
+      artifact: 'incident report, detection rule, remediation plan, threat model, or risk register',
+      metric: 'mean time to detect, false-positive rate, exploitability, blast radius, and remediation SLA',
+      risk: 'missed detections, privilege escalation, data exposure, compliance gaps, and alert fatigue',
+      deployment: 'controlled lab, SIEM content repo, policy-as-code checks, and documented runbooks',
+      testing: 'safe lab validation, replayed logs, peer review, and regression checks against known attack paths'
+    };
+  }
+
+  if (/devops|sre|platform|cloud|kubernetes|terraform|reliability/.test(joined)) {
+    return {
+      domain: 'production infrastructure',
+      system: 'a containerized service running behind CI/CD, infrastructure as code, monitoring, and rollback controls',
+      artifact: 'deployment pipeline, Terraform module, Kubernetes manifest, runbook, dashboard, or incident review',
+      metric: 'deployment frequency, lead time, error budget burn, recovery time, saturation, and cloud cost',
+      risk: 'fragile rollouts, secret leakage, drift, noisy alerts, regional failure, and runaway spend',
+      deployment: 'blue-green or rolling deployment with health checks, rollback, observability, and least-privilege access',
+      testing: 'pipeline tests, policy checks, smoke tests, load tests, chaos drills, and restore tests'
+    };
+  }
+
+  if (/data engineer|analytics|database|big data|scientist|mlops|machine learning|\bai\b|nlp|vision|rag|llm/.test(joined)) {
+    return {
+      domain: 'data and AI workflow',
+      system: 'a data product with ingestion, validation, transformation, model or metric logic, and downstream consumers',
+      artifact: 'pipeline DAG, feature table, evaluation report, model card, dashboard, or data contract',
+      metric: 'freshness, completeness, precision/recall, latency, cost, drift, and business impact',
+      risk: 'data leakage, schema drift, stale inputs, hallucination, biased outputs, and broken metric definitions',
+      deployment: 'versioned pipeline or service with validation gates, monitoring, reproducible environments, and rollback notes',
+      testing: 'unit tests, data quality tests, evaluation sets, backfills, shadow runs, and peer-reviewed assumptions'
+    };
+  }
+
+  if (/frontend|mobile|ios|android|ux|designer|product designer|ar|vr|game/.test(joined)) {
+    return {
+      domain: 'user-facing product experience',
+      system: 'an accessible client application with forms, navigation, state, API integration, and production build constraints',
+      artifact: 'responsive workflow, component library, usability report, release build, or performance audit',
+      metric: 'Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion',
+      risk: 'broken accessibility, slow rendering, state bugs, platform inconsistencies, and confusing user flows',
+      deployment: 'preview environment, app store or static hosting release, analytics, error tracking, and rollback plan',
+      testing: 'unit tests, UI automation, accessibility checks, real-device testing, and performance profiling'
+    };
+  }
+
+  if (/product manager|engineering manager|architect|manager|ciso/.test(joined)) {
+    return {
+      domain: 'technical leadership workflow',
+      system: 'a cross-functional product or engineering initiative with stakeholders, constraints, delivery risk, and measurable outcomes',
+      artifact: 'PRD, architecture decision record, roadmap, operating model, scorecard, or executive briefing',
+      metric: 'delivery predictability, adoption, customer impact, risk reduction, quality signals, and team health',
+      risk: 'unclear ownership, hidden dependencies, weak prioritization, misaligned stakeholders, and unmeasured outcomes',
+      deployment: 'phased rollout with communication plan, decision log, operational readiness, and adoption tracking',
+      testing: 'review cycles, pilot feedback, success metrics, risk review, and retrospective learning'
+    };
+  }
+
+  return {
+    domain: 'production software system',
+    system: 'a service or product workflow with APIs, persistence, testing, deployment, and operational visibility',
+    artifact: 'working application, API contract, architecture note, test suite, dashboard, or deployment guide',
+    metric: 'latency, error rate, maintainability, reliability, security, and user impact',
+    risk: 'unclear requirements, brittle architecture, poor observability, regressions, and security gaps',
+    deployment: 'staged release with tests, monitoring, rollback, and documented operational ownership',
+    testing: 'unit tests, integration tests, smoke tests, code review, and production-like validation'
+  };
+};
+
+const fillTemplate = (template, values) =>
+  Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, value), template);
+
+const interviewBlueprints = {
   beginner: [
-    ['Explain {topic} to a teammate who has never used it.', 'Define the concept, name the business problem it solves, and give one small example.'],
-    ['What is the difference between {topic} and {contrast}?', 'Compare purpose, inputs, outputs, and when each choice is safer.'],
-    ['What should you check before using {tool} for {topic}?', 'Confirm data quality, access, constraints, expected output, and failure modes.'],
-    ['How would you debug a beginner mistake in {topic}?', 'Reproduce the issue, inspect assumptions, isolate one variable, and validate the fix.'],
-    ['What makes {topic} important for this role?', 'It affects quality, speed, reliability, or user value in day-to-day delivery.']
+    'Walk me through how you would use {topic} in {system}. What would you build first and what would you intentionally leave out?',
+    'A teammate implemented {topic} with {tool}, but the output is inconsistent. What would you inspect first?',
+    'How would you explain the tradeoff between {topic} and {contrast} to a non-specialist stakeholder?',
+    'What signals would tell you that {topic} is working well enough for a junior-level production task?',
+    'You inherit a small project using {tool}. What files, logs, tests, or docs would you read before changing {topic}?',
+    'Describe a safe debugging workflow when {topic} fails in {system}.',
+    'What common beginner mistake in {topic} creates downstream production risk?',
+    'How would you turn a small {topic} exercise into a portfolio artifact a hiring manager can trust?',
+    'Which quality check would you add before shipping work that depends on {topic}?',
+    'Tell me about a time you had to learn a tool like {tool}. How would you prove you learned it beyond a tutorial?'
   ],
   intermediate: [
-    ['How would you design a small production workflow for {topic}?', 'Define inputs, validation, processing steps, monitoring, and review criteria.'],
-    ['What tradeoffs matter when choosing {tool} for {topic}?', 'Balance maintainability, team skill, cost, performance, and long-term operability.'],
-    ['How do you measure whether {topic} is working?', 'Pick metrics tied to user or business outcomes, then review quality and edge cases.'],
-    ['Describe a real project where {topic} can reduce risk.', 'Use it where repeated manual work, unclear quality, or scaling pressure exists.'],
-    ['What common mistake do teams make with {topic}?', 'They optimize the visible output while ignoring validation, documentation, or user impact.']
+    'Design a production-minded workflow for {topic} in {system}. Include validation, testing, deployment, and monitoring.',
+    'A release involving {topic} increased errors after deployment. How would you triage, rollback, and prevent recurrence?',
+    'How would you measure {topic} using {metric}, and what metric would you avoid over-trusting?',
+    'What architecture boundary would you draw around {topic} so the system remains maintainable?',
+    'How would you review a pull request that changes {topic} and touches security, performance, or reliability?',
+    'A stakeholder asks for a faster delivery path that weakens {topic}. How would you explain the risk and propose a compromise?',
+    'How would you document {topic} so another engineer or analyst can operate it without you?',
+    'What failure mode would you simulate before trusting {topic} in {system}?',
+    'How would you compare {tool} with an alternative for {topic} in terms of team skill, cost, lock-in, and operability?',
+    'Describe a realistic incident, bug, or outage involving {topic}. What would your postmortem include?'
   ],
   advanced: [
-    ['How would you scale {topic} across multiple teams or products?', 'Standardize interfaces, automate quality gates, document ownership, and monitor adoption.'],
-    ['What failure mode would you watch for in advanced {topic} work?', 'Look for silent quality drift, hidden coupling, security gaps, or brittle assumptions.'],
-    ['How would you explain the ROI of improving {topic}?', 'Connect the improvement to faster delivery, fewer defects, lower cost, or better decisions.'],
-    ['How would you mentor a junior teammate on {topic}?', 'Give a mental model, a small task, review feedback, and a checklist they can reuse.'],
-    ['What architecture decision affects {topic} most?', 'The boundary between data, logic, user interface, and operational ownership.']
+    'How would you scale {topic} across multiple teams while preserving ownership, standards, and local autonomy?',
+    'What would your reference architecture for {career} work look like if {system} had strict reliability and security requirements?',
+    'How would you reduce operational risk in {topic} without slowing delivery to a halt?',
+    'A production dashboard shows healthy top-line metrics, but users still complain. How would you investigate {topic} deeper?',
+    'How would you mentor a junior teammate through a hard {topic} issue without taking over the work?',
+    'Where would you add automation, policy, or guardrails around {topic}, and where would you keep human review?',
+    'How would you plan a migration from a fragile {topic} implementation to a more robust architecture?',
+    'What would you include in an executive explanation of {topic}: impact, risk, cost, and next decision?',
+    'How would you test disaster recovery, rollback, or fallback behavior for {topic}?',
+    'What are the signs that {topic} has become over-engineered for the current product stage?'
+  ]
+};
+
+const answerBlueprints = {
+  beginner: 'A strong answer should identify the business or user outcome, explain the smallest useful implementation, name the main failure mode, and describe one concrete validation step. It should avoid definitions-only answers and show how the candidate would inspect real inputs, logs, tests, or user behavior.',
+  intermediate: 'A strong answer should describe the workflow from requirements to production: boundaries, data or request flow, validation, testing, deployment, monitoring, and rollback. It should call out tradeoffs, operational ownership, and how the candidate would communicate risk.',
+  advanced: 'A strong answer should reason about scale, maintainability, security, reliability, cost, and team process. It should include a migration or incident perspective, measurable success criteria, and a clear explanation of when simpler solutions are better.'
+};
+
+const interviewScenarios = {
+  beginner: [
+    'use a small sample project with one happy path and one realistic error case',
+    'assume the work must be reviewed by a senior teammate tomorrow',
+    'assume the project must run from a clean checkout on another machine'
+  ],
+  intermediate: [
+    'assume the change affects real users during business hours',
+    'assume two teams depend on the output and disagree on priorities',
+    'assume the system has partial monitoring but weak ownership',
+    'assume a rollback is possible but expensive'
+  ],
+  advanced: [
+    'assume the decision will become a reference pattern for future teams',
+    'assume strict security, compliance, and reliability constraints',
+    'assume the current system is fragile but still business-critical'
   ]
 };
 
@@ -102,37 +223,143 @@ const makeQuestions = (career, topics) => {
     ['intermediate', 40],
     ['advanced', 30]
   ];
+  const context = roleContext(career);
+  const safeTopics = topics?.length ? topics : buildTopics(career);
 
   let count = 1;
   return levels.flatMap(([difficulty, total]) =>
     Array.from({ length: total }, (_, index) => {
-      const topic = topics[index % topics.length];
-      const contrast = topics[(index + 3) % topics.length].name;
-      const tool = topic.tools[index % topic.tools.length];
-      const template = questionBlueprints[difficulty][index % questionBlueprints[difficulty].length];
-      const question = template[0]
-        .replace('{topic}', topic.name)
-        .replace('{contrast}', contrast)
-        .replace('{tool}', tool);
-      const answerSeed = template[1]
-        .replace('{topic}', topic.name)
-        .replace('{contrast}', contrast)
-        .replace('{tool}', tool);
+      const templateSet = interviewBlueprints[difficulty];
+      const scenarioSet = interviewScenarios[difficulty];
+      const cycle = Math.floor(index / templateSet.length);
+      const topic = safeTopics[(index + cycle) % safeTopics.length];
+      const contrast = safeTopics[(index + cycle + 3) % safeTopics.length]?.name || career.requiredSkills?.[0] || 'the alternative approach';
+      const tools = topic.tools?.length ? topic.tools : career.tools || ['documentation'];
+      const tool = tools[(index + cycle) % tools.length];
+      const template = templateSet[index % templateSet.length];
+      const scenario = scenarioSet[cycle % scenarioSet.length];
+      const values = {
+        career: career.name,
+        topic: topic.name,
+        contrast,
+        tool,
+        ...context
+      };
+      const question = `${fillTemplate(template, values)} Scenario: ${scenario}.`;
 
       return {
         id: `${career.slug}-iq-${count++}`,
         question,
-        shortAnswer: answerSeed,
-        detailedAnswer: `${answerSeed} For a ${career.name}, a strong answer should mention the expected input, the decision being made, the quality check, and the operational consequence. A practical response also explains what you would measure after shipping and how you would communicate limits to non-specialists.`,
+        shortAnswer: `${answerBlueprints[difficulty]} For ${career.name}, anchor the answer in ${context.artifact} and use ${context.metric} as evidence.`,
+        detailedAnswer: `${answerBlueprints[difficulty]} A production-quality response should mention ${context.testing}, describe how the work reaches ${context.deployment}, and acknowledge risks such as ${context.risk}. The best candidates connect ${topic.name} to a concrete ${career.name} workflow rather than treating it as isolated theory.`,
         difficulty,
         topic: topic.name,
-        relatedSkill: topic.skill,
-        commonMistake: topic.mistake,
-        realWorldExample: topic.example,
+        relatedSkill: topic.skill || topic.name,
+        commonMistake: topic.mistake || `Treating ${topic.name} as a checklist item instead of validating it in a real ${career.name} workflow.`,
+        realWorldExample: topic.example || `Using ${topic.name} inside ${context.system}.`,
         unlocked: true
       };
     })
   );
+};
+
+const quizBlueprints = {
+  beginner: [
+    {
+      q: 'A junior {career} is asked to prove their {topic} work is not just a copied tutorial. What is the strongest evidence?',
+      correct: 'A working implementation with a README, screenshots or logs, tradeoffs, and validation notes.',
+      distractors: ['A list of buzzwords copied from job posts.', "A project that only runs on the author's laptop with no setup notes.", 'A definition of the tool without any applied example.'],
+      explanation: 'Hiring teams trust applied evidence: reproducible work, clear decisions, and proof that the candidate can explain limits.'
+    },
+    {
+      q: '{topic} fails during local testing with {tool}. What should you do first?',
+      correct: 'Reproduce the issue, inspect the exact input and error output, then isolate the smallest failing step.',
+      distractors: ['Rewrite the whole project immediately.', 'Ignore the error if the final screen looks acceptable.', 'Deploy first and wait for user reports.'],
+      explanation: 'Professional debugging starts with reproduction and isolation before broad rewrites.'
+    },
+    {
+      q: 'Which habit makes {topic} safer in an early {career} project?',
+      correct: 'Use version control, small commits, and a short note explaining assumptions and checks.',
+      distractors: ['Keep all changes uncommitted until the project is finished.', 'Avoid documenting assumptions so the project looks simple.', 'Use only the newest framework regardless of fit.'],
+      explanation: 'Small commits and assumptions make the work reviewable and recoverable.'
+    },
+    {
+      q: 'What is the best way to explain {topic} in an interview?',
+      correct: 'Connect it to a project, a decision, a failure mode, and the outcome you measured.',
+      distractors: ['Recite a memorized textbook definition.', 'Say it is important without giving an example.', 'Focus only on the tool logo used.'],
+      explanation: 'Interviewers listen for applied judgment, not just vocabulary.'
+    },
+    {
+      q: 'A project using {topic} works once but cannot be repeated. What is missing?',
+      correct: 'Setup instructions, fixed inputs or fixtures, and a repeatable validation step.',
+      distractors: ['More decorative screenshots.', 'A longer project title.', 'Removing all tests to reduce complexity.'],
+      explanation: 'Repeatability is a basic production habit even for beginner portfolio work.'
+    }
+  ],
+  intermediate: [
+    {
+      q: '{system} has a production issue related to {topic}. Which response is most professional?',
+      correct: 'Check recent changes, logs or metrics, reproduce impact, mitigate safely, then document the root cause.',
+      distractors: ['Blame the tool and switch platforms immediately.', 'Keep retrying deployments without reading logs.', 'Disable all monitoring to reduce noise.'],
+      explanation: 'Incident response should reduce user impact while preserving evidence for root-cause analysis.'
+    },
+    {
+      q: 'Which review comment is most useful for a change involving {topic}?',
+      correct: 'Ask about edge cases, security or reliability impact, tests, rollback, and ownership.',
+      distractors: ['Only comment on variable names.', 'Approve because the code compiles once.', 'Reject it because it uses a tool you have not used.'],
+      explanation: 'Useful review focuses on risk, correctness, maintainability, and operability.'
+    },
+    {
+      q: 'What should be monitored after deploying {topic}?',
+      correct: '{metric}, error patterns, user impact, and any known failure mode from testing.',
+      distractors: ['Only the number of Git commits.', 'Only whether the homepage loads.', 'Nothing if the deployment command succeeded.'],
+      explanation: 'Deployment success is not the same as production health.'
+    },
+    {
+      q: 'A stakeholder wants speed over quality for {topic}. What is the best compromise?',
+      correct: 'Ship a scoped version with explicit risk, minimum checks, monitoring, and a follow-up hardening plan.',
+      distractors: ['Ship everything with no checks.', 'Refuse all changes until the ideal architecture is built.', 'Hide the risk from stakeholders.'],
+      explanation: 'Real teams balance delivery and risk transparently.'
+    },
+    {
+      q: 'Which documentation makes {topic} maintainable for another teammate?',
+      correct: 'Purpose, setup, dependencies, operational checks, known limits, and recovery steps.',
+      distractors: ['A screenshot with no context.', 'Only a personal note in a private file.', 'A list of acronyms without workflow details.'],
+      explanation: 'Maintainable documentation helps someone operate and debug the work without the original author.'
+    }
+  ],
+  advanced: [
+    {
+      q: 'How should a senior {career} scale {topic} across teams?',
+      correct: 'Create standards, ownership boundaries, reusable patterns, quality gates, and room for justified exceptions.',
+      distractors: ['Force every team into identical implementation details.', 'Let every team invent its own production rules.', 'Centralize all decisions in one person forever.'],
+      explanation: 'Senior work balances consistency with team autonomy and operational accountability.'
+    },
+    {
+      q: 'What is the best signal that {topic} may be over-engineered?',
+      correct: 'The architecture adds cost, cognitive load, or failure modes without measurable user or operational benefit.',
+      distractors: ['It uses fewer services than a conference demo.', 'It is easy for the current team to understand.', 'It has clear rollback and monitoring.'],
+      explanation: 'Good architecture is proportional to risk, scale, and team capacity.'
+    },
+    {
+      q: 'A migration involving {topic} has to happen without downtime. What matters most?',
+      correct: 'Backward compatibility, phased rollout, observability, rollback, data or state validation, and communication.',
+      distractors: ['A single big-bang release on Friday evening.', 'Skipping monitoring to reduce noise.', 'Deleting the old path before the new one is validated.'],
+      explanation: 'No-downtime migrations require incremental control and evidence.'
+    },
+    {
+      q: 'What belongs in an executive explanation of a serious {topic} risk?',
+      correct: 'User or business impact, likelihood, evidence, mitigation options, cost, and decision needed.',
+      distractors: ['A stack trace with no translation.', 'Only personal opinions about tools.', 'A long history of unrelated implementation details.'],
+      explanation: 'Leaders need decision-ready risk framing, not raw technical noise.'
+    },
+    {
+      q: 'Which guardrail most improves production confidence in {topic}?',
+      correct: 'Automated checks plus human review for high-risk changes and clear rollback ownership.',
+      distractors: ['Trusting manual memory for every release.', 'Removing approval steps from sensitive changes.', 'Only testing in production with real users.'],
+      explanation: 'Guardrails should prevent common failure while preserving delivery flow.'
+    }
+  ]
 };
 
 const makeQuizzes = (career, topics) => {
@@ -141,18 +368,43 @@ const makeQuizzes = (career, topics) => {
     ['intermediate', 10],
     ['advanced', 10]
   ];
+  const context = roleContext(career);
+  const safeTopics = topics?.length ? topics : buildTopics(career);
+  const quizScenarios = [
+    'during local development',
+    'during code review',
+    'after a failed deployment',
+    'while debugging production-like data',
+    'when explaining the work to a hiring manager',
+    'while reducing operational risk',
+    'when choosing between two tools',
+    'during a security or privacy review',
+    'while improving performance',
+    'before publishing the portfolio project'
+  ];
 
-  return levels.flatMap(([difficulty, total]) =>
+  return levels.flatMap(([difficulty, total], levelIndex) =>
     Array.from({ length: total }, (_, index) => {
-      const topic = topics[(index + (difficulty === 'intermediate' ? 2 : difficulty === 'advanced' ? 4 : 0)) % topics.length];
-      const correct = topic.quiz.correct;
-      const options = rotateOptions([correct, ...topic.quiz.distractors], index);
+      const topic = safeTopics[(index + levelIndex * 3) % safeTopics.length];
+      const tools = topic.tools?.length ? topic.tools : career.tools || ['documentation'];
+      const tool = tools[index % tools.length];
+      const blueprint = quizBlueprints[difficulty][index % quizBlueprints[difficulty].length];
+      const scenario = quizScenarios[(index + levelIndex * 2) % quizScenarios.length];
+      const values = {
+        career: career.name,
+        topic: topic.name,
+        tool,
+        ...context
+      };
+      const correct = fillTemplate(topic.quiz?.correct || blueprint.correct, values);
+      const baseDistractors = topic.quiz?.distractors?.length >= 3 ? topic.quiz.distractors : blueprint.distractors;
+      const options = rotateOptions([correct, ...baseDistractors.map((item) => fillTemplate(item, values))], index + levelIndex + 1);
       return {
         id: `${career.slug}-quiz-${difficulty}-${index + 1}`,
-        question: topic.quiz.question.replace('{career}', career.name),
+        question: `${fillTemplate(topic.quiz?.question || blueprint.q, values)} Consider this ${scenario}. Difficulty focus: ${difficulty}.`,
         options,
         correctAnswer: correct,
-        explanation: topic.quiz.explanation,
+        explanation: `${fillTemplate(topic.quiz?.explanation || blueprint.explanation, values)} This is why the scenario matters for ${career.name} work.`,
         difficulty,
         topic: topic.name,
         unlocked: true
@@ -328,117 +580,188 @@ const frontendTopics = [
   }
 ];
 
-const buildTopics = (career) =>
-  career.skills.slice(0, 6).map((skill, index) => {
-    const tool = career.tools[index % career.tools.length];
+const uniqueList = (items = []) => Array.from(new Set(items.filter(Boolean)));
+
+const getProjectText = (project, fallback = '') => {
+  if (!project) return fallback;
+  if (typeof project === 'string') return project;
+  return project.description || project.title || fallback;
+};
+
+const cleanProjectTitle = (project, career, index) => {
+  if (project && typeof project === 'object' && project.title) return project.title;
+  const text = getProjectText(project, `${career.name} portfolio project ${index + 1}`);
+  return text.split(':')[0].replace(/\.$/, '');
+};
+
+const projectDifficulty = ['Beginner', 'Intermediate', 'Advanced'];
+
+const expandProject = (career, project, index) => {
+  const context = roleContext(career);
+  const skills = career.skills || career.requiredSkills || [];
+  const tools = career.tools || [];
+  const difficulty = projectDifficulty[Math.min(index, 2)] || 'Advanced';
+  const selectedSkills = uniqueList([...(project?.skillsUsed || []), ...skills.slice(index, index + 4), skills[(index + 4) % skills.length]]).slice(0, 5);
+  const selectedTools = uniqueList([...(project?.toolsUsed || []), ...tools.slice(index, index + 4), tools[(index + 4) % tools.length]]).slice(0, 5);
+  const title = cleanProjectTitle(project, career, index);
+  const description = getProjectText(
+    project,
+    `Build a ${career.name} portfolio project that demonstrates ${selectedSkills.slice(0, 3).join(', ')} in ${context.system}.`
+  );
+
+  return {
+    title,
+    description:
+      project?.description ||
+      `${description}. Include realistic inputs, documented assumptions, failure handling, and evidence that the work can be reviewed by another practitioner.`,
+    skillsUsed: selectedSkills,
+    toolsUsed: selectedTools,
+    technologies: selectedTools,
+    difficulty,
+    deployment:
+      project?.deployment ||
+      `${context.deployment}. Publish the code with environment setup, sample data or fixtures, and a short operational note.`,
+    learningOutcomes:
+      project?.learningOutcomes || [
+        `Apply ${selectedSkills[0] || career.name} to a realistic ${context.domain}.`,
+        `Validate quality with ${context.testing}.`,
+        `Explain tradeoffs using ${context.metric}.`
+      ],
+    applicationValue:
+      project?.applicationValue ||
+      `Shows employers that you can deliver ${difficulty.toLowerCase()} ${career.name} work with realistic constraints, documentation, and reviewable evidence.`
+  };
+};
+
+const buildTopics = (career) => {
+  const context = roleContext(career);
+  const skills = career.skills || career.requiredSkills || [];
+  const tools = career.tools?.length ? career.tools : ['GitHub', 'documentation', 'testing tools'];
+  const topics = uniqueList([...skills, ...(career.requiredSkills || [])]).slice(0, 10);
+
+  return topics.map((skill, index) => {
+    const topicTools = uniqueList([
+      tools[index % tools.length],
+      tools[(index + 1) % tools.length],
+      tools[(index + 2) % tools.length]
+    ]);
+
     return {
       name: skill,
       skill,
-      tools: [tool, career.tools[(index + 1) % career.tools.length], career.tools[(index + 2) % career.tools.length]],
-      mistake: `Learning ${skill} as theory without applying it to a real ${career.name} workflow.`,
-      example: career.examples?.[index % (career.examples?.length || 1)] || `Using ${skill} to improve a real product, system, or team decision.`,
+      tools: topicTools,
+      mistake:
+        career.skillMistakes?.[skill] ||
+        `Practicing ${skill} as isolated theory without showing how it affects ${context.metric} in a real ${career.name} workflow.`,
+      example:
+        career.examples?.[index % (career.examples?.length || 1)] ||
+        `Using ${skill} to produce a reviewable ${context.artifact} for ${context.system}.`,
       quiz: {
-        question: `What proves a {career} can use ${skill} professionally?`,
-        correct: `A working project, documented tradeoffs, tests or checks, and a clear explanation of impact.`,
-        distractors: ['A copied tutorial with no changes.', 'A list of tools without a finished project.', 'A definition memorized without practice.'],
-        explanation: `${skill} becomes job-ready when it is connected to implementation, quality checks, communication, and business context.`
+        question: `A ${career.name} portfolio uses ${skill}. What would make it credible to an interviewer?`,
+        correct: `A working artifact with realistic inputs, documented tradeoffs, ${context.testing}, and clear impact on ${context.metric}.`,
+        distractors: [
+          'A copied tutorial with renamed variables and no setup notes.',
+          'A tool list with no finished workflow or evidence.',
+          'A definition memorized without showing operational consequences.'
+        ],
+        explanation: `${skill} becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact.`
       }
     };
   });
+};
 
-const makeSkillDetails = (career) => ({
-  core: career.skills.slice(0, 4).map((name) => ({
-    name,
-    explanation: career.skillNotes?.[name] || `One of the main skills you use as a ${career.name}.`,
-    whyItMatters: 'This matters because employers want to see you use it in a real project.'
-  })),
-  technical: career.skills.slice(4, 8).map((name) => ({
-    name,
-    explanation: career.skillNotes?.[name] || `A practical skill that helps you do better ${career.name} work.`,
-    whyItMatters: 'It helps you move from watching tutorials to building useful work.'
-  })),
-  tools: career.tools.slice(0, 6).map((name) => ({
-    name,
-    explanation: `A common tool for this career.`,
-    whyItMatters: 'Knowing the tool helps you follow real team workflows.'
-  })),
-  soft: (career.softSkills || ['Communication', 'Problem solving', 'Documentation', 'Stakeholder collaboration']).map((name) => ({
-    name,
-    explanation: `${name} helps you work with people and explain your choices.`,
-    whyItMatters: 'Good communication makes your technical work easier to trust.'
-  }))
-});
+const makeSkillDetails = (career) => {
+  const context = roleContext(career);
+  const skills = career.skills || career.requiredSkills || [];
+  const tools = career.tools || [];
 
-const buildRoadmap = (career) => [
-  {
-    phase: 'Beginner',
-    timelineWeeks: career.weeks?.[0] || 4,
-    topics: career.skills.slice(0, 4),
-    tools: career.tools.slice(0, 4),
-    miniProject: career.projects[0],
-    outcome: `You know the basics and can build a small project you can explain.`,
-    nextAction: `Write a short README: what you built, how to run it, and what you learned.`,
-    checklist: [
-      `Learn the basics: ${career.foundation}`,
-      `Practise with ${career.tools.slice(0, 2).join(' and ')}`,
-      'Build the first project',
-      'Check that the project works from start to finish',
-      'Add screenshots and simple notes',
-      'Explain the project in 2 minutes without reading notes'
-    ]
-  },
-  {
-    phase: 'Intermediate',
-    timelineWeeks: career.weeks?.[1] || 5,
-    topics: career.skills.slice(2, 6),
-    tools: career.tools.slice(1, 5),
-    miniProject: career.projects[1],
-    outcome: `You can connect the main tools and build something closer to real work.`,
-    nextAction: 'Add checks so the project is easier to trust.',
-    checklist: [
-      `Learn how the work flows: ${career.workflow}`,
-      'Handle common errors',
-      'Add simple quality checks',
-      'Use realistic sample data or realistic user needs',
-      'Explain how this would be used in a company',
-      'Write down what you would improve next'
-    ]
-  },
-  {
-    phase: 'Advanced',
-    timelineWeeks: career.weeks?.[2] || 5,
-    topics: career.skills.slice(4, 8),
-    tools: career.tools.slice(2, 6),
-    miniProject: career.projects[2],
-    outcome: `You can improve quality and explain why your choices are good.`,
-    nextAction: 'Write a short note explaining the main choices you made.',
-    checklist: [
-      `Improve the project with: ${career.quality}`,
-      'Check speed, security, usability, or reliability',
-      'Add a simple diagram or notes',
-      'Compare at least two possible approaches',
-      'Get feedback and improve the project',
-      'Prepare one interview story from this project'
-    ]
-  },
-  {
-    phase: 'Job-ready',
-    timelineWeeks: career.weeks?.[3] || 4,
-    topics: career.skills.slice(0, 6),
-    tools: ['GitHub', 'LinkedIn', 'Career2Day CV Builder', career.tools[0]],
-    miniProject: career.projects[3],
-    outcome: `You have projects, interview stories, and a CV for ${career.name} jobs.`,
-    nextAction: 'Turn your best project into CV bullet points and practise explaining it.',
-    checklist: [
-      `Create a portfolio: ${career.portfolio}`,
-      'Write simple CV bullet points',
-      'Practise interview questions',
-      'Prepare a short project demo',
-      'Apply with a project story that matches the job',
-      'Track applications and improve your CV after feedback'
-    ]
-  }
-];
+  return {
+    core: skills.slice(0, 4).map((name) => ({
+      name,
+      explanation:
+        career.skillNotes?.[name] ||
+        `${name} is used by ${career.name}s to turn ambiguous requirements into a reliable ${context.artifact}.`,
+      whyItMatters: `Hiring teams look for proof that you can apply ${name} under real constraints such as ${context.risk}.`
+    })),
+    technical: skills.slice(4, 8).map((name) => ({
+      name,
+      explanation:
+        career.skillNotes?.[name] ||
+        `${name} helps you improve quality, scale, security, or maintainability once the basic ${career.name} workflow works.`,
+      whyItMatters: `It separates tutorial-level work from production work by improving ${context.metric}.`
+    })),
+    tools: tools.slice(0, 6).map((name, index) => ({
+      name,
+      explanation: `${name} is commonly used to build, inspect, automate, or operate ${career.name} work involving ${skills[index % (skills.length || 1)] || context.domain}.`,
+      whyItMatters: `Tool fluency matters when you can use it inside ${context.deployment}, not just open it locally.`
+    })),
+    soft: (career.softSkills || ['Communication', 'Problem solving', 'Documentation', 'Stakeholder collaboration']).map((name) => ({
+      name,
+      explanation: `${name} helps you make technical choices understandable, reviewable, and easier for others to operate.`,
+      whyItMatters: `Strong ${career.name}s can explain risk, tradeoffs, and evidence without hiding behind buzzwords.`
+    }))
+  };
+};
+
+const buildRoadmap = (career) => {
+  const context = roleContext(career);
+  const projects = [0, 1, 2].map((index) => expandProject(career, career.projects?.[index], index));
+  const totalWeeks = (career.weeks || [4, 5, 6]).slice(0, 3);
+
+  return [
+    {
+      phase: 'Beginner',
+      timelineWeeks: totalWeeks[0] || 4,
+      topics: career.skills.slice(0, 4),
+      tools: career.tools.slice(0, 4),
+      miniProject: projects[0].description,
+      outcome: `You can explain the core ${career.name} workflow, build a small but complete artifact, and verify it with basic checks.`,
+      nextAction: 'Publish the first project with setup steps, screenshots or logs, and a short explanation of what you validated.',
+      checklist: [
+        `Learn the foundations: ${career.foundation}`,
+        `Use Git and small commits while practicing ${career.tools.slice(0, 2).join(' and ')}`,
+        'Build one complete workflow from input to output',
+        'Debug common setup, data, environment, or API errors',
+        'Add a README with assumptions, commands, and limitations',
+        `Validate the result with ${context.testing}`
+      ]
+    },
+    {
+      phase: 'Intermediate',
+      timelineWeeks: totalWeeks[1] || 5,
+      topics: career.skills.slice(2, 6),
+      tools: career.tools.slice(1, 6),
+      miniProject: projects[1].description,
+      outcome: `You can connect multiple tools, handle realistic failure modes, and show how the work would fit into ${context.system}.`,
+      nextAction: 'Add tests, error handling, realistic data or user flows, and a short architecture note.',
+      checklist: [
+        `Practice the workflow: ${career.workflow}`,
+        'Add role-specific tests, checks, or evaluation criteria',
+        'Handle retries, bad inputs, missing permissions, or edge cases',
+        'Document architecture boundaries and ownership',
+        `Measure quality with ${context.metric}`,
+        'Prepare a concise interview story about a tradeoff you made'
+      ]
+    },
+    {
+      phase: 'Advanced',
+      timelineWeeks: (totalWeeks[2] || 6) + (career.weeks?.[3] || 0),
+      topics: uniqueList([...career.skills.slice(4, 8), ...career.skills.slice(0, 2)]),
+      tools: uniqueList([...career.tools.slice(2, 8), 'GitHub', 'Career2Day CV Builder']),
+      miniProject: projects[2].description,
+      outcome: `You can design, ship, monitor, and explain production-minded ${career.name} work with clear risk management.`,
+      nextAction: 'Turn the strongest project into CV bullets, an interview demo, and a decision log that explains your tradeoffs.',
+      checklist: [
+        `Improve production quality: ${career.quality}`,
+        `Deploy or package the work using ${context.deployment}`,
+        'Add observability, security review, performance checks, or evaluation reporting',
+        'Create a diagram, ADR, threat model, model card, runbook, or research summary where appropriate',
+        `Address risks such as ${context.risk}`,
+        `Prepare a portfolio story: ${career.portfolio}`
+      ]
+    }
+  ];
+};
 
 const buildGeneratedCareer = (career) => {
   const slug = slugifyCareer(career.name);
@@ -458,17 +781,11 @@ const buildGeneratedCareer = (career) => {
     tools: career.tools,
     responsibilities: career.responsibilities,
     industries: career.industries,
-    projects: career.projects.slice(0, 3).map((project, index) => ({
-      title: project.split(':')[0] || `${career.name} portfolio project ${index + 1}`,
-      description: project,
-      skillsUsed: career.skills.slice(index, index + 4),
-      toolsUsed: career.tools.slice(index, index + 4),
-      applicationValue: `Shows employers you can apply ${career.skills[index % career.skills.length]} in realistic ${career.name} work.`
-    })),
+    projects: [0, 1, 2].map((index) => expandProject(career, career.projects[index], index)),
     cv: {
       summary: `${career.name} with practical portfolio experience in ${career.skills.slice(0, 4).join(', ')}, using ${career.tools.slice(0, 4).join(', ')} to deliver reliable work.`,
       skills: career.skills,
-      projects: career.projects.slice(0, 3),
+      projects: [0, 1, 2].map((index) => getProjectText(career.projects[index], `${career.name} portfolio project ${index + 1}`)),
       atsKeywords: [career.name, ...career.skills.slice(0, 8), ...career.tools.slice(0, 6)]
     },
     analytics: {
@@ -503,46 +820,89 @@ const completePhaseChecklist = (career, phase, index) => {
   const project = phase.miniProject || `Build a ${career.name} project for this step.`;
   const topics = phase.topics || career.requiredSkills?.slice(0, 4) || career.skills?.slice(0, 4) || [];
   const tools = phase.tools || career.tools?.slice(0, 4) || [];
+  const context = roleContext(career);
   const base = [
     `Learn: ${topics.join(', ')}`,
     tools.length ? `Practise with: ${tools.join(', ')}` : 'Practise the main tools for this role',
     `Build: ${project}`,
-    'Check that the work runs from start to finish',
-    'Write simple notes with screenshots, setup steps, and what you learned',
-    index === 3 ? 'Turn this work into CV bullet points and an interview story' : 'Explain this step out loud in simple words'
+    `Validate with: ${context.testing}`,
+    `Plan release or delivery: ${context.deployment}`,
+    'Write notes with setup steps, assumptions, tradeoffs, and what you would improve next',
+    index === 2 ? 'Turn this work into CV bullet points and an interview story' : 'Explain this step out loud using realistic inputs and failure cases'
   ];
   return Array.from(new Set([...(phase.checklist || []), ...base])).slice(0, 8);
 };
 
+const completePhase = (career, phase, index) => {
+  const skills = career.skills || career.requiredSkills || [];
+  const tools = career.tools || [];
+
+  return {
+    ...phase,
+    phase: projectDifficulty[index] || phase.phase || `Phase ${index + 1}`,
+    timelineWeeks: phase.timelineWeeks || career.weeks?.[index] || [4, 5, 6][index],
+    topics: phase.topics?.length ? phase.topics : skills.slice(index * 2, index * 2 + 4),
+    tools: phase.tools?.length ? phase.tools : tools.slice(index, index + 5),
+    miniProject: phase.miniProject || getProjectText(career.projects?.[index], `Build a ${career.name} project for this step.`),
+    outcome:
+      phase.outcome ||
+      phase.expectedOutcome ||
+      `You can use ${skills[index] || career.name} in a realistic ${career.name} workflow and explain the production tradeoffs.`,
+    nextAction:
+      phase.nextAction ||
+      (index === 2
+        ? 'Prepare a portfolio demo, CV bullets, and interview story from this work.'
+        : 'Write what you validated, what failed, and what you will improve next.'),
+    checklist: completePhaseChecklist(career, phase, index)
+  };
+};
+
+const ensureThreePhaseRoadmap = (career) => {
+  const source = career.roadmap?.length ? career.roadmap : buildRoadmap(career);
+  const phases = ['Beginner', 'Intermediate', 'Advanced'].map((phaseName, index) => {
+    const direct = source.find((phase) => phase.phase === phaseName);
+    return completePhase(career, direct || source[index] || buildRoadmap(career)[index], index);
+  });
+
+  const extra = source.slice(3);
+  if (extra.length) {
+    phases[2] = {
+      ...phases[2],
+      timelineWeeks: phases[2].timelineWeeks + extra.reduce((sum, phase) => sum + (phase.timelineWeeks || 0), 0),
+      topics: uniqueList([...phases[2].topics, ...extra.flatMap((phase) => phase.topics || [])]).slice(0, 10),
+      tools: uniqueList([...phases[2].tools, ...extra.flatMap((phase) => phase.tools || [])]).slice(0, 10),
+      checklist: uniqueList([...phases[2].checklist, ...extra.flatMap((phase) => phase.checklist || [])]).slice(0, 8),
+      outcome: `${phases[2].outcome} You also have portfolio evidence, CV-ready stories, and a delivery plan for real applications.`
+    };
+  }
+
+  return phases;
+};
+
 const normalizeCareer = (career) => {
   const skills = career.skills || career.requiredSkills || [];
+  const tools = career.tools || [];
+  const projectSource = career.projects?.length ? career.projects : (career.roadmap || []).map((phase) => phase.miniProject);
+  const generatedTopics = buildTopics({ ...career, skills, tools });
+  const preparedTopics = [
+    ...(career.topics || []),
+    ...generatedTopics.filter((topic) => !(career.topics || []).some((existing) => existing.name === topic.name))
+  ].slice(0, 12);
   const normalized = {
     ...career,
     requiredSkills: career.requiredSkills || skills,
     skills,
-    projects: career.projects?.length ? career.projects : (career.roadmap || []).map((phase, index) => ({
-      title: phase.phase || `Project ${index + 1}`,
-      description: phase.miniProject,
-      skillsUsed: phase.topics || skills.slice(0, 4),
-      toolsUsed: phase.tools || career.tools?.slice(0, 4) || [],
-      applicationValue: `Shows practical ${career.name} ability through a project you can explain.`
-    })),
-    roadmap: career.roadmap.map((phase, index) => ({
-      ...phase,
-      topics: phase.topics?.length ? phase.topics : skills.slice(0, 4),
-      tools: phase.tools?.length ? phase.tools : career.tools.slice(0, 4),
-      miniProject: phase.miniProject || `Build a ${career.name} project for this step.`,
-      outcome: phase.outcome || phase.expectedOutcome || 'You can use these skills in a clear project.',
-      nextAction: phase.nextAction || 'Write what you learned and what you will improve next.',
-      checklist: completePhaseChecklist(career, phase, index)
-    }))
+    tools,
+    projects: [0, 1, 2].map((index) => expandProject({ ...career, skills, tools }, projectSource[index], index)),
+    roadmap: ensureThreePhaseRoadmap({ ...career, skills, tools, projects: projectSource }),
+    topics: preparedTopics
   };
 
   return {
     ...normalized,
-    skillsDetailed: normalized.skillsDetailed || makeSkillDetails(normalized),
-    interviewQuestions: makeQuestions(normalized, normalized.topics),
-    quizzes: makeQuizzes(normalized, normalized.topics)
+    skillsDetailed: makeSkillDetails(normalized),
+    interviewQuestions: makeQuestions(normalized, preparedTopics),
+    quizzes: makeQuizzes(normalized, preparedTopics)
   };
 };
 
@@ -837,7 +1197,7 @@ export const careerDataSchema = {
     tools: ['string'],
     roadmap: [
       {
-        phase: 'Beginner | Intermediate | Advanced | Job-ready',
+        phase: 'Beginner | Intermediate | Advanced',
         timelineWeeks: 'number',
         topics: ['string'],
         tools: ['string'],
