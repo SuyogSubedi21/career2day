@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Bookmark, Briefcase, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -9,9 +9,22 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 import { toast } from 'sonner';
+import { careerPlatformData } from '@/data/careerPlatformData.js';
+
+const catalogCareers = careerPlatformData.map((career) => ({
+  id: career.slug,
+  pbId: null,
+  name: career.name,
+  slug: career.slug,
+  category: career.category,
+  description: career.description,
+  averageSalary: (career.analytics?.salary?.[1]?.[1] || career.analytics?.salary?.[0]?.[1] || 0) * 1000,
+  demandLevel: career.demandLevel,
+  tools: career.tools || []
+}));
 
 export default function CareersPage() {
-  const [careers, setCareers] = useState([]);
+  const [pocketBaseCareersBySlug, setPocketBaseCareersBySlug] = useState({});
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
@@ -22,10 +35,9 @@ export default function CareersPage() {
         const allRecords = await pb.collection('careers').getFullList({ sort: 'name', $autoCancel: false });
         const seenSlugs = new globalThis.Map();
         allRecords.forEach(r => { if (!seenSlugs.has(r.slug)) seenSlugs.set(r.slug, r); });
-        const records = Array.from(seenSlugs.values());
-        setCareers(records);
+        setPocketBaseCareersBySlug(Object.fromEntries(seenSlugs));
       } catch (error) {
-        console.error('Error fetching careers:', error);
+        console.warn('PocketBase careers unavailable; using complete local career catalog:', error);
       } finally {
         setLoading(false);
       }
@@ -33,15 +45,29 @@ export default function CareersPage() {
     fetchCareers();
   }, []);
 
-  const handleBookmark = async (careerId) => {
+  const careers = useMemo(() => catalogCareers.map((career) => {
+    const pocketBaseCareer = pocketBaseCareersBySlug[career.slug];
+    return {
+      ...career,
+      pbId: pocketBaseCareer?.id || null
+    };
+  }), [pocketBaseCareersBySlug]);
+
+  const handleBookmark = async (career) => {
     if (!currentUser) {
       toast.error('Please login to bookmark careers');
       return;
     }
+
+    if (!career.pbId) {
+      toast.error('Bookmarking for this career will be available after the database syncs');
+      return;
+    }
+
     try {
       await pb.collection('savedCareers').create({
         userId: currentUser.id,
-        careerPath: careerId
+        careerPath: career.pbId
       }, { $autoCancel: false });
       toast.success('Career bookmarked!');
     } catch (error) {
@@ -49,7 +75,14 @@ export default function CareersPage() {
     }
   };
 
-  const filteredCareers = careers.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredCareers = careers.filter(c => {
+    const query = search.toLowerCase();
+    return (
+      c.name.toLowerCase().includes(query) ||
+      c.category.toLowerCase().includes(query) ||
+      c.tools.some((tool) => tool.toLowerCase().includes(query))
+    );
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -84,7 +117,7 @@ export default function CareersPage() {
                   <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4">
                     <Briefcase className="w-5 h-5" />
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => handleBookmark(career.id)}>
+                  <Button variant="ghost" size="icon" onClick={() => handleBookmark(career)}>
                     <Bookmark className="w-4 h-4 text-muted-foreground hover:text-primary" />
                   </Button>
                 </div>
@@ -94,6 +127,7 @@ export default function CareersPage() {
                 <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{career.description || 'No description available.'}</p>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="bg-secondary text-secondary-foreground">Avg: ${career.averageSalary?.toLocaleString() || 'N/A'}</Badge>
+                  <Badge variant="outline">{career.category}</Badge>
                 </div>
               </CardContent>
               <CardFooter>
