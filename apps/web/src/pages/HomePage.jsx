@@ -5,7 +5,6 @@ import { ArrowRight, BarChart3, BookOpenCheck, Brain, CheckCircle2, FileText, Gr
 import { Button } from '@/components/ui/button';
 import SEOHead from '@/components/SEOHead.jsx';
 import { getFeaturedPlatformCareers } from '@/data/careerPlatformData.js';
-import AdSlot from '@/components/AdSlot.jsx';
 
 const HOMEPAGE_CAREER_LIMIT = 4;
 const featuredCareers = getFeaturedPlatformCareers().slice(0, HOMEPAGE_CAREER_LIMIT);
@@ -107,12 +106,6 @@ export default function HomePage() {
               </div>
             </div>
           </motion.div>
-        </div>
-      </section>
-
-      <section className="px-4 pb-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <AdSlot label="Advertisement placeholder" />
         </div>
       </section>
 

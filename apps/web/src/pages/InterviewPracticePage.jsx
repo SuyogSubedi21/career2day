@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import pb from '@/lib/pocketbaseClient';
 import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead.jsx';
-import AdPlaceholder from '@/components/AdPlaceholder.jsx';
 import FeatureLockWrapper from '@/components/FeatureLockWrapper.jsx';
 import { useSubscription } from '@/hooks/useSubscription.js';
 
@@ -133,43 +132,34 @@ export default function InterviewPracticePage() {
                   </div>
                 </div>
 
-                <AdPlaceholder width="728px" height="90px" slotId="interview-top" className="mb-8" />
-
-                <div className="flex flex-col lg:flex-row gap-8">
-                  <div className="flex-1">
-                    {isLoading ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {[...Array(6)].map((_, i) => (
-                          <div key={i} className="h-32 bg-card rounded-md animate-pulse border border-border/50" />
-                        ))}
+                {isLoading ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="h-32 bg-card rounded-md animate-pulse border border-border/50" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {filteredCareers.map((career) => (
+                      <div 
+                        key={career.slug}
+                        onClick={() => fetchQuestions(career)}
+                        className="group bg-card hover:bg-primary/5 border border-border hover:border-primary/30 rounded-md p-6 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-md relative"
+                      >
+                        {!isPremium && <Lock className="absolute top-4 right-4 w-4 h-4 text-amber-500/50" />}
+                        <div className="w-12 h-12 bg-primary/10 text-primary rounded-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                          <Briefcase className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-semibold text-lg line-clamp-2">{career.name}</h3>
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {filteredCareers.map((career) => (
-                          <div 
-                            key={career.slug}
-                            onClick={() => fetchQuestions(career)}
-                            className="group bg-card hover:bg-primary/5 border border-border hover:border-primary/30 rounded-md p-6 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-md relative"
-                          >
-                            {!isPremium && <Lock className="absolute top-4 right-4 w-4 h-4 text-amber-500/50" />}
-                            <div className="w-12 h-12 bg-primary/10 text-primary rounded-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                              <Briefcase className="w-6 h-6" />
-                            </div>
-                            <h3 className="font-semibold text-lg line-clamp-2">{career.name}</h3>
-                          </div>
-                        ))}
-                        {filteredCareers.length === 0 && (
-                          <div className="col-span-full py-12 text-center text-muted-foreground">
-                            No careers found matching "{searchTerm}"
-                          </div>
-                        )}
+                    ))}
+                    {filteredCareers.length === 0 && (
+                      <div className="col-span-full py-12 text-center text-muted-foreground">
+                        No careers found matching "{searchTerm}"
                       </div>
                     )}
                   </div>
-                  <aside className="w-full lg:w-[300px] shrink-0">
-                    <AdPlaceholder width="300px" height="250px" slotId="interview-sidebar" />
-                  </aside>
-                </div>
+                )}
               </motion.div>
             ) : (
               <motion.div
