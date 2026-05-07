@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { FileText, File, AlignLeft, Loader2, Lock } from 'lucide-react';
 import { toast } from 'sonner';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { useDownloadLimit } from '@/hooks/useDownloadLimit.js';
 import PricingPopup from '@/components/PricingPopup.jsx';
+import { exportElementToPdf, getCvExportElement } from '@/utils/exportPdf.js';
 
 export default function DownloadModal({ isOpen, onClose, cvData, cvId }) {
   const {
@@ -38,28 +37,7 @@ export default function DownloadModal({ isOpen, onClose, cvData, cvId }) {
   const handleDownloadPDF = async () => {
     setDownloading('pdf');
     try {
-      const element = document.querySelector('.cv-preview-container') || document.getElementById('cv-print-area');
-      if (!element) throw new Error('CV preview not found');
-      
-      const originalTransform = element.style.transform;
-      element.style.transform = 'scale(1)';
-      
-      const canvas = await html2canvas(element, { 
-        scale: 2, 
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff'
-      });
-      
-      element.style.transform = originalTransform;
-
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${fileNameBase}.pdf`);
+      await exportElementToPdf(getCvExportElement(), `${fileNameBase}.pdf`);
       
       await incrementDownloadCount(targetCvId, 'pdf');
       toast.success('PDF downloaded successfully!');

@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ZoomIn, ZoomOut, Printer, Download, Share2, Maximize2, Lock } from 'lucide-react';
+import { ZoomIn, ZoomOut, Download, Share2, Maximize2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { exportElementToPdf } from '@/utils/exportPdf.js';
 import { 
   ModernTemplate, MinimalTemplate, StudentTemplate, CorporateTemplate, ExecutiveTemplate, 
   CreativeTemplate, TechTemplate, DataTemplate, DesignerTemplate, MarketingTemplate, 
@@ -33,8 +35,15 @@ export default function CVPreviewPanel({ cvData, selectedTemplate, isPremiumUnlo
   const TemplateComponent = templateMap[selectedTemplate.id] || ModernTemplate;
   const isLocked = selectedTemplate.category === 'Premium' && !isPremiumUnlocked;
 
-  const handlePrint = () => {
-    window.print();
+  const handleExportPdf = async () => {
+    try {
+      const name = cvData?.personalInfo?.fullName || cvData?.personalInfo?.name || 'CV';
+      await exportElementToPdf(document.getElementById('cv-preview-content'), `${name.replace(/\s+/g, '-')}-CV.pdf`);
+      toast.success('PDF exported successfully');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to export PDF. Please try again.');
+    }
   };
 
   return (
@@ -47,7 +56,7 @@ export default function CVPreviewPanel({ cvData, selectedTemplate, isPremiumUnlo
           <Button variant="ghost" size="icon" onClick={() => setZoom(z => Math.min(150, z + 10))}><ZoomIn className="w-4 h-4" /></Button>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={handlePrint} title="Print"><Printer className="w-4 h-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={handleExportPdf} title="Export PDF" disabled={isLocked}><Download className="w-4 h-4" /></Button>
           <Button variant="ghost" size="icon" title="Share"><Share2 className="w-4 h-4" /></Button>
           <Button variant="ghost" size="icon" title="Full Screen"><Maximize2 className="w-4 h-4" /></Button>
           <Button onClick={onDownload} size="sm" className="ml-2 shadow-md shadow-primary/20" disabled={isLocked}>

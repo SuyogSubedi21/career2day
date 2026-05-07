@@ -6,8 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Download, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import { exportElementToPdf } from '@/utils/exportPdf.js';
 
 export function ResumeDownloadModal({ isOpen, onClose, targetId = 'resume-preview-content' }) {
   const [fileName, setFileName] = useState('My_Professional_Resume');
@@ -27,28 +26,7 @@ export function ResumeDownloadModal({ isOpen, onClose, targetId = 'resume-previe
         throw new Error('Resume preview not found');
       }
 
-      // Temporarily remove scaling for accurate capture
-      const originalTransform = element.parentElement.style.transform;
-      element.parentElement.style.transform = 'none';
-
-      const canvas = await html2canvas(element, { 
-        scale: 2, 
-        useCORS: true,
-        logging: false,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
-      });
-
-      // Restore scaling
-      element.parentElement.style.transform = originalTransform;
-
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${fileName.replace(/\s+/g, '_')}.pdf`);
+      await exportElementToPdf(element, `${fileName.replace(/\s+/g, '_')}.pdf`);
       
       toast.success('Resume downloaded successfully!');
       onClose();

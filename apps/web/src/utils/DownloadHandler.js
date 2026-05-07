@@ -1,18 +1,13 @@
 
-export const downloadResume = (resumeData, templateName, onDownloadComplete) => {
-  const originalTitle = document.title;
-  document.title = `${resumeData.name || 'Resume'} - ${templateName}`;
+import { exportElementToPdf, getCvExportElement } from '@/utils/exportPdf.js';
 
-  setTimeout(() => {
-    window.print();
-    
-    setTimeout(() => {
-      document.title = originalTitle;
-      if (onDownloadComplete) {
-        onDownloadComplete();
-      }
-    }, 500);
-  }, 100);
+export const downloadResume = async (resumeData, templateName, onDownloadComplete) => {
+  const name = resumeData.name || resumeData.personalInfo?.fullName || 'Resume';
+  const safeName = String(name).trim().replace(/\s+/g, '-');
+  await exportElementToPdf(getCvExportElement(), `${safeName}-${templateName}.pdf`);
+  if (onDownloadComplete) {
+    onDownloadComplete();
+  }
 };
 
 export const canUserDownload = (downloadCount, isPremium, isTemplatePremium) => {
