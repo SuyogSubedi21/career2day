@@ -191,7 +191,22 @@ const layout = ({ title, description, canonical, content, schema }) => {
     : '';
   html = html.replace('</head>', `${schemaScript}\n  </head>`);
 
-  const seoContent = `<div id="root"><main id="seo-static-content" style="max-width:960px;margin:0 auto;padding:48px 20px;font-family:Inter,Arial,sans-serif;line-height:1.7;color:#111827">${content}</main></div>`;
+  const seoNav = `
+    <nav aria-label="Main navigation" style="max-width:960px;margin:0 auto;padding:20px;font-family:Inter,Arial,sans-serif;display:flex;gap:18px;flex-wrap:wrap">
+      <a href="/">Home</a>
+      <a href="/careers">Careers</a>
+      <a href="/cv-builder">CV Builder</a>
+      <a href="/blog">Blog</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/contact">Contact Us</a>
+    </nav>
+  `;
+  const seoFooter = `
+    <footer style="max-width:960px;margin:0 auto;padding:20px;font-family:Inter,Arial,sans-serif">
+      <a href="/contact">Contact Us</a>
+    </footer>
+  `;
+  const seoContent = `<div id="root">${seoNav}<main id="seo-static-content" style="max-width:960px;margin:0 auto;padding:48px 20px;font-family:Inter,Arial,sans-serif;line-height:1.7;color:#111827">${content}</main>${seoFooter}</div>`;
   html = html.replace('<div id="root"></div>', seoContent);
   return html;
 };
@@ -221,7 +236,7 @@ const homeContent = () => `
   ${list(['Step-by-step career roadmaps for technology roles.', 'Interview questions and quiz practice connected to each career path.', 'A browser-based CV builder that helps turn skills and projects into application-ready content.', 'Latest career guides about learning, portfolios, ATS keywords, interviews, and first-role preparation.', 'Weekly career tips for roadmap progress, CV improvements, interview prep, and portfolio ideas.'])}
   <h2>Featured career paths</h2>
   ${list(careerPlatformData.slice(0, 4).map((career) => `${career.name}: ${career.description || career.tagline}`))}
-  <p><a href="/careers">Explore more career roadmaps</a></p>
+  <p><a href="/careers">Explore More</a></p>
   <h2>Frequently asked questions</h2>
   ${homepageFaqs.map(([question, answer]) => `<h3>${escapeHtml(question)}</h3>${paragraph(answer)}`).join('')}
 `;
@@ -431,6 +446,26 @@ const simplePage = (title, description, sections) => `
   ${sections.map(([heading, body]) => `<h2>${escapeHtml(heading)}</h2>${paragraph(body)}`).join('')}
 `;
 
+const contactFormContent = () => `
+  <h1>Contact Career2Day</h1>
+  ${paragraph('Fill out the form below and our team will get back to you as soon as possible.')}
+  <form action="https://formspree.io/f/xgodyjpl" method="POST">
+    <p>
+      <label for="name">Full Name</label><br />
+      <input id="name" name="name" type="text" required />
+    </p>
+    <p>
+      <label for="email">Email Address</label><br />
+      <input id="email" name="email" type="email" required />
+    </p>
+    <p>
+      <label for="message">Message</label><br />
+      <textarea id="message" name="message" rows="6" required></textarea>
+    </p>
+    <p><button type="submit">Send Message</button></p>
+  </form>
+`;
+
 if (!fs.existsSync(templatePath)) {
   console.error(`[prerender-seo-pages] Missing build template: ${templatePath}`);
   process.exit(1);
@@ -513,15 +548,11 @@ const routes = [
     schema: pageSchema('/about', 'About Career2Day', 'About the Career2Day platform.')
   }],
   ['/contact', {
-    title: 'Contact Career2Day',
-    description: 'Contact Career2Day for support, privacy requests, content feedback and partnership inquiries.',
+    title: 'Contact Us | Career2Day',
+    description: 'Contact Career2Day for support, business, or feedback. Use the form below to reach us directly.',
     canonical: `${siteUrl}/contact`,
-    content: simplePage('Contact Career2Day', 'Reach Career2Day for account questions, content feedback, privacy requests and partnership inquiries.', [
-      ['Support', 'Email support@career2day.com for account and product help.'],
-      ['Privacy', 'Email privacy@career2day.com for data and privacy requests.'],
-      ['Content feedback', 'Email editorial@career2day.com with page URLs and correction details.']
-    ]),
-    schema: pageSchema('/contact', 'Contact Career2Day', 'Contact and support information.')
+    content: contactFormContent(),
+    schema: pageSchema('/contact', 'Contact Career2Day', 'Contact form and support information.')
   }],
   ['/pricing', {
     title: 'Pricing | Career2Day',

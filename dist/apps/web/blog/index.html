@@ -224,7 +224,16 @@ if (window.navigation && window.self !== window.top) {
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","name":"Career Blog","description":"Career articles and job readiness guides.","url":"https://career2day.com/blog"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://career2day.com/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://career2day.com/blog"}]}]}</script>
   </head>
   <body>
-    <div id="root"><main id="seo-static-content" style="max-width:960px;margin:0 auto;padding:48px 20px;font-family:Inter,Arial,sans-serif;line-height:1.7;color:#111827">
+    <div id="root">
+    <nav aria-label="Main navigation" style="max-width:960px;margin:0 auto;padding:20px;font-family:Inter,Arial,sans-serif;display:flex;gap:18px;flex-wrap:wrap">
+      <a href="/">Home</a>
+      <a href="/careers">Careers</a>
+      <a href="/cv-builder">CV Builder</a>
+      <a href="/blog">Blog</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/contact">Contact Us</a>
+    </nav>
+  <main id="seo-static-content" style="max-width:960px;margin:0 auto;padding:48px 20px;font-family:Inter,Arial,sans-serif;line-height:1.7;color:#111827">
   <h1>Career2Day Blog</h1>
   <p>Read practical career articles about roadmaps, CVs, interviews, portfolio projects, ATS keywords, and first-role preparation.</p>
   
@@ -278,6 +287,10 @@ if (window.navigation && window.self !== window.top) {
       <p>Getting hired is the start. The first 90 days are about trust, learning, and useful contribution.</p>
     </article>
   
-</main></div>
+</main>
+    <footer style="max-width:960px;margin:0 auto;padding:20px;font-family:Inter,Arial,sans-serif">
+      <a href="/contact">Contact Us</a>
+    </footer>
+  </div>
   </body>
 </html>
