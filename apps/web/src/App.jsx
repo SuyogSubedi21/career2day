@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -56,8 +56,10 @@ import CheckoutPage from '@/pages/CheckoutPage.jsx';
 import DownloadSuccessPage from '@/pages/DownloadSuccessPage.jsx';
 import MyCVsPage from '@/pages/MyCVsPage.jsx';
 import SmartCVBuilderPage from '@/pages/SmartCVBuilderPage.jsx';
+import CVBuilderPage from '@/pages/CVBuilderPage.jsx';
 import PlatformInterviewQuestionsPage from '@/pages/PlatformInterviewQuestionsPage.jsx';
 import InterviewQuestionsListPage from '@/pages/InterviewQuestionsListPage.jsx';
+import { getAllTemplates } from '@/data/cvTemplatesData.js';
 
 // Lazy Load legacy CV template gallery to optimize initial bundle
 const CVTemplateSelectionPage = React.lazy(() => import('@/pages/CVTemplateSelectionPage.jsx'));
@@ -82,6 +84,25 @@ const FallbackLoader = () => (
     <Loader2 className="w-8 h-8 animate-spin text-primary" />
   </div>
 );
+
+const legacyTemplateIds = new Set(getAllTemplates().map((template) => template.id));
+
+const CVBuilderRoute = () => {
+  const [searchParams] = useSearchParams();
+  const { templateId } = useParams();
+  const selectedTemplate = searchParams.get('template') || searchParams.get('templateId');
+  const hasLegacyQuery = searchParams.has('cvId') || legacyTemplateIds.has(selectedTemplate);
+
+  if (templateId && legacyTemplateIds.has(templateId)) {
+    return <Navigate to={`/cv-builder?template=${templateId}`} replace />;
+  }
+
+  if (hasLegacyQuery) {
+    return <CVBuilderPage />;
+  }
+
+  return <SmartCVBuilderPage />;
+};
 
 const AppInitializer = () => {
   const { isAdminLoggedIn } = useAdminAuth();
@@ -146,9 +167,9 @@ export default function App() {
                 {/* Careers Routes */}
                 <Route path="/careers" element={<MainLayout><CareersListingPage /></MainLayout>} />
                 <Route path="/careers/:careerSlug" element={<MainLayout><CareerDetailPage /></MainLayout>} />
-                <Route path="/cv-builder" element={<MainLayout><SmartCVBuilderPage /></MainLayout>} />
+                <Route path="/cv-builder" element={<MainLayout><CVBuilderRoute /></MainLayout>} />
                 <Route path="/cv-builder/editor" element={<MainLayout><SmartCVBuilderPage /></MainLayout>} />
-                <Route path="/cv-builder/:templateId" element={<MainLayout><SmartCVBuilderPage /></MainLayout>} />
+                <Route path="/cv-builder/:templateId" element={<MainLayout><CVBuilderRoute /></MainLayout>} />
                 
                 {/* Interview Questions & Quiz Routes */}
                 <Route path="/interview-questions" element={<MainLayout><InterviewQuestionsListPage /></MainLayout>} />
