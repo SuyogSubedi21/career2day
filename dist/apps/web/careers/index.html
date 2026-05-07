@@ -1,0 +1,533 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="Browse technology career roadmaps with skills, tools, projects, interview questions, quizzes and CV guidance." />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <link rel="canonical" href="https://career2day.com/careers" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://career2day.com/careers" />
+    <meta property="og:title" content="Career Roadmaps | Career2Day" />
+    <meta property="og:description" content="Browse technology career roadmaps with skills, tools, projects, interview questions, quizzes and CV guidance." />
+    <meta property="og:image" content="https://career2day.com/og-image.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://career2day.com/careers" />
+    <meta property="twitter:title" content="Career Roadmaps | Career2Day" />
+    <meta property="twitter:description" content="Browse technology career roadmaps with skills, tools, projects, interview questions, quizzes and CV guidance." />
+    <meta property="twitter:image" content="https://career2day.com/og-image.jpg" />
+    <title>Career Roadmaps | Career2Day</title>
+    <script id="structured-data" type="application/ld+json"></script>
+    <script type="module" crossorigin src="/assets/index-56B3XRch.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/chunk-BNv3lrIs.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-GtE1ZPM7.css">
+    <script type="module">
+window.onerror = (message, source, lineno, colno, errorObj) => {
+	const errorDetails = errorObj ? JSON.stringify({
+		name: errorObj.name,
+		message: errorObj.message,
+		stack: errorObj.stack,
+		source,
+		lineno,
+		colno,
+	}) : null;
+
+	window.parent.postMessage({
+		type: 'horizons-runtime-error',
+		message,
+		error: errorDetails
+	}, '*');
+};
+</script>
+    <script type="module">
+const observer = new MutationObserver((mutations) => {
+	for (const mutation of mutations) {
+		for (const addedNode of mutation.addedNodes) {
+			if (
+				addedNode.nodeType === Node.ELEMENT_NODE &&
+				(
+					addedNode.tagName?.toLowerCase() === 'vite-error-overlay' ||
+					addedNode.classList?.contains('backdrop')
+				)
+			) {
+				handleViteOverlay(addedNode);
+			}
+		}
+	}
+});
+
+observer.observe(document.documentElement, {
+	childList: true,
+	subtree: true
+});
+
+function handleViteOverlay(node) {
+	if (!node.shadowRoot) {
+		return;
+	}
+
+	const backdrop = node.shadowRoot.querySelector('.backdrop');
+
+	if (backdrop) {
+		const overlayHtml = backdrop.outerHTML;
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(overlayHtml, 'text/html');
+		const messageBodyElement = doc.querySelector('.message-body');
+		const fileElement = doc.querySelector('.file');
+		const messageText = messageBodyElement ? messageBodyElement.textContent.trim() : '';
+		const fileText = fileElement ? fileElement.textContent.trim() : '';
+		const error = messageText + (fileText ? ' File:' + fileText : '');
+
+		window.parent.postMessage({
+			type: 'horizons-vite-error',
+			error,
+		}, '*');
+	}
+}
+</script>
+    <script type="module">
+const originalConsoleError = console.error;
+const MATCH_LINE_COL_REGEX = /:(\d+):(\d+)\)?\s*$/; // regex to match the :lineNum:colNum
+const MATCH_AT_REGEX = /^\s*at\s+(?:async\s+)?(?:.*?\s+)?\(?/; // regex to remove the 'at' keyword and any 'async' or function name
+const MATCH_PATH_REGEX = /^\//; // regex to remove the leading slash
+
+function parseStackFrameLine(line) {
+	const lineColMatch = line.match(MATCH_LINE_COL_REGEX);
+	if (!lineColMatch) return null;
+	const [, lineNum, colNum] = lineColMatch;
+	const suffix = `:${lineNum}:${colNum}`;
+	const idx = line.lastIndexOf(suffix);
+	if (idx === -1) return null;
+	const before = line.substring(0, idx);
+	const path = before.replace(MATCH_AT_REGEX, '').trim();
+	
+	if (!path) return null;
+
+	try {
+		const pathname = new URL(path).pathname;
+		const filePath = pathname.replace(MATCH_PATH_REGEX, '') || pathname;
+		return `${filePath}:${lineNum}:${colNum}`;
+	} catch (e) {
+		const filePath = path.replace(MATCH_PATH_REGEX, '') || path;
+		return `${filePath}:${lineNum}:${colNum}`;
+	}
+}
+
+function getFilePathFromStack(stack, skipFrames = 0) {
+	if (!stack || typeof stack !== 'string') return null;
+	const lines = stack.split('\n').slice(1);
+
+	const frames = lines.map(line => parseStackFrameLine(line.replace(/\r$/, ''))).filter(Boolean);
+
+	return frames[skipFrames] ?? null;
+}
+
+console.error = function(...args) {
+	originalConsoleError.apply(console, args);
+
+	let errorString = '';
+	let filePath = null;
+
+	for (let i = 0; i < args.length; i++) {
+		const arg = args[i];
+		if (arg instanceof Error) {
+			filePath = getFilePathFromStack(arg.stack, 0);
+			errorString = `${arg.name}: ${arg.message}`;
+			if (filePath) {
+				errorString = `${errorString} at ${filePath}`;
+			}
+			break;
+		}
+	}
+
+	if (!errorString) {
+		errorString = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+		const stack = new Error().stack;
+		filePath = getFilePathFromStack(stack, 1);
+		if (filePath) {
+			errorString = `${errorString} at ${filePath}`;
+		}
+	}
+
+	window.parent.postMessage({
+		type: 'horizons-console-error',
+		error: errorString
+	}, '*');
+};
+</script>
+    <script type="module">
+const originalFetch = window.fetch;
+
+window.fetch = function(...args) {
+	const url = args[0] instanceof Request ? args[0].url : args[0];
+
+	// Skip WebSocket URLs
+	if (url.startsWith('ws:') || url.startsWith('wss:')) {
+		return originalFetch.apply(this, args);
+	}
+
+	return originalFetch.apply(this, args)
+		.then(async response => {
+			const contentType = response.headers.get('Content-Type') || '';
+
+			// Exclude HTML document responses
+			const isDocumentResponse =
+				contentType.includes('text/html') ||
+				contentType.includes('application/xhtml+xml');
+
+			if (!response.ok && !isDocumentResponse) {
+					const responseClone = response.clone();
+					const errorFromRes = await responseClone.text();
+					const requestUrl = response.url;
+					console.error(`Fetch error from ${requestUrl}: ${errorFromRes}`);
+			}
+
+			return response;
+		})
+		.catch(error => {
+			if (!url.match(/.html?$/i)) {
+				console.error(error);
+			}
+
+			throw error;
+		});
+};
+</script>
+    <script type="module">
+if (window.navigation && window.self !== window.top) {
+	window.navigation.addEventListener('navigate', (event) => {
+		const url = event.destination.url;
+
+		try {
+			const destinationUrl = new URL(url);
+			const destinationOrigin = destinationUrl.origin;
+			const currentOrigin = window.location.origin;
+
+			if (destinationOrigin === currentOrigin) {
+				return;
+			}
+		} catch (error) {
+			return;
+		}
+
+		window.parent.postMessage({
+			type: 'horizons-navigation-error',
+			url,
+		}, '*');
+	});
+}
+</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","name":"Career Roadmaps","description":"Browse technology career roadmaps.","url":"https://career2day.com/careers"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://career2day.com/"},{"@type":"ListItem","position":2,"name":"Careers","item":"https://career2day.com/careers"}]}]}</script>
+  </head>
+  <body>
+    <div id="root"><main id="seo-static-content" style="max-width:960px;margin:0 auto;padding:48px 20px;font-family:Inter,Arial,sans-serif;line-height:1.7;color:#111827">
+  <h1>Career Roadmaps</h1>
+  <p>Browse the Career2Day catalog of technology careers. Complete tracks include skills, tools, projects, interview preparation, quiz practice, and CV guidance.</p>
+  
+    <section>
+      <h2>AI Engineer</h2>
+      <p>AI Engineer is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/ai-engineer">Open AI Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Machine Learning Engineer</h2>
+      <p>Machine Learning Engineer is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/machine-learning-engineer">Open Machine Learning Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Generative AI Engineer</h2>
+      <p>Generative AI Engineer is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/generative-ai-engineer">Open Generative AI Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>AI Research Scientist</h2>
+      <p>AI Research Scientist is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/ai-research-scientist">Open AI Research Scientist roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Data Scientist</h2>
+      <p>Data Scientist is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/data-scientist">Open Data Scientist roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Data Engineer</h2>
+      <p>Data Engineer is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/data-engineer">Open Data Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Analytics Engineer</h2>
+      <p>Analytics Engineer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/analytics-engineer">Open Analytics Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>MLOps Engineer</h2>
+      <p>MLOps Engineer is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/mlops-engineer">Open MLOps Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Computer Vision Engineer</h2>
+      <p>Computer Vision Engineer is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/computer-vision-engineer">Open Computer Vision Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>NLP Engineer</h2>
+      <p>NLP Engineer is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/nlp-engineer">Open NLP Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Cloud Architect</h2>
+      <p>Cloud Architect is listed in the Cloud and Infrastructure category. Status: complete roadmap available.</p>
+      <p><a href="/careers/cloud-architect">Open Cloud Architect roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Cloud Engineer</h2>
+      <p>Cloud Engineer is listed in the Cloud and Infrastructure category. Status: complete roadmap available.</p>
+      <p><a href="/careers/cloud-engineer">Open Cloud Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>DevOps Engineer</h2>
+      <p>DevOps Engineer is listed in the Cloud and Infrastructure category. Status: complete roadmap available.</p>
+      <p><a href="/careers/devops-engineer">Open DevOps Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Site Reliability Engineer</h2>
+      <p>Site Reliability Engineer is listed in the Cloud and Infrastructure category. Status: complete roadmap available.</p>
+      <p><a href="/careers/site-reliability-engineer">Open Site Reliability Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Platform Engineer</h2>
+      <p>Platform Engineer is listed in the Cloud and Infrastructure category. Status: complete roadmap available.</p>
+      <p><a href="/careers/platform-engineer">Open Platform Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Solutions Architect</h2>
+      <p>Solutions Architect is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/solutions-architect">Open Solutions Architect roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Enterprise Architect</h2>
+      <p>Enterprise Architect is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/enterprise-architect">Open Enterprise Architect roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Software Architect</h2>
+      <p>Software Architect is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/software-architect">Open Software Architect roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Backend Engineer</h2>
+      <p>Backend Engineer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/backend-engineer">Open Backend Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Full Stack Engineer</h2>
+      <p>Full Stack Engineer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/full-stack-engineer">Open Full Stack Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Frontend Engineer</h2>
+      <p>Frontend Engineer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/frontend-engineer">Open Frontend Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Mobile App Developer</h2>
+      <p>Mobile App Developer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/mobile-app-developer">Open Mobile App Developer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>iOS Developer</h2>
+      <p>iOS Developer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/ios-developer">Open iOS Developer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Android Developer</h2>
+      <p>Android Developer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/android-developer">Open Android Developer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Blockchain Engineer</h2>
+      <p>Blockchain Engineer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/blockchain-engineer">Open Blockchain Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Smart Contract Developer</h2>
+      <p>Smart Contract Developer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/smart-contract-developer">Open Smart Contract Developer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Cybersecurity Engineer</h2>
+      <p>Cybersecurity Engineer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/cybersecurity-engineer">Open Cybersecurity Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Security Architect</h2>
+      <p>Security Architect is listed in the Cybersecurity category. Status: complete roadmap available.</p>
+      <p><a href="/careers/security-architect">Open Security Architect roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Cloud Security Engineer</h2>
+      <p>Cloud Security Engineer is listed in the Cloud and Infrastructure category. Status: complete roadmap available.</p>
+      <p><a href="/careers/cloud-security-engineer">Open Cloud Security Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Penetration Tester</h2>
+      <p>Penetration Tester is listed in the Cybersecurity category. Status: complete roadmap available.</p>
+      <p><a href="/careers/penetration-tester">Open Penetration Tester roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>SOC Analyst</h2>
+      <p>SOC Analyst is listed in the Cybersecurity category. Status: complete roadmap available.</p>
+      <p><a href="/careers/soc-analyst">Open SOC Analyst roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Application Security Engineer</h2>
+      <p>Application Security Engineer is listed in the Cybersecurity category. Status: complete roadmap available.</p>
+      <p><a href="/careers/application-security-engineer">Open Application Security Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>CISO</h2>
+      <p>CISO is listed in the Cybersecurity category. Status: complete roadmap available.</p>
+      <p><a href="/careers/ciso">Open CISO roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Technical Product Manager</h2>
+      <p>Technical Product Manager is listed in the Product and Leadership category. Status: complete roadmap available.</p>
+      <p><a href="/careers/technical-product-manager">Open Technical Product Manager roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>AI Product Manager</h2>
+      <p>AI Product Manager is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/ai-product-manager">Open AI Product Manager roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Product Manager</h2>
+      <p>Product Manager is listed in the Product and Leadership category. Status: complete roadmap available.</p>
+      <p><a href="/careers/product-manager">Open Product Manager roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Engineering Manager</h2>
+      <p>Engineering Manager is listed in the Product and Leadership category. Status: complete roadmap available.</p>
+      <p><a href="/careers/engineering-manager">Open Engineering Manager roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Software Engineering Manager</h2>
+      <p>Software Engineering Manager is listed in the Product and Leadership category. Status: complete roadmap available.</p>
+      <p><a href="/careers/software-engineering-manager">Open Software Engineering Manager roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Data Product Manager</h2>
+      <p>Data Product Manager is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/data-product-manager">Open Data Product Manager roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>UX/UI Designer</h2>
+      <p>UX/UI Designer is listed in the Design category. Status: complete roadmap available.</p>
+      <p><a href="/careers/ux-ui-designer">Open UX/UI Designer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>UX Researcher</h2>
+      <p>UX Researcher is listed in the Design category. Status: complete roadmap available.</p>
+      <p><a href="/careers/ux-researcher">Open UX Researcher roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Product Designer</h2>
+      <p>Product Designer is listed in the Product and Leadership category. Status: complete roadmap available.</p>
+      <p><a href="/careers/product-designer">Open Product Designer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Database Administrator</h2>
+      <p>Database Administrator is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/database-administrator">Open Database Administrator roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Database Engineer</h2>
+      <p>Database Engineer is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/database-engineer">Open Database Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Big Data Engineer</h2>
+      <p>Big Data Engineer is listed in the AI and Data category. Status: complete roadmap available.</p>
+      <p><a href="/careers/big-data-engineer">Open Big Data Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Robotics Engineer</h2>
+      <p>Robotics Engineer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/robotics-engineer">Open Robotics Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Embedded Systems Engineer</h2>
+      <p>Embedded Systems Engineer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/embedded-systems-engineer">Open Embedded Systems Engineer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>AR/VR Developer</h2>
+      <p>AR/VR Developer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/ar-vr-developer">Open AR/VR Developer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>Game Developer</h2>
+      <p>Game Developer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/game-developer">Open Game Developer roadmap</a></p>
+    </section>
+  
+    <section>
+      <h2>QA Automation Engineer</h2>
+      <p>QA Automation Engineer is listed in the Software Engineering category. Status: complete roadmap available.</p>
+      <p><a href="/careers/qa-automation-engineer">Open QA Automation Engineer roadmap</a></p>
+    </section>
+  
+</main></div>
+  </body>
+</html>

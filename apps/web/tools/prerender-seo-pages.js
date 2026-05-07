@@ -220,7 +220,8 @@ const homeContent = () => `
   <h2>What Career2Day offers</h2>
   ${list(['Step-by-step career roadmaps for technology roles.', 'Interview questions and quiz practice connected to each career path.', 'A browser-based CV builder that helps turn skills and projects into application-ready content.', 'Latest career guides about learning, portfolios, ATS keywords, interviews, and first-role preparation.', 'Weekly career tips for roadmap progress, CV improvements, interview prep, and portfolio ideas.'])}
   <h2>Featured career paths</h2>
-  ${list(careerPlatformData.map((career) => `${career.name}: ${career.description || career.tagline}`))}
+  ${list(careerPlatformData.slice(0, 4).map((career) => `${career.name}: ${career.description || career.tagline}`))}
+  <p><a href="/careers">Explore more career roadmaps</a></p>
   <h2>Frequently asked questions</h2>
   ${homepageFaqs.map(([question, answer]) => `<h3>${escapeHtml(question)}</h3>${paragraph(answer)}`).join('')}
 `;

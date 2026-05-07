@@ -97,7 +97,7 @@ export default function SignupPage() {
               <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <Input 
                 id="fullName" 
-                placeholder="John Doe" 
+                placeholder="Your name"
                 className="pl-10 bg-background text-foreground"
                 value={fullName}
                 onChange={handleInputChange(setFullName)}

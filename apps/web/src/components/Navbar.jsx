@@ -1,13 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, LogOut, Sun, Moon, Settings, LayoutDashboard, Globe } from 'lucide-react';
+import { Menu, X, LogOut, Sun, Moon, Settings, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useTheme } from '@/contexts/ThemeContext.jsx';
-import { useCurrency } from '@/contexts/CurrencyContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 
 export default function Navbar() {
@@ -16,7 +15,6 @@ export default function Navbar() {
   const location = useLocation();
   const { currentUser, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { currency, setCurrency, availableCurrencies, getCurrencySymbol } = useCurrency();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,7 +33,8 @@ export default function Navbar() {
     { name: 'Careers', path: '/careers' },
     { name: 'CV Builder', path: '/cv-builder' },
     { name: 'Blog', path: '/blog' },
-    { name: 'Pricing', path: '/pricing' }
+    { name: 'Pricing', path: '/pricing' },
+    { name: 'Contact Us', path: '/contact-form' }
   ];
 
   const isActive = (path) => {
@@ -51,28 +50,6 @@ export default function Navbar() {
   const avatarUrl = currentUser?.avatar 
     ? pb.files.getUrl(currentUser, currentUser.avatar) 
     : null;
-
-  const CurrencySelector = () => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="font-medium gap-1.5 px-2">
-          <Globe className="w-4 h-4 text-muted-foreground hidden sm:block" />
-          <span>{getCurrencySymbol()} {currency}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-32">
-        {availableCurrencies.map(c => (
-          <DropdownMenuItem 
-            key={c} 
-            onClick={() => setCurrency(c)} 
-            className={`cursor-pointer ${currency === c ? 'bg-primary/10 text-primary font-bold' : ''}`}
-          >
-            {c}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 
   return (
     <header 
@@ -107,8 +84,6 @@ export default function Navbar() {
           </nav>
 
           <div className="hidden md:flex items-center space-x-2">
-            <CurrencySelector />
-
             <Button 
               variant="ghost" 
               size="icon" 
@@ -178,7 +153,6 @@ export default function Navbar() {
                 <Link to="/login">Login</Link>
               </Button>
             )}
-            <CurrencySelector />
             <Button 
               variant="ghost" 
               size="icon" 

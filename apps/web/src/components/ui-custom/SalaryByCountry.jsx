@@ -1,50 +1,38 @@
 
 import React from 'react';
 import { Globe } from 'lucide-react';
-import { useCurrency } from '@/contexts/CurrencyContext.jsx';
+import { formatLocalSalary, getMarketByCountry, localizeAnnualSalary } from '@/lib/utils/localSalaryMarkets.js';
 
-const ALLOWED_COUNTRIES = ['India', 'USA', 'Australia', 'UK', 'Canada'];
+const ALLOWED_COUNTRIES = ['USA', 'Nepal', 'India', 'Australia', 'UK', 'China'];
 
 export default function SalaryByCountry({ levelData }) {
-  const { currency, convertSalary, getCurrencySymbol } = useCurrency();
-  
   if (!levelData || !levelData.topCountries) return null;
 
-  // Filter to only allowed countries
   const filteredCountries = levelData.topCountries.filter(c => 
     ALLOWED_COUNTRIES.includes(c.name)
   );
 
   if (filteredCountries.length === 0) return null;
 
-  const formatVal = (val) => {
+  const formatVal = (val, country) => {
     if (!val || isNaN(val)) return '';
-    const converted = convertSalary(val);
-    return new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency: currency,
-      maximumFractionDigits: 0 
-    }).format(converted);
+    return formatCountrySalary(val, country);
   };
 
-  // Helper to parse string ranges like "$50,000 - $70,000" or use raw numbers if available
   const displayRange = (country) => {
     if (country.minSalary && country.maxSalary) {
-      return `${formatVal(country.minSalary)} - ${formatVal(country.maxSalary)}`;
+      return `${formatVal(country.minSalary, country)} - ${formatVal(country.maxSalary, country)}`;
     }
     
     // Fallback parsing if it's a string
     if (typeof country.salaryRange === 'string') {
       const numbers = country.salaryRange.replace(/[^0-9-]/g, '').split('-');
       if (numbers.length === 2) {
-        return `${formatVal(Number(numbers[0]))} - ${formatVal(Number(numbers[1]))}`;
+        return `${formatVal(Number(numbers[0]), country)} - ${formatVal(Number(numbers[1]), country)}`;
       }
     }
     return country.salaryRange || 'N/A';
   };
-
-  const globalAvgUsd = getGlobalAvgUsd(levelData.level);
-  const convertedGlobalAvg = formatVal(globalAvgUsd);
 
   return (
     <div className="bg-muted/30 rounded-xl p-4 border border-border/50">
@@ -64,18 +52,20 @@ export default function SalaryByCountry({ levelData }) {
       </ul>
       <div className="mt-4 pt-3 border-t border-border/50">
         <p className="text-xs text-muted-foreground font-medium">
-          Global Average ({currency}): <span className="text-foreground">{convertedGlobalAvg}</span>
+          Market averages shown in each country's local currency.
         </p>
       </div>
     </div>
   );
 }
 
-function getGlobalAvgUsd(level) {
-  switch (level?.toLowerCase()) {
-    case 'beginner': return 55000;
-    case 'intermediate': return 80000;
-    case 'advanced': return 120000;
-    default: return 0;
-  }
+function formatCountrySalary(usdValue, country) {
+  const market = getMarketByCountry(country?.name);
+  if (!market) return formatLocalSalary(usdValue, 'USD', 'en-US');
+
+  const value = country.currency === market.currency
+    ? usdValue
+    : localizeAnnualSalary(usdValue, market);
+
+  return formatLocalSalary(value, market.currency, market.locale);
 }

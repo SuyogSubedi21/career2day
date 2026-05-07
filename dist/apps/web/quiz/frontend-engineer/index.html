@@ -1,0 +1,512 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="Practice Frontend Engineer quiz questions with answer explanations connected to roadmap skills, projects and interview preparation." />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <link rel="canonical" href="https://career2day.com/quiz/frontend-engineer" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://career2day.com/quiz/frontend-engineer" />
+    <meta property="og:title" content="Frontend Engineer Quiz Questions | Career2Day" />
+    <meta property="og:description" content="Practice Frontend Engineer quiz questions with answer explanations connected to roadmap skills, projects and interview preparation." />
+    <meta property="og:image" content="https://career2day.com/og-image.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://career2day.com/quiz/frontend-engineer" />
+    <meta property="twitter:title" content="Frontend Engineer Quiz Questions | Career2Day" />
+    <meta property="twitter:description" content="Practice Frontend Engineer quiz questions with answer explanations connected to roadmap skills, projects and interview preparation." />
+    <meta property="twitter:image" content="https://career2day.com/og-image.jpg" />
+    <title>Frontend Engineer Quiz Questions | Career2Day</title>
+    <script id="structured-data" type="application/ld+json"></script>
+    <script type="module" crossorigin src="/assets/index-56B3XRch.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/chunk-BNv3lrIs.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-GtE1ZPM7.css">
+    <script type="module">
+window.onerror = (message, source, lineno, colno, errorObj) => {
+	const errorDetails = errorObj ? JSON.stringify({
+		name: errorObj.name,
+		message: errorObj.message,
+		stack: errorObj.stack,
+		source,
+		lineno,
+		colno,
+	}) : null;
+
+	window.parent.postMessage({
+		type: 'horizons-runtime-error',
+		message,
+		error: errorDetails
+	}, '*');
+};
+</script>
+    <script type="module">
+const observer = new MutationObserver((mutations) => {
+	for (const mutation of mutations) {
+		for (const addedNode of mutation.addedNodes) {
+			if (
+				addedNode.nodeType === Node.ELEMENT_NODE &&
+				(
+					addedNode.tagName?.toLowerCase() === 'vite-error-overlay' ||
+					addedNode.classList?.contains('backdrop')
+				)
+			) {
+				handleViteOverlay(addedNode);
+			}
+		}
+	}
+});
+
+observer.observe(document.documentElement, {
+	childList: true,
+	subtree: true
+});
+
+function handleViteOverlay(node) {
+	if (!node.shadowRoot) {
+		return;
+	}
+
+	const backdrop = node.shadowRoot.querySelector('.backdrop');
+
+	if (backdrop) {
+		const overlayHtml = backdrop.outerHTML;
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(overlayHtml, 'text/html');
+		const messageBodyElement = doc.querySelector('.message-body');
+		const fileElement = doc.querySelector('.file');
+		const messageText = messageBodyElement ? messageBodyElement.textContent.trim() : '';
+		const fileText = fileElement ? fileElement.textContent.trim() : '';
+		const error = messageText + (fileText ? ' File:' + fileText : '');
+
+		window.parent.postMessage({
+			type: 'horizons-vite-error',
+			error,
+		}, '*');
+	}
+}
+</script>
+    <script type="module">
+const originalConsoleError = console.error;
+const MATCH_LINE_COL_REGEX = /:(\d+):(\d+)\)?\s*$/; // regex to match the :lineNum:colNum
+const MATCH_AT_REGEX = /^\s*at\s+(?:async\s+)?(?:.*?\s+)?\(?/; // regex to remove the 'at' keyword and any 'async' or function name
+const MATCH_PATH_REGEX = /^\//; // regex to remove the leading slash
+
+function parseStackFrameLine(line) {
+	const lineColMatch = line.match(MATCH_LINE_COL_REGEX);
+	if (!lineColMatch) return null;
+	const [, lineNum, colNum] = lineColMatch;
+	const suffix = `:${lineNum}:${colNum}`;
+	const idx = line.lastIndexOf(suffix);
+	if (idx === -1) return null;
+	const before = line.substring(0, idx);
+	const path = before.replace(MATCH_AT_REGEX, '').trim();
+	
+	if (!path) return null;
+
+	try {
+		const pathname = new URL(path).pathname;
+		const filePath = pathname.replace(MATCH_PATH_REGEX, '') || pathname;
+		return `${filePath}:${lineNum}:${colNum}`;
+	} catch (e) {
+		const filePath = path.replace(MATCH_PATH_REGEX, '') || path;
+		return `${filePath}:${lineNum}:${colNum}`;
+	}
+}
+
+function getFilePathFromStack(stack, skipFrames = 0) {
+	if (!stack || typeof stack !== 'string') return null;
+	const lines = stack.split('\n').slice(1);
+
+	const frames = lines.map(line => parseStackFrameLine(line.replace(/\r$/, ''))).filter(Boolean);
+
+	return frames[skipFrames] ?? null;
+}
+
+console.error = function(...args) {
+	originalConsoleError.apply(console, args);
+
+	let errorString = '';
+	let filePath = null;
+
+	for (let i = 0; i < args.length; i++) {
+		const arg = args[i];
+		if (arg instanceof Error) {
+			filePath = getFilePathFromStack(arg.stack, 0);
+			errorString = `${arg.name}: ${arg.message}`;
+			if (filePath) {
+				errorString = `${errorString} at ${filePath}`;
+			}
+			break;
+		}
+	}
+
+	if (!errorString) {
+		errorString = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+		const stack = new Error().stack;
+		filePath = getFilePathFromStack(stack, 1);
+		if (filePath) {
+			errorString = `${errorString} at ${filePath}`;
+		}
+	}
+
+	window.parent.postMessage({
+		type: 'horizons-console-error',
+		error: errorString
+	}, '*');
+};
+</script>
+    <script type="module">
+const originalFetch = window.fetch;
+
+window.fetch = function(...args) {
+	const url = args[0] instanceof Request ? args[0].url : args[0];
+
+	// Skip WebSocket URLs
+	if (url.startsWith('ws:') || url.startsWith('wss:')) {
+		return originalFetch.apply(this, args);
+	}
+
+	return originalFetch.apply(this, args)
+		.then(async response => {
+			const contentType = response.headers.get('Content-Type') || '';
+
+			// Exclude HTML document responses
+			const isDocumentResponse =
+				contentType.includes('text/html') ||
+				contentType.includes('application/xhtml+xml');
+
+			if (!response.ok && !isDocumentResponse) {
+					const responseClone = response.clone();
+					const errorFromRes = await responseClone.text();
+					const requestUrl = response.url;
+					console.error(`Fetch error from ${requestUrl}: ${errorFromRes}`);
+			}
+
+			return response;
+		})
+		.catch(error => {
+			if (!url.match(/.html?$/i)) {
+				console.error(error);
+			}
+
+			throw error;
+		});
+};
+</script>
+    <script type="module">
+if (window.navigation && window.self !== window.top) {
+	window.navigation.addEventListener('navigate', (event) => {
+		const url = event.destination.url;
+
+		try {
+			const destinationUrl = new URL(url);
+			const destinationOrigin = destinationUrl.origin;
+			const currentOrigin = window.location.origin;
+
+			if (destinationOrigin === currentOrigin) {
+				return;
+			}
+		} catch (error) {
+			return;
+		}
+
+		window.parent.postMessage({
+			type: 'horizons-navigation-error',
+			url,
+		}, '*');
+	});
+}
+</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","name":"Frontend Engineer Quiz Questions","description":"Quiz questions for Frontend Engineer.","url":"https://career2day.com/quiz/frontend-engineer"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://career2day.com/"},{"@type":"ListItem","position":2,"name":"Quizzes","item":"https://career2day.com/quiz"},{"@type":"ListItem","position":3,"name":"Frontend Engineer","item":"https://career2day.com/quiz/frontend-engineer"}]}]}</script>
+  </head>
+  <body>
+    <div id="root"><main id="seo-static-content" style="max-width:960px;margin:0 auto;padding:48px 20px;font-family:Inter,Arial,sans-serif;line-height:1.7;color:#111827">
+  <h1>Frontend Engineer Quiz Questions</h1>
+  <p>Practise Frontend Engineer quiz questions with answer explanations connected to the Frontend Engineer roadmap, projects and interview preparation.</p>
+  <nav aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li><a href="/quiz">Quizzes</a></li>
+      <li>Frontend Engineer</li>
+    </ol>
+  </nav>
+  
+    <section>
+      <h2>Question 1: semantic HTML and accessibility</h2>
+      <p>What is the best first accessibility choice for a Frontend Engineer? Consider this during local development. Difficulty focus: beginner.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Use ARIA roles on every div.</li><li>Remove focus styles for a cleaner visual design.</li><li>Use only color to show validation errors.</li><li>Use native semantic elements before adding custom ARIA.</li></ul>
+      <p>Correct answer: Use native semantic elements before adding custom ARIA.</p>
+      <p>Explanation: Native elements bring keyboard behavior, semantics, and browser support by default. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 2: React component design</h2>
+      <p>What makes a React component easier to reuse? Consider this during code review. Difficulty focus: beginner.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Hardcoding copy and API URLs.</li><li>Putting all page logic into one component.</li><li>Clear props, limited responsibility, and predictable rendering states.</li><li>Reading every value from global state.</li></ul>
+      <p>Correct answer: Clear props, limited responsibility, and predictable rendering states.</p>
+      <p>Explanation: Reusable components have clean boundaries and do not know too much about their parent page. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 3: state and forms</h2>
+      <p>What should a robust form handle besides happy-path typing? Consider this after a failed deployment. Difficulty focus: beginner.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Only the final API response.</li><li>Validation, loading, errors, empty states, and draft persistence when useful.</li><li>Only the submit button style.</li><li>Only desktop screen sizes.</li></ul>
+      <p>Correct answer: Validation, loading, errors, empty states, and draft persistence when useful.</p>
+      <p>Explanation: Real users pause, make mistakes, lose network, and return later. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 4: API integration</h2>
+      <p>What is a production-ready data fetching state? Consider this while debugging production-like data. Difficulty focus: beginner.</p>
+      <h3>Answer choices</h3>
+      <ul><li>It handles loading, success, empty, error, retry, and stale data behavior.</li><li>It assumes the network always succeeds.</li><li>It blocks the entire app for one request.</li><li>It logs errors only to the console.</li></ul>
+      <p>Correct answer: It handles loading, success, empty, error, retry, and stale data behavior.</p>
+      <p>Explanation: Data fetching is part of the user experience, not only a technical detail. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 5: performance</h2>
+      <p>What should you do before performance optimization? Consider this when explaining the work to a hiring manager. Difficulty focus: beginner.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Rewrite the app in a new framework immediately.</li><li>Memoize every component.</li><li>Remove all animations from every page.</li><li>Measure the bottleneck with real tools and realistic user conditions.</li></ul>
+      <p>Correct answer: Measure the bottleneck with real tools and realistic user conditions.</p>
+      <p>Explanation: Measurement prevents time spent optimizing the wrong thing. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 6: responsive product design</h2>
+      <p>What is the best responsive layout habit? Consider this while reducing operational risk. Difficulty focus: beginner.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Hide important actions on mobile.</li><li>Use fixed pixel widths everywhere.</li><li>Design stable layout rules for common content lengths across mobile and desktop.</li><li>Scale all font sizes with viewport width.</li></ul>
+      <p>Correct answer: Design stable layout rules for common content lengths across mobile and desktop.</p>
+      <p>Explanation: Responsive UI needs planned constraints, not accidental shrinking. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 7: HTML</h2>
+      <p>A Frontend Engineer portfolio uses HTML. What would make it credible to an interviewer? Consider this when choosing between two tools. Difficulty focus: beginner.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: HTML becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 8: CSS</h2>
+      <p>A Frontend Engineer portfolio uses CSS. What would make it credible to an interviewer? Consider this during a security or privacy review. Difficulty focus: beginner.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: CSS becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 9: JavaScript</h2>
+      <p>A Frontend Engineer portfolio uses JavaScript. What would make it credible to an interviewer? Consider this while improving performance. Difficulty focus: beginner.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: JavaScript becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 10: React</h2>
+      <p>A Frontend Engineer portfolio uses React. What would make it credible to an interviewer? Consider this before publishing the portfolio project. Difficulty focus: beginner.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: React becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 11: API integration</h2>
+      <p>What is a production-ready data fetching state? Consider this after a failed deployment. Difficulty focus: intermediate.</p>
+      <h3>Answer choices</h3>
+      <ul><li>It blocks the entire app for one request.</li><li>It logs errors only to the console.</li><li>It handles loading, success, empty, error, retry, and stale data behavior.</li><li>It assumes the network always succeeds.</li></ul>
+      <p>Correct answer: It handles loading, success, empty, error, retry, and stale data behavior.</p>
+      <p>Explanation: Data fetching is part of the user experience, not only a technical detail. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 12: performance</h2>
+      <p>What should you do before performance optimization? Consider this while debugging production-like data. Difficulty focus: intermediate.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Remove all animations from every page.</li><li>Measure the bottleneck with real tools and realistic user conditions.</li><li>Rewrite the app in a new framework immediately.</li><li>Memoize every component.</li></ul>
+      <p>Correct answer: Measure the bottleneck with real tools and realistic user conditions.</p>
+      <p>Explanation: Measurement prevents time spent optimizing the wrong thing. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 13: responsive product design</h2>
+      <p>What is the best responsive layout habit? Consider this when explaining the work to a hiring manager. Difficulty focus: intermediate.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Design stable layout rules for common content lengths across mobile and desktop.</li><li>Scale all font sizes with viewport width.</li><li>Hide important actions on mobile.</li><li>Use fixed pixel widths everywhere.</li></ul>
+      <p>Correct answer: Design stable layout rules for common content lengths across mobile and desktop.</p>
+      <p>Explanation: Responsive UI needs planned constraints, not accidental shrinking. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 14: HTML</h2>
+      <p>A Frontend Engineer portfolio uses HTML. What would make it credible to an interviewer? Consider this while reducing operational risk. Difficulty focus: intermediate.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: HTML becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 15: CSS</h2>
+      <p>A Frontend Engineer portfolio uses CSS. What would make it credible to an interviewer? Consider this when choosing between two tools. Difficulty focus: intermediate.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: CSS becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 16: JavaScript</h2>
+      <p>A Frontend Engineer portfolio uses JavaScript. What would make it credible to an interviewer? Consider this during a security or privacy review. Difficulty focus: intermediate.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: JavaScript becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 17: React</h2>
+      <p>A Frontend Engineer portfolio uses React. What would make it credible to an interviewer? Consider this while improving performance. Difficulty focus: intermediate.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: React becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 18: accessibility</h2>
+      <p>A Frontend Engineer portfolio uses accessibility. What would make it credible to an interviewer? Consider this before publishing the portfolio project. Difficulty focus: intermediate.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: accessibility becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 19: responsive design</h2>
+      <p>A Frontend Engineer portfolio uses responsive design. What would make it credible to an interviewer? Consider this during local development. Difficulty focus: intermediate.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: responsive design becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 20: semantic HTML and accessibility</h2>
+      <p>What is the best first accessibility choice for a Frontend Engineer? Consider this during code review. Difficulty focus: intermediate.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Use only color to show validation errors.</li><li>Use native semantic elements before adding custom ARIA.</li><li>Use ARIA roles on every div.</li><li>Remove focus styles for a cleaner visual design.</li></ul>
+      <p>Correct answer: Use native semantic elements before adding custom ARIA.</p>
+      <p>Explanation: Native elements bring keyboard behavior, semantics, and browser support by default. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 21: HTML</h2>
+      <p>A Frontend Engineer portfolio uses HTML. What would make it credible to an interviewer? Consider this when explaining the work to a hiring manager. Difficulty focus: advanced.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: HTML becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 22: CSS</h2>
+      <p>A Frontend Engineer portfolio uses CSS. What would make it credible to an interviewer? Consider this while reducing operational risk. Difficulty focus: advanced.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: CSS becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 23: JavaScript</h2>
+      <p>A Frontend Engineer portfolio uses JavaScript. What would make it credible to an interviewer? Consider this when choosing between two tools. Difficulty focus: advanced.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: JavaScript becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 24: React</h2>
+      <p>A Frontend Engineer portfolio uses React. What would make it credible to an interviewer? Consider this during a security or privacy review. Difficulty focus: advanced.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: React becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 25: accessibility</h2>
+      <p>A Frontend Engineer portfolio uses accessibility. What would make it credible to an interviewer? Consider this while improving performance. Difficulty focus: advanced.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A definition memorized without showing operational consequences.</li><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: accessibility becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 26: responsive design</h2>
+      <p>A Frontend Engineer portfolio uses responsive design. What would make it credible to an interviewer? Consider this before publishing the portfolio project. Difficulty focus: advanced.</p>
+      <h3>Answer choices</h3>
+      <ul><li>A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</li><li>A copied tutorial with renamed variables and no setup notes.</li><li>A tool list with no finished workflow or evidence.</li><li>A definition memorized without showing operational consequences.</li></ul>
+      <p>Correct answer: A working artifact with realistic inputs, documented tradeoffs, unit tests, UI automation, accessibility checks, real-device testing, and performance profiling, and clear impact on Core Web Vitals, crash-free sessions, task completion, accessibility issues, bundle size, and conversion.</p>
+      <p>Explanation: responsive design becomes job-ready when it is connected to implementation, verification, deployment, and role-specific impact. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 27: semantic HTML and accessibility</h2>
+      <p>What is the best first accessibility choice for a Frontend Engineer? Consider this during local development. Difficulty focus: advanced.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Use ARIA roles on every div.</li><li>Remove focus styles for a cleaner visual design.</li><li>Use only color to show validation errors.</li><li>Use native semantic elements before adding custom ARIA.</li></ul>
+      <p>Correct answer: Use native semantic elements before adding custom ARIA.</p>
+      <p>Explanation: Native elements bring keyboard behavior, semantics, and browser support by default. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 28: React component design</h2>
+      <p>What makes a React component easier to reuse? Consider this during code review. Difficulty focus: advanced.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Hardcoding copy and API URLs.</li><li>Putting all page logic into one component.</li><li>Clear props, limited responsibility, and predictable rendering states.</li><li>Reading every value from global state.</li></ul>
+      <p>Correct answer: Clear props, limited responsibility, and predictable rendering states.</p>
+      <p>Explanation: Reusable components have clean boundaries and do not know too much about their parent page. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 29: state and forms</h2>
+      <p>What should a robust form handle besides happy-path typing? Consider this after a failed deployment. Difficulty focus: advanced.</p>
+      <h3>Answer choices</h3>
+      <ul><li>Only the final API response.</li><li>Validation, loading, errors, empty states, and draft persistence when useful.</li><li>Only the submit button style.</li><li>Only desktop screen sizes.</li></ul>
+      <p>Correct answer: Validation, loading, errors, empty states, and draft persistence when useful.</p>
+      <p>Explanation: Real users pause, make mistakes, lose network, and return later. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+    <section>
+      <h2>Question 30: API integration</h2>
+      <p>What is a production-ready data fetching state? Consider this while debugging production-like data. Difficulty focus: advanced.</p>
+      <h3>Answer choices</h3>
+      <ul><li>It handles loading, success, empty, error, retry, and stale data behavior.</li><li>It assumes the network always succeeds.</li><li>It blocks the entire app for one request.</li><li>It logs errors only to the console.</li></ul>
+      <p>Correct answer: It handles loading, success, empty, error, retry, and stale data behavior.</p>
+      <p>Explanation: Data fetching is part of the user experience, not only a technical detail. This is why the scenario matters for Frontend Engineer work.</p>
+    </section>
+  
+  <h2>Continue learning</h2>
+  <ul><li><a href="/careers/frontend-engineer">Frontend Engineer roadmap</a></li><li><a href="/interview-questions/frontend-engineer">Frontend Engineer interview questions</a></li><li><a href="/careers">All career roadmaps</a></li></ul>
+</main></div>
+  </body>
+</html>

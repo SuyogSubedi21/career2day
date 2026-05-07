@@ -28,7 +28,7 @@ export const CurrencyProvider = ({ children }) => {
     setCurrency,
     convertSalary,
     getCurrencySymbol,
-    availableCurrencies: ['USD', 'INR', 'AUD', 'GBP', 'CAD', 'NPR']
+    availableCurrencies: ['USD', 'NPR', 'INR', 'AUD', 'GBP', 'CNY']
   };
 
   return (

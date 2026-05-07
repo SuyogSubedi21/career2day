@@ -82,7 +82,7 @@ export default function CVBuilderForm({ cvData, setCvData, templateId }) {
       <TabsContent value="personal" className="space-y-4">
         <div className="space-y-1.5">
           <Label className="text-muted-foreground text-xs uppercase font-bold">Full Name</Label>
-          <Input name="fullName" value={personalInfo.fullName || ''} onChange={handlePersonalInfoChange} placeholder="John Doe" className="bg-background text-foreground placeholder:text-muted-foreground/50" />
+          <Input name="fullName" value={personalInfo.fullName || ''} onChange={handlePersonalInfoChange} placeholder="Your name" className="bg-background text-foreground placeholder:text-muted-foreground/50" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-muted-foreground text-xs uppercase font-bold">Job Title</Label>

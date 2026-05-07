@@ -48,7 +48,7 @@ const fontOptions = {
 };
 
 const defaultProfile = (career) => ({
-  name: 'John Doe',
+  name: 'Your Name',
   title: career.name,
   email: 'john.doe@email.com',
   phone: '+1 555 0134',
@@ -264,7 +264,7 @@ function StylePanel({ style, updateStyle, choosePalette }) {
 }
 
 function RealMiniPreview({ template, career }) {
-  const sample = { name: 'John Doe', title: career.name, skills: 'SQL React Python', school: 'State University' };
+  const sample = { name: 'Your Name', title: career.name, skills: 'SQL React Python', school: 'State University' };
   if (template.family === 'sidebar') {
     return <div className="h-44 overflow-hidden rounded-md border bg-white text-[9px] text-slate-900"><div className="grid h-full grid-cols-[36%_1fr]"><div className="bg-slate-900 p-2 text-white">{template.supportsPhoto && <div className="mb-2 h-8 w-8 rounded-sm bg-slate-200" />}<b>{sample.name}</b><p>{sample.title}</p><hr className="my-2 border-slate-600" /><p>Skills</p><p>{sample.skills}</p></div><div className="p-2"><b>Summary</b><p>Builds practical projects and clear business outcomes.</p><b>Experience</b><p>Portfolio Contributor</p><b>Education</b><p>{sample.school}</p></div></div></div>;
   }

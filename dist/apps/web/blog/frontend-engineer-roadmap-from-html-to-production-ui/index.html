@@ -1,0 +1,272 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="A professional frontend path covers accessibility, state, APIs, performance, and product polish." />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <link rel="canonical" href="https://career2day.com/blog/frontend-engineer-roadmap-from-html-to-production-ui" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://career2day.com/blog/frontend-engineer-roadmap-from-html-to-production-ui" />
+    <meta property="og:title" content="Frontend Engineer Roadmap: From HTML to Production UI | Career2Day" />
+    <meta property="og:description" content="A professional frontend path covers accessibility, state, APIs, performance, and product polish." />
+    <meta property="og:image" content="https://career2day.com/og-image.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://career2day.com/blog/frontend-engineer-roadmap-from-html-to-production-ui" />
+    <meta property="twitter:title" content="Frontend Engineer Roadmap: From HTML to Production UI | Career2Day" />
+    <meta property="twitter:description" content="A professional frontend path covers accessibility, state, APIs, performance, and product polish." />
+    <meta property="twitter:image" content="https://career2day.com/og-image.jpg" />
+    <title>Frontend Engineer Roadmap: From HTML to Production UI | Career2Day</title>
+    <script id="structured-data" type="application/ld+json"></script>
+    <script type="module" crossorigin src="/assets/index-56B3XRch.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/chunk-BNv3lrIs.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-GtE1ZPM7.css">
+    <script type="module">
+window.onerror = (message, source, lineno, colno, errorObj) => {
+	const errorDetails = errorObj ? JSON.stringify({
+		name: errorObj.name,
+		message: errorObj.message,
+		stack: errorObj.stack,
+		source,
+		lineno,
+		colno,
+	}) : null;
+
+	window.parent.postMessage({
+		type: 'horizons-runtime-error',
+		message,
+		error: errorDetails
+	}, '*');
+};
+</script>
+    <script type="module">
+const observer = new MutationObserver((mutations) => {
+	for (const mutation of mutations) {
+		for (const addedNode of mutation.addedNodes) {
+			if (
+				addedNode.nodeType === Node.ELEMENT_NODE &&
+				(
+					addedNode.tagName?.toLowerCase() === 'vite-error-overlay' ||
+					addedNode.classList?.contains('backdrop')
+				)
+			) {
+				handleViteOverlay(addedNode);
+			}
+		}
+	}
+});
+
+observer.observe(document.documentElement, {
+	childList: true,
+	subtree: true
+});
+
+function handleViteOverlay(node) {
+	if (!node.shadowRoot) {
+		return;
+	}
+
+	const backdrop = node.shadowRoot.querySelector('.backdrop');
+
+	if (backdrop) {
+		const overlayHtml = backdrop.outerHTML;
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(overlayHtml, 'text/html');
+		const messageBodyElement = doc.querySelector('.message-body');
+		const fileElement = doc.querySelector('.file');
+		const messageText = messageBodyElement ? messageBodyElement.textContent.trim() : '';
+		const fileText = fileElement ? fileElement.textContent.trim() : '';
+		const error = messageText + (fileText ? ' File:' + fileText : '');
+
+		window.parent.postMessage({
+			type: 'horizons-vite-error',
+			error,
+		}, '*');
+	}
+}
+</script>
+    <script type="module">
+const originalConsoleError = console.error;
+const MATCH_LINE_COL_REGEX = /:(\d+):(\d+)\)?\s*$/; // regex to match the :lineNum:colNum
+const MATCH_AT_REGEX = /^\s*at\s+(?:async\s+)?(?:.*?\s+)?\(?/; // regex to remove the 'at' keyword and any 'async' or function name
+const MATCH_PATH_REGEX = /^\//; // regex to remove the leading slash
+
+function parseStackFrameLine(line) {
+	const lineColMatch = line.match(MATCH_LINE_COL_REGEX);
+	if (!lineColMatch) return null;
+	const [, lineNum, colNum] = lineColMatch;
+	const suffix = `:${lineNum}:${colNum}`;
+	const idx = line.lastIndexOf(suffix);
+	if (idx === -1) return null;
+	const before = line.substring(0, idx);
+	const path = before.replace(MATCH_AT_REGEX, '').trim();
+	
+	if (!path) return null;
+
+	try {
+		const pathname = new URL(path).pathname;
+		const filePath = pathname.replace(MATCH_PATH_REGEX, '') || pathname;
+		return `${filePath}:${lineNum}:${colNum}`;
+	} catch (e) {
+		const filePath = path.replace(MATCH_PATH_REGEX, '') || path;
+		return `${filePath}:${lineNum}:${colNum}`;
+	}
+}
+
+function getFilePathFromStack(stack, skipFrames = 0) {
+	if (!stack || typeof stack !== 'string') return null;
+	const lines = stack.split('\n').slice(1);
+
+	const frames = lines.map(line => parseStackFrameLine(line.replace(/\r$/, ''))).filter(Boolean);
+
+	return frames[skipFrames] ?? null;
+}
+
+console.error = function(...args) {
+	originalConsoleError.apply(console, args);
+
+	let errorString = '';
+	let filePath = null;
+
+	for (let i = 0; i < args.length; i++) {
+		const arg = args[i];
+		if (arg instanceof Error) {
+			filePath = getFilePathFromStack(arg.stack, 0);
+			errorString = `${arg.name}: ${arg.message}`;
+			if (filePath) {
+				errorString = `${errorString} at ${filePath}`;
+			}
+			break;
+		}
+	}
+
+	if (!errorString) {
+		errorString = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+		const stack = new Error().stack;
+		filePath = getFilePathFromStack(stack, 1);
+		if (filePath) {
+			errorString = `${errorString} at ${filePath}`;
+		}
+	}
+
+	window.parent.postMessage({
+		type: 'horizons-console-error',
+		error: errorString
+	}, '*');
+};
+</script>
+    <script type="module">
+const originalFetch = window.fetch;
+
+window.fetch = function(...args) {
+	const url = args[0] instanceof Request ? args[0].url : args[0];
+
+	// Skip WebSocket URLs
+	if (url.startsWith('ws:') || url.startsWith('wss:')) {
+		return originalFetch.apply(this, args);
+	}
+
+	return originalFetch.apply(this, args)
+		.then(async response => {
+			const contentType = response.headers.get('Content-Type') || '';
+
+			// Exclude HTML document responses
+			const isDocumentResponse =
+				contentType.includes('text/html') ||
+				contentType.includes('application/xhtml+xml');
+
+			if (!response.ok && !isDocumentResponse) {
+					const responseClone = response.clone();
+					const errorFromRes = await responseClone.text();
+					const requestUrl = response.url;
+					console.error(`Fetch error from ${requestUrl}: ${errorFromRes}`);
+			}
+
+			return response;
+		})
+		.catch(error => {
+			if (!url.match(/.html?$/i)) {
+				console.error(error);
+			}
+
+			throw error;
+		});
+};
+</script>
+    <script type="module">
+if (window.navigation && window.self !== window.top) {
+	window.navigation.addEventListener('navigate', (event) => {
+		const url = event.destination.url;
+
+		try {
+			const destinationUrl = new URL(url);
+			const destinationOrigin = destinationUrl.origin;
+			const currentOrigin = window.location.origin;
+
+			if (destinationOrigin === currentOrigin) {
+				return;
+			}
+		} catch (error) {
+			return;
+		}
+
+		window.parent.postMessage({
+			type: 'horizons-navigation-error',
+			url,
+		}, '*');
+	});
+}
+</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Frontend Engineer Roadmap: From HTML to Production UI","description":"A professional frontend path covers accessibility, state, APIs, performance, and product polish.","datePublished":"2026-05-05","author":{"@type":"Organization","name":"Career2Day Editorial"},"url":"https://career2day.com/blog/frontend-engineer-roadmap-from-html-to-production-ui","mainEntityOfPage":"https://career2day.com/blog/frontend-engineer-roadmap-from-html-to-production-ui","publisher":{"@type":"Organization","name":"Career2Day","logo":{"@type":"ImageObject","url":"https://career2day.com/favicon.svg"}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://career2day.com/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://career2day.com/blog"},{"@type":"ListItem","position":3,"name":"Frontend Engineer Roadmap: From HTML to Production UI","item":"https://career2day.com/blog/frontend-engineer-roadmap-from-html-to-production-ui"}]}]}</script>
+  </head>
+  <body>
+    <div id="root"><main id="seo-static-content" style="max-width:960px;margin:0 auto;padding:48px 20px;font-family:Inter,Arial,sans-serif;line-height:1.7;color:#111827">
+  <article>
+    <h1>Frontend Engineer Roadmap: From HTML to Production UI</h1>
+    <p>A professional frontend path covers accessibility, state, APIs, performance, and product polish.</p>
+    <p><strong>Category:</strong> Career | <strong>Reading time:</strong> 13 minutes</p>
+    
+<p>Frontend Engineering is not only about making screens look good. Professional frontend work turns product requirements into accessible, responsive, reliable interfaces that users can operate repeatedly.</p>
+
+<h2>Start with browser fundamentals</h2>
+<p>HTML, CSS, and JavaScript remain the foundation. React does not replace semantic HTML, layout knowledge, or browser behavior. If you skip fundamentals, you will struggle to debug real interfaces.</p><p>Focus on semantic structure, flexbox, grid, responsive constraints, forms, events, and basic accessibility. These skills make every framework easier.</p>
+
+
+<h2>Build real workflows</h2>
+<p>A portfolio should include workflows, not just static pages. Build a job tracker, dashboard, CV builder, booking form, or admin table. Include loading states, empty states, error states, form validation, filters, and saved data.</p><p>These details show that you understand product work. A beautiful page is good. A usable workflow is better.</p>
+
+
+<h2>Care about accessibility</h2>
+<p>Accessibility is a professional signal. Use labels, semantic buttons, keyboard navigation, visible focus states, and sufficient color contrast. Do not rely only on color to communicate errors or status.</p><p>You do not need to be an accessibility expert at the start, but you should show that you respect users with different devices and needs.</p>
+
+
+<h2>Show polish without overdesigning</h2>
+<p>Polish comes from spacing, hierarchy, alignment, responsive behavior, and clear states. Avoid random gradients, oversized cards, and decorative clutter. Make the product easy to scan.</p><p>In your README, explain the tradeoffs: why you chose a layout, how you handled state, what you would improve, and how you tested the experience.</p>
+
+
+<h2>Frontend portfolio checklist</h2>
+<ul>
+  <li>Pick one small next step before opening another tutorial.</li>
+  <li>Turn the lesson into something visible: a note, a project update, a CV bullet, or an interview story.</li>
+  <li>Check progress at the end of the week and make the next week smaller if you feel stuck.</li>
+</ul>
+    
+    <h2>Frontend readiness ladder</h2>
+    <p>Frontend readiness grows as fundamentals become usable workflows with quality and polish.</p>
+    <table>
+      <thead><tr><th>Signal</th><th>Score</th></tr></thead>
+      <tbody>
+        <tr><td>HTML/CSS</td><td>30%</td></tr><tr><td>JS</td><td>45%</td></tr><tr><td>React</td><td>62%</td></tr><tr><td>APIs</td><td>74%</td></tr><tr><td>Quality</td><td>86%</td></tr>
+      </tbody>
+    </table>
+  
+    <h2>Related career roadmaps</h2>
+    <ul><li><a href="/careers/ai-engineer">AI Engineer</a></li><li><a href="/careers/machine-learning-engineer">Machine Learning Engineer</a></li><li><a href="/careers/generative-ai-engineer">Generative AI Engineer</a></li><li><a href="/careers/ai-research-scientist">AI Research Scientist</a></li><li><a href="/careers/data-scientist">Data Scientist</a></li><li><a href="/careers/frontend-engineer">Frontend Engineer</a></li></ul>
+  </article>
+</main></div>
+  </body>
+</html>

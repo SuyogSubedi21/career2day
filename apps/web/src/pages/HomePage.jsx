@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, BarChart3, BookOpenCheck, Brain, CheckCircle2, FileText, GraduationCap, Layers3, MessageSquareText, ShieldCheck, Target, Trophy } from 'lucide-react';
+import { ArrowRight, BarChart3, BookOpenCheck, Brain, CheckCircle2, FileText, GraduationCap, MessageSquareText, ShieldCheck, Target, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SEOHead from '@/components/SEOHead.jsx';
-import { allCareerSummaries, getFeaturedPlatformCareers } from '@/data/careerPlatformData.js';
+import { getFeaturedPlatformCareers } from '@/data/careerPlatformData.js';
 import AdSlot from '@/components/AdSlot.jsx';
 
-const featuredCareers = getFeaturedPlatformCareers();
+const featuredCareers = getFeaturedPlatformCareers().slice(0, 4);
 
 const steps = [
   { title: 'Learn', text: 'Choose a role and complete a four-phase roadmap with projects and trackable checklists.', icon: GraduationCap },
@@ -55,7 +55,7 @@ export default function HomePage() {
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-12 rounded-md px-6 text-base font-semibold shadow-sm">
-                <Link to="/careers/ai-engineer">Start Career Path <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                <Link to="/careers">Start Career Path <ArrowRight className="ml-2 h-5 w-5" /></Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 rounded-md border-slate-200 bg-white px-6 text-base font-semibold shadow-sm hover:bg-slate-50 dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/15">
                 <Link to="/cv-builder?role=ai-engineer">Build CV <FileText className="ml-2 h-5 w-5" /></Link>
@@ -133,11 +133,10 @@ export default function HomePage() {
         </div>
       </Section>
 
-      <Section eyebrow="Featured careers" title="Start with two complete tracks, then scale the catalog">
+      <Section eyebrow="Featured careers" title="Start with focused career paths">
         <div className="grid gap-5 md:grid-cols-2">
           {featuredCareers.map((career) => (
             <Link key={career.slug} to={`/careers/${career.slug}`} className="group rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-white/10 dark:bg-white/10">
-              <div className={`mb-6 h-2 w-24 rounded-full bg-gradient-to-r ${career.accent}`} />
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-bold uppercase tracking-wide text-slate-400">{career.category}</p>
@@ -154,14 +153,10 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
-        <div className="mt-8 rounded-lg border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/10">
-          <div className="mb-3 flex items-center gap-2 font-extrabold"><Layers3 className="h-5 w-5 text-sky-500" /> Expansion-ready catalog</div>
-          <div className="flex flex-wrap gap-2">
-            {allCareerSummaries.slice(0, 18).map((career) => (
-              <span key={career.slug} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">{career.name}</span>
-            ))}
-            <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-bold text-white dark:bg-white dark:text-slate-950">+32 more</span>
-          </div>
+        <div className="mt-8 flex justify-center">
+          <Button asChild size="lg" variant="outline" className="rounded-full px-8">
+            <Link to="/careers">Explore more careers <ArrowRight className="ml-2 h-5 w-5" /></Link>
+          </Button>
         </div>
       </Section>
 
@@ -199,7 +194,7 @@ export default function HomePage() {
               <p className="mt-5 text-lg leading-8 text-slate-300">Career2Day keeps every step connected from the first topic you learn to the CV bullet you send.</p>
             </div>
             <Button asChild size="lg" className="h-12 rounded-md bg-white px-7 font-bold text-slate-950 hover:bg-slate-100">
-              <Link to="/careers/frontend-engineer">Start Career Path</Link>
+              <Link to="/careers">Start Career Path</Link>
             </Button>
           </div>
         </div>

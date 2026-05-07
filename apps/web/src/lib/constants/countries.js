@@ -1,10 +1,8 @@
-
 export const COUNTRIES = [
   { code: 'US', name: 'United States', currency: 'USD', symbol: '$' },
-  { code: 'GB', name: 'United Kingdom', currency: 'GBP', symbol: '£' },
-  { code: 'CA', name: 'Canada', currency: 'CAD', symbol: 'CA$' },
+  { code: 'NP', name: 'Nepal', currency: 'NPR', symbol: 'NPR ' },
+  { code: 'IN', name: 'India', currency: 'INR', symbol: 'INR ' },
   { code: 'AU', name: 'Australia', currency: 'AUD', symbol: 'A$' },
-  { code: 'DE', name: 'Germany', currency: 'EUR', symbol: '€' },
-  { code: 'IN', name: 'India', currency: 'INR', symbol: '₹' },
-  { code: 'SG', name: 'Singapore', currency: 'SGD', symbol: 'S$' }
+  { code: 'GB', name: 'United Kingdom', currency: 'GBP', symbol: 'GBP ' },
+  { code: 'CN', name: 'China', currency: 'CNY', symbol: 'CNY ' }
 ];

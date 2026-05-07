@@ -1,20 +1,19 @@
-
 export const EXCHANGE_RATES = {
   USD: 1,
+  NPR: 133,
   INR: 83.5,
   AUD: 1.52,
   GBP: 0.79,
-  CAD: 1.36,
-  NPR: 132.50
+  CNY: 7.2
 };
 
 export const CURRENCY_SYMBOLS = {
   USD: '$',
-  INR: '₹',
+  NPR: 'NPR ',
+  INR: 'INR ',
   AUD: 'A$',
-  GBP: '£',
-  CAD: 'C$',
-  NPR: '₨'
+  GBP: 'GBP ',
+  CNY: 'CNY '
 };
 
 export function getCurrencySymbol(currency = 'USD') {
@@ -25,9 +24,6 @@ export default function convertSalary(amount, fromCurrency = 'USD', toCurrency =
   if (!amount || isNaN(amount)) return 0;
   if (fromCurrency === toCurrency) return amount;
 
-  // Convert to USD first (base currency)
   const amountInUSD = amount / (EXCHANGE_RATES[fromCurrency] || 1);
-  
-  // Convert from USD to target currency
   return amountInUSD * (EXCHANGE_RATES[toCurrency] || 1);
 }

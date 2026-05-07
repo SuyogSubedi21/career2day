@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import SEOHead from '@/components/SEOHead.jsx';
 import { allCareerSummaries, calculateReadinessScore, getCareerPlatformBySlug } from '@/data/careerPlatformData.js';
 import { useRetention } from '@/hooks/useRetention.js';
+import { getLocalizedSalaryMarkets } from '@/lib/utils/localSalaryMarkets.js';
 
 const progressKey = (slug) => `career2day-progress-${slug}`;
 const quizKey = (slug) => `career2day-quiz-${slug}`;
@@ -60,6 +61,11 @@ export default function CareerDetailPage() {
   const totalWeeks = career.roadmap.reduce((sum, phase) => sum + phase.timelineWeeks, 0);
 
   const salaryData = career.analytics.salary.map(([level, salary]) => ({ level, salary }));
+  const localizedSalaryMarkets = getLocalizedSalaryMarkets({
+    entryUsd: (salaryData[0]?.salary || salaryData[1]?.salary || 0) * 1000,
+    midUsd: (salaryData[1]?.salary || salaryData[0]?.salary || 0) * 1000,
+    seniorUsd: (salaryData[2]?.salary || salaryData[1]?.salary || 0) * 1000
+  });
   const quizQuestions = career.quizzes.filter((item) => item.difficulty === activeQuizLevel);
   const currentQuiz = quizQuestions[quizIndex] || quizQuestions[0];
   const activeAnswered = quizQuestions.filter((item) => answers[item.id]);
@@ -201,8 +207,19 @@ export default function CareerDetailPage() {
                 </div>
                 <div className="grid gap-3">
                   {salaryData.slice(0, 3).map((item, index) => <InfoCard key={item.level} label={`${item.level} level`} value={formatSalaryRange(item.salary, index)} />)}
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+                    <h4 className="text-sm font-extrabold">Salary by country</h4>
+                    <div className="mt-3 grid gap-2">
+                      {localizedSalaryMarkets.map((market) => (
+                        <div key={market.country} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-xs dark:bg-white/10">
+                          <span className="font-bold text-slate-600 dark:text-slate-300">{market.country}</span>
+                          <span className="text-right font-extrabold text-slate-900 dark:text-white">{market.rangeLabel}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                   <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
-                    {career.salaryNote || 'Salaries vary by country, company, experience and market conditions. These are estimated global USD ranges.'}
+                    {career.salaryNote || 'Salaries vary by country, company, experience and market conditions. Country rows are local market estimates shown in local currency.'}
                   </div>
                 </div>
               </div>

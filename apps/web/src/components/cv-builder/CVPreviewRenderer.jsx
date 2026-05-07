@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const demoData = {
   personalInfo: {
-    fullName: 'John Doe',
+    fullName: 'Your Name',
     jobTitle: 'Senior Software Engineer',
     email: 'john@example.com',
     phone: '+1-234-567-8900',

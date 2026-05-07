@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 import { toast } from 'sonner';
 import { careerPlatformData } from '@/data/careerPlatformData.js';
+import { getLocalizedSalaryMarkets } from '@/lib/utils/localSalaryMarkets.js';
 
 const catalogCareers = careerPlatformData.map((career) => ({
   id: career.slug,
@@ -19,6 +20,11 @@ const catalogCareers = careerPlatformData.map((career) => ({
   category: career.category,
   description: career.description,
   averageSalary: (career.analytics?.salary?.[1]?.[1] || career.analytics?.salary?.[0]?.[1] || 0) * 1000,
+  salaryMarkets: getLocalizedSalaryMarkets({
+    entryUsd: (career.analytics?.salary?.[0]?.[1] || career.analytics?.salary?.[1]?.[1] || 0) * 1000,
+    midUsd: (career.analytics?.salary?.[1]?.[1] || career.analytics?.salary?.[0]?.[1] || 0) * 1000,
+    seniorUsd: (career.analytics?.salary?.[2]?.[1] || career.analytics?.salary?.[1]?.[1] || 0) * 1000
+  }),
   demandLevel: career.demandLevel,
   tools: career.tools || []
 }));
@@ -80,7 +86,11 @@ export default function CareersPage() {
     return (
       c.name.toLowerCase().includes(query) ||
       c.category.toLowerCase().includes(query) ||
-      c.tools.some((tool) => tool.toLowerCase().includes(query))
+      c.tools.some((tool) => tool.toLowerCase().includes(query)) ||
+      c.salaryMarkets.some((market) =>
+        market.country.toLowerCase().includes(query) ||
+        market.currency.toLowerCase().includes(query)
+      )
     );
   });
 
@@ -126,8 +136,15 @@ export default function CareersPage() {
               <CardContent className="flex-1">
                 <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{career.description || 'No description available.'}</p>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary" className="bg-secondary text-secondary-foreground">Avg: ${career.averageSalary?.toLocaleString() || 'N/A'}</Badge>
                   <Badge variant="outline">{career.category}</Badge>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {career.salaryMarkets.map((market) => (
+                    <div key={market.country} className="rounded-md bg-muted/50 px-3 py-2">
+                      <div className="text-[11px] font-bold uppercase text-muted-foreground">{market.country}</div>
+                      <div className="mt-1 text-xs font-extrabold text-foreground">{market.midLabel}</div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
               <CardFooter>

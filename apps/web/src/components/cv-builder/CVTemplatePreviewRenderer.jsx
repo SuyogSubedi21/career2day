@@ -6,7 +6,7 @@ import { Crown } from 'lucide-react';
 
 const sampleCVData = {
   personalInfo: {
-    fullName: 'John Doe',
+    fullName: 'Your Name',
     jobTitle: 'Senior Software Engineer',
     email: 'john@example.com',
     phone: '+1-234-567-8900',
