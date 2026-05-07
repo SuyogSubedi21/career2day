@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Palette, Printer, Save } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Palette, Printer, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -234,7 +234,20 @@ function EditorFields({ active, profile, updateProfile, uploadPhoto, career }) {
       {active === 'experience' && <><h2 className="mb-4 text-lg font-extrabold">Experience</h2><Area label="Work experience" value={profile.experience} onChange={(value) => updateProfile('experience', value)} /></>}
       {active === 'education' && <><h2 className="mb-4 text-lg font-extrabold">Education</h2><Area label="Education" value={profile.education} onChange={(value) => updateProfile('education', value)} /></>}
       {active === 'certifications' && <><h2 className="mb-4 text-lg font-extrabold">Certifications</h2><Area label="Certifications" value={profile.certifications} onChange={(value) => updateProfile('certifications', value)} /></>}
-      {active === 'photo' && <><h2 className="mb-4 text-lg font-extrabold">Profile photo</h2><Input type="file" accept="image/*" onChange={uploadPhoto} />{profile.photo && <img src={profile.photo} alt="" className="mt-4 h-24 w-24 rounded-md object-cover" />}</>}
+      {active === 'photo' && (
+        <>
+          <h2 className="mb-4 text-lg font-extrabold">Profile photo</h2>
+          <Input type="file" accept="image/*" onChange={uploadPhoto} />
+          {profile.photo && (
+            <div className="mt-4 flex items-center gap-4 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/10">
+              <img src={profile.photo} alt="" className="h-24 w-24 rounded-md object-cover" />
+              <Button type="button" variant="destructive" className="rounded-md" onClick={() => updateProfile('photo', '')}>
+                <Trash2 className="mr-2 h-4 w-4" /> Remove photo
+              </Button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
