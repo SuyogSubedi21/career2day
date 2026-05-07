@@ -65,6 +65,7 @@ export default function CVBuilderForm({ cvData, setCvData, templateId }) {
   }, [setCvData]);
 
   const personalInfo = cvData?.personalInfo || {};
+  const nextProjectLevel = Math.min((cvData?.projects?.length || 0) + 1, 3);
 
   return (
     <Tabs defaultValue="personal" className="w-full">
@@ -253,14 +254,20 @@ export default function CVBuilderForm({ cvData, setCvData, templateId }) {
               <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removeArrayItem('projects', idx)}><Trash2 className="w-4 h-4" /></Button>
             </div>
 
+            <div className="pr-8">
+              <div className="inline-flex rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
+                Level {Math.min(idx + 1, 3)} Project
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4 pr-8">
               <div className="space-y-1.5">
                 <Label className="text-muted-foreground text-xs">Project Name</Label>
                 <Input value={proj.name || ''} onChange={(e) => handleArrayChange('projects', idx, 'name', e.target.value)} className="h-9 bg-background placeholder:text-muted-foreground/50" placeholder="E-commerce Platform" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-xs">Duration</Label>
-                <Input value={proj.duration || ''} onChange={(e) => handleArrayChange('projects', idx, 'duration', e.target.value)} className="h-9 bg-background placeholder:text-muted-foreground/50" placeholder="Jan 2022 - Mar 2022" />
+                <Label className="text-muted-foreground text-xs">Project Level</Label>
+                <Input value={proj.duration || `Level ${Math.min(idx + 1, 3)} Project`} onChange={(e) => handleArrayChange('projects', idx, 'duration', e.target.value)} className="h-9 bg-background placeholder:text-muted-foreground/50" placeholder={`Level ${Math.min(idx + 1, 3)} Project`} />
               </div>
             </div>
             <div className="space-y-1.5 pr-8">
@@ -276,7 +283,7 @@ export default function CVBuilderForm({ cvData, setCvData, templateId }) {
         ))}
         <Button 
           variant="outline" 
-          onClick={() => addArrayItem('projects', { name: '', duration: '', description: '' })}
+          onClick={() => addArrayItem('projects', { name: '', duration: `Level ${nextProjectLevel} Project`, description: '' })}
           className="w-full border-dashed border-2 bg-background hover:bg-muted"
         >
           <Plus className="w-4 h-4 mr-2" /> Add Project

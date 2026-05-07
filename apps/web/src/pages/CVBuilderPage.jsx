@@ -39,9 +39,9 @@ const createRoleAwareCV = (roleKit, templateId = 'ModernClean') => {
       name: skill,
       level: index < 3 ? 'Strong' : 'Working'
     })),
-    projects: roleKit.projects.slice(0, 3).map((project) => ({
+    projects: roleKit.projects.slice(0, 3).map((project, index) => ({
       name: project,
-      duration: 'Portfolio project',
+      duration: `Level ${index + 1} Project`,
       description: `Built a ${project.toLowerCase()} to demonstrate ${roleKit.skills.slice(0, 3).join(', ')} and role-ready problem solving.`
     }))
   };

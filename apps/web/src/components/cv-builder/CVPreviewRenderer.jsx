@@ -32,7 +32,7 @@ const demoData = {
     { name: 'JavaScript', level: 'Expert' }, { name: 'React', level: 'Advanced' }, { name: 'Node.js', level: 'Advanced' }
   ],
   projects: [
-    { name: 'E-commerce Platform', duration: '2022', description: 'Built a scalable e-commerce platform using React and Node.js.' }
+    { name: 'E-commerce Platform', duration: 'Level 1 Project', description: 'Built a scalable e-commerce platform using React and Node.js.' }
   ],
   certifications: [
     { name: 'AWS Certified Solutions Architect', issuer: 'Amazon Web Services', year: '2021' }
@@ -112,9 +112,9 @@ export default function CVPreviewRenderer({ cvData, templateId, zoom = 100 }) {
           })),
           
       projects: cvData?.projects?.length > 0
-        ? cvData.projects.map(proj => ({
+        ? cvData.projects.map((proj, index) => ({
             name: renderField(proj.name, 'Project Name'),
-            duration: renderField(proj.duration, 'Duration'),
+            duration: renderField(proj.duration, `Level ${Math.min(index + 1, 3)} Project`),
             description: renderField(proj.description, 'Project description...')
           }))
         : demoData.projects.map(proj => ({

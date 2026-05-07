@@ -1,11 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, BrainCircuit, RefreshCcw } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+import React from 'react';
 import SEOHead from '@/components/SEOHead.jsx';
 
 export default function QuizSelectionPage() {
@@ -18,5 +11,4 @@ export default function QuizSelectionPage() {
       </div>
     </div>
   );
-}
 }
