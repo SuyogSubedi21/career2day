@@ -6,7 +6,7 @@ import { careerBlogArticles } from '../src/data/careerBlogArticles.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(__dirname, '..');
-const distRoot = path.resolve(webRoot, '../../dist/apps/web');
+const distRoot = path.resolve(webRoot, '../../frontend');
 const templatePath = path.join(distRoot, 'index.html');
 
 const siteUrl = 'https://career2day.com';
