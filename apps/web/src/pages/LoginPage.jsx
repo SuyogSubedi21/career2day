@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Helmet } from 'react-helmet';
 import { Loader2, Eye, EyeOff, Lock, Mail, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
+import GoogleIcon from '@/components/icons/GoogleIcon.jsx';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -149,6 +150,7 @@ export default function LoginPage() {
         </div>
 
         <Button type="button" variant="outline" className="w-full h-12 rounded-xl font-bold" disabled={loading} onClick={handleGoogleLogin}>
+          <GoogleIcon className="mr-2 h-5 w-5" />
           Continue with Google
         </Button>
 

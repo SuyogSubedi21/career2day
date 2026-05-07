@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet';
 import { Loader2, Eye, EyeOff, User, Lock, Mail } from 'lucide-react';
+import GoogleIcon from '@/components/icons/GoogleIcon.jsx';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -209,6 +210,7 @@ export default function SignupPage() {
         </div>
 
         <Button type="button" variant="outline" className="w-full h-11 font-medium" disabled={loading} onClick={handleGoogleSignup}>
+          <GoogleIcon className="mr-2 h-5 w-5" />
           Continue with Google
         </Button>
 
