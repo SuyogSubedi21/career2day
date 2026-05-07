@@ -222,11 +222,11 @@ const MasterTemplate = ({ cvData, config }) => {
           <div key="projects" style={{ marginBottom: layout.spacing }}>
             <h3 style={sectionTitleStyle}>Projects</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {cvData.projects.map((proj, idx) => (
+              {cvData.projects.slice(0, 3).map((proj, idx) => (
                 <div key={idx}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.25rem' }}>
                     <h4 style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111' }}>{proj.name}</h4>
-                    <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>{proj.duration}</span>
+                    <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>Level {idx + 1} Project</span>
                   </div>
                   <div style={bodyStyle}>{renderBullets(proj.description)}</div>
                 </div>

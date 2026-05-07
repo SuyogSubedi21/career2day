@@ -79,11 +79,11 @@ export default function CVTemplateRenderer({ data, template }) {
             <section>
               <h2 className={`text-lg font-bold uppercase tracking-widest mb-3 border-b pb-1 ${accentColor} ${borderAccent}`}>Projects</h2>
               <div className="space-y-3">
-                {projects.map((proj, idx) => (
+                {projects.slice(0, 3).map((proj, idx) => (
                   <div key={idx}>
                     <div className="flex justify-between items-baseline mb-1">
                       <h3 className="font-bold text-sm">{proj.name || 'Project Name'}</h3>
-                      {proj.link && <a href={proj.link} className={`text-xs hover:underline ${accentColor}`}>{proj.link}</a>}
+                      <span className={`text-xs font-semibold ${accentColor}`}>Level {idx + 1} Project</span>
                     </div>
                     <p className={`text-xs leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{proj.description}</p>
                   </div>

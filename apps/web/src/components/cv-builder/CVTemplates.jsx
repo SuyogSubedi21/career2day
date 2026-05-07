@@ -241,11 +241,11 @@ const MasterTemplate = ({ cvData, config }) => {
           <div key="projects" style={{ marginBottom: '2rem' }}>
             {renderSectionTitle('Projects', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {cvData.projects.map((proj, idx) => (
+              {cvData.projects.slice(0, 3).map((proj, idx) => (
                 <div key={idx}>
                   {useTimeline 
-                    ? renderTimelineItem(proj.name, null, proj.duration, proj.description, textColor, mutedColor)
-                    : renderStandardItem(proj.name, null, proj.duration, proj.description, textColor, mutedColor)}
+                    ? renderTimelineItem(proj.name, null, `Level ${idx + 1} Project`, proj.description, textColor, mutedColor)
+                    : renderStandardItem(proj.name, null, `Level ${idx + 1} Project`, proj.description, textColor, mutedColor)}
                 </div>
               ))}
             </div>

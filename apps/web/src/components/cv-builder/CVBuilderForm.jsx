@@ -1,5 +1,5 @@
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +13,24 @@ export default function CVBuilderForm({ cvData, setCvData, templateId }) {
   
   const templateConfig = useMemo(() => getTemplateById(templateId || 'ModernClean'), [templateId]);
   const hasPhotoSupport = templateConfig?.features?.hasPhotoPlaceholder;
+  const projects = cvData?.projects || [];
+  const normalizedProjects = useMemo(() => projects.slice(0, 3).map((project, index) => ({
+    ...project,
+    duration: `Level ${index + 1} Project`
+  })), [projects]);
+
+  useEffect(() => {
+    if (!projects.length) return;
+    const needsNormalize = projects.length > 3 || projects.some((project, index) => project.duration !== `Level ${Math.min(index + 1, 3)} Project`);
+    if (!needsNormalize) return;
+    setCvData(prev => ({
+      ...prev,
+      projects: (prev.projects || []).slice(0, 3).map((project, index) => ({
+        ...project,
+        duration: `Level ${index + 1} Project`
+      }))
+    }));
+  }, [projects, setCvData]);
 
   const handlePersonalInfoChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -65,7 +83,8 @@ export default function CVBuilderForm({ cvData, setCvData, templateId }) {
   }, [setCvData]);
 
   const personalInfo = cvData?.personalInfo || {};
-  const nextProjectLevel = Math.min((cvData?.projects?.length || 0) + 1, 3);
+  const nextProjectLevel = Math.min(projects.length + 1, 3);
+  const canAddProject = normalizedProjects.length < 3;
 
   return (
     <Tabs defaultValue="personal" className="w-full">
@@ -246,7 +265,7 @@ export default function CVBuilderForm({ cvData, setCvData, templateId }) {
       </TabsContent>
 
       <TabsContent value="projects" className="space-y-6">
-        {(cvData?.projects || []).map((proj, idx) => (
+        {normalizedProjects.map((proj, idx) => (
           <div key={`proj-${idx}`} className="p-4 bg-muted/50 rounded-xl border border-border space-y-4 relative group">
             <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => moveItem('projects', idx, 'up')} disabled={idx === 0}><ChevronUp className="w-4 h-4" /></Button>
@@ -267,7 +286,9 @@ export default function CVBuilderForm({ cvData, setCvData, templateId }) {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-muted-foreground text-xs">Project Level</Label>
-                <Input value={proj.duration || `Level ${Math.min(idx + 1, 3)} Project`} onChange={(e) => handleArrayChange('projects', idx, 'duration', e.target.value)} className="h-9 bg-background placeholder:text-muted-foreground/50" placeholder={`Level ${Math.min(idx + 1, 3)} Project`} />
+                <div className="flex h-9 items-center rounded-md border border-border bg-background px-3 text-sm font-semibold text-foreground">
+                  Level {idx + 1} Project
+                </div>
               </div>
             </div>
             <div className="space-y-1.5 pr-8">
@@ -284,9 +305,10 @@ export default function CVBuilderForm({ cvData, setCvData, templateId }) {
         <Button 
           variant="outline" 
           onClick={() => addArrayItem('projects', { name: '', duration: `Level ${nextProjectLevel} Project`, description: '' })}
+          disabled={!canAddProject}
           className="w-full border-dashed border-2 bg-background hover:bg-muted"
         >
-          <Plus className="w-4 h-4 mr-2" /> Add Project
+          <Plus className="w-4 h-4 mr-2" /> {canAddProject ? 'Add Project' : 'Maximum 3 projects'}
         </Button>
       </TabsContent>
 

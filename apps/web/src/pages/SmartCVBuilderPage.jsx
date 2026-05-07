@@ -230,7 +230,7 @@ function EditorFields({ active, profile, updateProfile, uploadPhoto, career }) {
     <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/10">
       {active === 'summary' && <><h2 className="mb-4 text-lg font-extrabold">Contact and summary</h2>{common}<Area label="Summary" value={profile.summary} onChange={(value) => updateProfile('summary', value)} /></>}
       {active === 'skills' && <><h2 className="mb-4 text-lg font-extrabold">Skills</h2><Field label="Skills" value={profile.skills} onChange={(value) => updateProfile('skills', value)} /><SuggestionRow title="Role suggestions" items={career.cv.skills} onPick={(item) => updateProfile('skills', addUnique(profile.skills, item))} /></>}
-      {active === 'projects' && <><h2 className="mb-4 text-lg font-extrabold">Projects</h2><Area label="Level 1, Level 2 and Level 3 projects" value={profile.projects} onChange={(value) => updateProfile('projects', value)} /><SuggestionRow title="Project suggestions" items={career.cv.projects} onPick={(item) => updateProfile('projects', addProjectLine(profile.projects, item))} /></>}
+      {active === 'projects' && <><h2 className="mb-4 text-lg font-extrabold">Projects</h2><Area label="One project per line: Level 1, Level 2, then Level 3" value={profile.projects} onChange={(value) => updateProfile('projects', value)} /><SuggestionRow title="Project suggestions" items={career.cv.projects} onPick={(item) => updateProfile('projects', addProjectLine(profile.projects, item))} /></>}
       {active === 'experience' && <><h2 className="mb-4 text-lg font-extrabold">Experience</h2><Area label="Work experience" value={profile.experience} onChange={(value) => updateProfile('experience', value)} /></>}
       {active === 'education' && <><h2 className="mb-4 text-lg font-extrabold">Education</h2><Area label="Education" value={profile.education} onChange={(value) => updateProfile('education', value)} /></>}
       {active === 'certifications' && <><h2 className="mb-4 text-lg font-extrabold">Certifications</h2><Area label="Certifications" value={profile.certifications} onChange={(value) => updateProfile('certifications', value)} /></>}
@@ -310,7 +310,7 @@ function CVPreview({ profile, template, style }) {
     return <div id="smart-cv-template" className="mx-auto grid min-h-[900px] max-w-[780px] grid-cols-[250px_1fr] bg-white text-slate-950 shadow-sm" style={css}><aside className="p-7 text-white" style={{ background: 'var(--cv-sidebar)' }}>{showPhoto && <img src={profile.photo} alt="" className="mb-5 h-28 w-28 rounded-md object-cover" />}<h2 className="text-3xl font-extrabold">{profile.name}</h2><p className="mt-2 font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-5 text-sm opacity-80">{profile.email}<br />{profile.phone}<br />{profile.location}<br />{profile.website}</p><CVSection title="Skills" sectionClass={sectionClass} dark><SkillPills text={profile.skills} dark /></CVSection></aside><main className={pad}><CVContent profile={profile} sectionClass={sectionClass} /></main></div>;
   }
   if (template.family === 'bold' || template.family === 'leadership') {
-    return <div id="smart-cv-template" className="mx-auto min-h-[900px] max-w-[780px] bg-white text-slate-950 shadow-sm" style={css}><header className={`${pad} text-white`} style={{ background: 'var(--cv-header)' }}><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-2 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-3 text-sm opacity-80">{profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><main className={`grid gap-7 ${pad} md:grid-cols-[1fr_0.72fr]`}><div><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Experience" sectionClass={sectionClass}><BulletText text={profile.experience} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><BulletText text={profile.projects} /></CVSection></div><div><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><BulletText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
+    return <div id="smart-cv-template" className="mx-auto min-h-[900px] max-w-[780px] bg-white text-slate-950 shadow-sm" style={css}><header className={`${pad} text-white`} style={{ background: 'var(--cv-header)' }}><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-2 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-3 text-sm opacity-80">{profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><main className={`grid gap-7 ${pad} md:grid-cols-[1fr_0.72fr]`}><div><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Experience" sectionClass={sectionClass}><BulletText text={profile.experience} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><BulletText text={formatLeveledProjectText(profile.projects)} /></CVSection></div><div><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><BulletText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
   }
   if (template.family === 'impact' || template.family === 'grid' || template.family === 'showcase') {
     return <div id="smart-cv-template" className={`mx-auto min-h-[900px] max-w-[780px] bg-white ${pad} text-slate-950 shadow-sm`} style={css}><header className={`grid gap-5 rounded-md border-l-8 bg-slate-50 p-6 ${showPhoto ? 'grid-cols-[96px_1fr] items-center' : ''}`} style={{ borderColor: 'var(--cv-accent)' }}>{showPhoto && <img src={profile.photo} alt="" className="h-24 w-24 rounded-md object-cover" />}<div><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-1 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-2 text-sm text-slate-600">{profile.email} | {profile.phone} | {profile.location}</p></div></header><main className="grid gap-7 md:grid-cols-[1fr_0.75fr]"><div><CVContent profile={profile} sectionClass={sectionClass} /></div><div><CVSection title="Links" sectionClass={sectionClass}><BulletText text={profile.website} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
@@ -322,7 +322,7 @@ function CVPreview({ profile, template, style }) {
 }
 
 function CVContent({ profile, sectionClass }) {
-  return <><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><BulletText text={profile.projects} /></CVSection><CVSection title="Experience" sectionClass={sectionClass}><BulletText text={profile.experience} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><BulletText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></>;
+  return <><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><BulletText text={formatLeveledProjectText(profile.projects)} /></CVSection><CVSection title="Experience" sectionClass={sectionClass}><BulletText text={profile.experience} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><BulletText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></>;
 }
 
 function CVSection({ title, children, sectionClass, dark = false }) {
@@ -372,9 +372,20 @@ function formatLeveledProjects(projects = []) {
   return projects.slice(0, 3).map((project, index) => `Level ${index + 1} Project: ${project}`).join('\n');
 }
 
+function formatLeveledProjectText(projectText = '') {
+  return String(projectText)
+    .split('\n')
+    .map((line) => line.trim().replace(/^Level\s+\d+\s+Project:\s*/i, ''))
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((project, index) => `Level ${index + 1} Project: ${project}`)
+    .join('\n');
+}
+
 function addProjectLine(current, value) {
   if (String(current).includes(value)) return current;
   const count = String(current).split('\n').map((line) => line.trim()).filter(Boolean).length;
+  if (count >= 3) return current;
   const level = Math.min(count + 1, 3);
   return addLine(current, `Level ${level} Project: ${value}`);
 }
@@ -408,7 +419,7 @@ async function exportPdf(profile) {
 }
 
 function exportWord(profile) {
-  const html = `<html><head><meta charset="utf-8"><title>${escapeHtml(profile.name)} CV</title></head><body><h1>${escapeHtml(profile.name)}</h1><p><strong>${escapeHtml(profile.title)}</strong></p><p>${escapeHtml(profile.email)} | ${escapeHtml(profile.phone)} | ${escapeHtml(profile.location)}</p><h2>Summary</h2><p>${escapeHtml(profile.summary)}</p><h2>Skills</h2><p>${escapeHtml(profile.skills)}</p><h2>Projects</h2>${toHtmlList(profile.projects)}<h2>Experience</h2>${toHtmlList(profile.experience)}<h2>Education</h2>${toHtmlList(profile.education)}<h2>Certifications</h2>${toHtmlList(profile.certifications)}</body></html>`;
+  const html = `<html><head><meta charset="utf-8"><title>${escapeHtml(profile.name)} CV</title></head><body><h1>${escapeHtml(profile.name)}</h1><p><strong>${escapeHtml(profile.title)}</strong></p><p>${escapeHtml(profile.email)} | ${escapeHtml(profile.phone)} | ${escapeHtml(profile.location)}</p><h2>Summary</h2><p>${escapeHtml(profile.summary)}</p><h2>Skills</h2><p>${escapeHtml(profile.skills)}</p><h2>Projects</h2>${toHtmlList(formatLeveledProjectText(profile.projects))}<h2>Experience</h2>${toHtmlList(profile.experience)}<h2>Education</h2>${toHtmlList(profile.education)}<h2>Certifications</h2>${toHtmlList(profile.certifications)}</body></html>`;
   const blob = new Blob([html], { type: 'application/msword' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
