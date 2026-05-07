@@ -7,12 +7,12 @@ export default function ContactFormspreePage() {
       <SEOHead
         title="Contact Us | Career2Day"
         description="Contact Career2Day for support, business, or feedback. Use the form below to reach us directly."
-        ogUrl="https://career2day.com/contact-form"
+        ogUrl="https://career2day.com/contact"
         schema={{
           '@context': 'https://schema.org',
           '@type': 'ContactPage',
           name: 'Contact Career2Day',
-          url: 'https://career2day.com/contact-form'
+          url: 'https://career2day.com/contact'
         }}
       />
       <main className="mx-auto max-w-2xl w-full">

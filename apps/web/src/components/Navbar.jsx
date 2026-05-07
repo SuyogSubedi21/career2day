@@ -34,7 +34,7 @@ export default function Navbar() {
     { name: 'CV Builder', path: '/cv-builder' },
     { name: 'Blog', path: '/blog' },
     { name: 'Pricing', path: '/pricing' },
-    { name: 'Contact Us', path: '/contact-form' }
+    { name: 'Contact Us', path: '/contact' }
   ];
 
   const isActive = (path) => {

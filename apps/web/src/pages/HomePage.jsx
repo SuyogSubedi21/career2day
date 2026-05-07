@@ -7,7 +7,8 @@ import SEOHead from '@/components/SEOHead.jsx';
 import { getFeaturedPlatformCareers } from '@/data/careerPlatformData.js';
 import AdSlot from '@/components/AdSlot.jsx';
 
-const featuredCareers = getFeaturedPlatformCareers().slice(0, 4);
+const HOMEPAGE_CAREER_LIMIT = 4;
+const featuredCareers = getFeaturedPlatformCareers().slice(0, HOMEPAGE_CAREER_LIMIT);
 
 const steps = [
   { title: 'Learn', text: 'Choose a role and complete a four-phase roadmap with projects and trackable checklists.', icon: GraduationCap },
@@ -155,7 +156,7 @@ export default function HomePage() {
         </div>
         <div className="mt-8 flex justify-center">
           <Button asChild size="lg" variant="outline" className="rounded-full px-8">
-            <Link to="/careers">Explore more careers <ArrowRight className="ml-2 h-5 w-5" /></Link>
+            <Link to="/careers">Explore More <ArrowRight className="ml-2 h-5 w-5" /></Link>
           </Button>
         </div>
       </Section>

@@ -134,7 +134,7 @@ export default function App() {
                 {/* Public Routes */}
                 <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
                 <Route path="/about" element={<MainLayout><AboutPage /></MainLayout>} />
-                <Route path="/contact" element={<MainLayout><ContactPage /></MainLayout>} />
+                <Route path="/contact" element={<MainLayout><ContactFormspreePage /></MainLayout>} />
                 <Route path="/contact-form" element={<MainLayout><ContactFormspreePage /></MainLayout>} />
                 <Route path="/pricing" element={<MainLayout><PricingPageRedesign /></MainLayout>} />
                 <Route path="/blog" element={<MainLayout><BlogPage /></MainLayout>} />
