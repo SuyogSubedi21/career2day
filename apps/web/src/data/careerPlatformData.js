@@ -139,7 +139,19 @@ const roleContext = (career) => {
     };
   }
 
-  if (/frontend|mobile|ios|android|ux|designer|product designer|ar|vr|game/.test(joined)) {
+  if (/frontend|web ui|react|vite|tailwind|browser/.test(joined)) {
+    return {
+      domain: 'user-facing web product experience',
+      system: 'an accessible web application with forms, navigation, state, API integration, responsive layouts, and production build constraints',
+      artifact: 'responsive workflow, component library, usability report, static deployment, or performance audit',
+      metric: 'Core Web Vitals, task completion, accessibility issues, bundle size, render cost, and conversion',
+      risk: 'broken accessibility, slow rendering, state bugs, browser inconsistencies, and confusing user flows',
+      deployment: 'static hosting or preview environment with routed pages, analytics, error tracking, cache strategy, and rollback plan',
+      testing: 'unit tests, UI automation, accessibility checks, cross-browser testing, and performance profiling'
+    };
+  }
+
+  if (/mobile|ios|android|ux|designer|product designer|ar|vr|game/.test(joined)) {
     return {
       domain: 'user-facing product experience',
       system: 'an accessible client application with forms, navigation, state, API integration, and production build constraints',
@@ -958,6 +970,46 @@ const buildGeneratedCareer = (career) => {
   };
 };
 
+const frontendSkillDetails = {
+  core: [
+    { name: 'Semantic HTML', explanation: 'Use headings, landmarks, labels, links, buttons, and form controls so the browser gives users structure and behavior before JavaScript adds anything.', whyItMatters: 'Good HTML is the base of accessibility, SEO, form behavior, and maintainable UI. It also reduces the amount of custom code needed later.' },
+    { name: 'CSS layout', explanation: 'Use Flexbox, Grid, spacing systems, responsive constraints, and component-level styles to make screens adapt without fragile pixel guessing.', whyItMatters: 'Most frontend bugs are visual regressions, overflow, inconsistent spacing, or layouts that work on one screen size only.' },
+    { name: 'JavaScript', explanation: 'Handle events, arrays, objects, async requests, modules, browser APIs, and small state transitions clearly before adding framework complexity.', whyItMatters: 'React still runs on JavaScript. Debugging props, effects, API responses, and user interactions is much easier when the language fundamentals are solid.' },
+    { name: 'Accessibility', explanation: 'Build interfaces that work with keyboard navigation, screen readers, visible focus, labels, contrast, error messages, and predictable interaction patterns.', whyItMatters: 'Accessible UI protects users, improves quality, and is a strong hiring signal because it shows product maturity rather than visual-only implementation.' }
+  ],
+  technical: [
+    { name: 'Responsive design', explanation: 'Design layouts that reflow intentionally across phones, tablets, laptops, and wide monitors using stable dimensions and content-aware breakpoints.', whyItMatters: 'A frontend engineer is responsible for real usage conditions, not just the screenshot that looked good on their own laptop.' },
+    { name: 'State management', explanation: 'Keep UI state predictable by separating local component state, server data, form drafts, URL state, and persisted state.', whyItMatters: 'Many app bugs come from stale data, lost form input, duplicated sources of truth, or state that changes in surprising places.' },
+    { name: 'API integration', explanation: 'Fetch and display real data with loading, empty, error, retry, stale, and permission states instead of assuming the happy path.', whyItMatters: 'Users experience the network and backend through the frontend, so the UI must explain what is happening when data is slow or unavailable.' },
+    { name: 'Performance', explanation: 'Measure bundle size, render cost, images, network waterfalls, and interaction delays before choosing lazy loading, memoization, code splitting, or asset optimization.', whyItMatters: 'Performance affects conversion, search visibility, and user trust. The best frontend engineers optimize based on evidence.' }
+  ],
+  tools: [
+    { name: 'React', explanation: 'Use React for component composition, stateful interfaces, routing, forms, and rendering product workflows from data.', whyItMatters: 'React fluency matters when it produces readable components, clear state boundaries, and resilient UI behavior.' },
+    { name: 'Vite', explanation: 'Use Vite for fast local development, production builds, environment variables, and frontend asset bundling.', whyItMatters: 'Understanding the build tool helps diagnose environment issues, broken imports, asset paths, and production-only failures.' },
+    { name: 'Tailwind CSS', explanation: 'Use Tailwind to create consistent spacing, responsive layouts, states, and component styling without scattered one-off CSS.', whyItMatters: 'Utility-first CSS is valuable when it supports consistency, not when it becomes random class soup.' },
+    { name: 'Chrome DevTools', explanation: 'Use DevTools to inspect layout, network requests, console errors, performance traces, storage, accessibility, and mobile behavior.', whyItMatters: 'Debugging in the browser is a daily frontend skill, especially when the bug only appears with real DOM, CSS, and network conditions.' },
+    { name: 'Storybook', explanation: 'Use Storybook to document component states, variants, empty/error/loading behavior, and design system usage.', whyItMatters: 'It makes UI reviewable without clicking through the whole app and helps teams prevent component drift.' },
+    { name: 'Lighthouse', explanation: 'Use Lighthouse as a starting audit for performance, accessibility, SEO, and best-practice issues.', whyItMatters: 'It gives measurable feedback, but strong engineers know to pair it with real user flows and manual accessibility checks.' }
+  ],
+  soft: [
+    { name: 'Product judgment', explanation: 'Ask what the user is trying to do, what failure states matter, and which interaction should be fastest.', whyItMatters: 'Frontend work is where technical choices become user experience.' },
+    { name: 'Design collaboration', explanation: 'Translate Figma intent into usable UI while flagging missing states, impossible layouts, and accessibility gaps early.', whyItMatters: 'Good frontend engineers improve designs through implementation feedback, not silent pixel matching.' },
+    { name: 'Communication', explanation: 'Explain tradeoffs around scope, browser support, performance, and accessibility in plain language.', whyItMatters: 'Clear communication keeps product, design, and engineering aligned when UI details get complex.' },
+    { name: 'Debugging discipline', explanation: 'Reproduce issues, isolate variables, inspect real runtime behavior, and write down what changed.', whyItMatters: 'It prevents random fixes and helps teammates trust the solution.' }
+  ]
+};
+
+const frontendInterviewQuestions = [
+  { id: 'frontend-engineer-q1', difficulty: 'beginner', topic: 'Semantic HTML and accessibility', relatedSkill: 'Semantic HTML', question: 'Why would you choose a native button element instead of a div with an onClick handler?', shortAnswer: 'A native button already supports keyboard activation, focus, disabled state, semantics, and screen reader expectations.', detailedAnswer: 'Use a real button when the user is triggering an action. It works with Enter and Space by default, appears correctly in the accessibility tree, supports disabled behavior, and is easier to test. A div with an onClick handler forces you to recreate browser behavior manually and is easy to get wrong. Custom elements are only justified when the native element cannot represent the interaction.', commonMistake: 'Adding role="button" to a div but forgetting keyboard support and visible focus styles.', realWorldExample: 'A filter drawer toggle should be a button because it changes UI state. A link should be reserved for navigation to a new URL.' },
+  { id: 'frontend-engineer-q2', difficulty: 'beginner', topic: 'Responsive layout', relatedSkill: 'CSS layout', question: 'How would you make a card grid work on mobile, tablet, and desktop without layout jumps?', shortAnswer: 'Use content-aware grid rules, stable spacing, and predictable card dimensions rather than fixed desktop widths.', detailedAnswer: 'Start with a single-column mobile layout, then add breakpoints where the content naturally has room for more columns. Use CSS Grid with minmax, consistent gaps, and max-width containers. Avoid fixed heights unless the design requires them, and test long titles, empty states, and real data. If images or charts are involved, define aspect ratios so loading content does not shift the page.', commonMistake: 'Designing a desktop grid first and shrinking it until text overflows or buttons wrap badly.', realWorldExample: 'A careers grid can be one column on phones, two columns on tablets, and three or four on desktop, with each card keeping the same action placement.' },
+  { id: 'frontend-engineer-q3', difficulty: 'intermediate', topic: 'React component design', relatedSkill: 'State management', question: 'What makes a React component reusable without becoming too abstract?', shortAnswer: 'It has one clear responsibility, receives data through explicit props, exposes needed states, and avoids knowing too much about the page.', detailedAnswer: 'A reusable component should solve a real repeated UI problem, not every possible future case. Keep data fetching and routing decisions in the page when possible, and let the component handle display, events, and visual states. Good props are specific enough to be understandable. If a component needs many boolean flags or page-specific branches, it is often better to split it into smaller components.', commonMistake: 'Creating a generic mega-component that supports every layout but is harder to understand than duplicated markup.', realWorldExample: 'A CareerCard should receive name, category, salary label, skills, and link. It should not know the entire search page state.' },
+  { id: 'frontend-engineer-q4', difficulty: 'intermediate', topic: 'Forms and API states', relatedSkill: 'API integration', question: 'A contact form submission fails after the user writes a long message. What should the UI do?', shortAnswer: 'Keep the user input, show a clear error, allow retry, and avoid making the user guess whether the message was sent.', detailedAnswer: 'Never clear the form until the submission succeeds. Disable duplicate submits while the request is in progress, then show a specific failure message if the server or network fails. Preserve the draft in component state or local storage for important forms. If the backend returns validation errors, attach them to the relevant fields. The goal is to protect user effort and make recovery obvious.', commonMistake: 'Resetting the form immediately on submit, then showing a generic "something went wrong" message.', realWorldExample: 'A Formspree contact form should show required fields, keep the message on failed submit, and communicate success only after Formspree accepts it.' },
+  { id: 'frontend-engineer-q5', difficulty: 'intermediate', topic: 'Performance', relatedSkill: 'Performance', question: 'A React dashboard feels slow. What would you measure before optimizing?', shortAnswer: 'Measure bundle size, network waterfall, render timing, expensive components, image weight, and interaction delay in the actual user flow.', detailedAnswer: 'Start with evidence. Use DevTools Performance and Network panels, Lighthouse, and React Profiler where appropriate. Check whether the bottleneck is JavaScript download, API latency, unnecessary re-renders, large images, expensive charts, or layout work. Then choose the smallest fix: code splitting, caching, virtualization, image compression, memoization, or backend changes. Memoizing everything before measuring often hides the real problem.', commonMistake: 'Using React.memo everywhere without checking whether rendering is actually the bottleneck.', realWorldExample: 'A CV builder preview may need lazy loading for PDF/export libraries, while a careers list may only need smaller images and fewer repeated calculations.' },
+  { id: 'frontend-engineer-q6', difficulty: 'advanced', topic: 'Design systems', relatedSkill: 'Component architecture', question: 'How would you design a button component for a team design system?', shortAnswer: 'Define variants, sizes, disabled/loading states, accessible labels, focus styles, and composition rules before spreading it across the app.', detailedAnswer: 'A design system button should map to product needs: primary, secondary, destructive, ghost, icon-only, and loading states if the app uses them. It should preserve native button behavior, allow links only through an intentional composition pattern, and provide visible focus. Document examples in Storybook with long labels and mobile widths. The component should make the common path easy and the unsafe path hard.', commonMistake: 'Styling a div to look like a button or creating separate button styles in every feature.', realWorldExample: 'An icon-only save button needs an accessible name, tooltip if needed, a stable square size, and clear disabled/loading behavior.' },
+  { id: 'frontend-engineer-q7', difficulty: 'advanced', topic: 'Frontend security', relatedSkill: 'API integration', question: 'What frontend security issues should you consider when rendering user-generated content?', shortAnswer: 'Avoid unsafe HTML, rely on escaping, sanitize trusted-rich text, protect tokens, and assume API data can be malformed.', detailedAnswer: 'React escapes normal text values, which helps prevent many XSS issues. Risk returns when using dangerouslySetInnerHTML, rendering markdown, injecting third-party scripts, or storing sensitive tokens carelessly. If rich text is required, sanitize it with a trusted library and restrict allowed tags. Also validate URLs, avoid exposing secrets in frontend environment variables, and handle malformed API responses gracefully.', commonMistake: 'Assuming all backend data is safe because it came from your own API.', realWorldExample: 'A blog page that renders rich article content should sanitize HTML and avoid allowing arbitrary script, iframe, or event-handler attributes.' },
+  { id: 'frontend-engineer-q8', difficulty: 'advanced', topic: 'Production debugging', relatedSkill: 'Debugging discipline', question: 'Users report that a page works locally but breaks after deployment. How do you investigate?', shortAnswer: 'Compare build output, environment variables, asset paths, network requests, console errors, server routing, and browser-specific behavior.', detailedAnswer: 'Production failures often come from differences in build mode, base paths, missing environment variables, cached assets, server rewrite rules, or API URLs. First reproduce against the deployed URL and collect console/network errors. Check whether JS and CSS assets load, whether routes fall back to index.html, and whether the API target is reachable. Then compare the production build locally with preview mode before changing code.', commonMistake: 'Changing random React code before checking whether Nginx, assets, or environment configuration is the real cause.', realWorldExample: 'A Vite app may work locally but show a blank page on a VPS if Nginx serves the wrong folder or does not route nested paths to index.html.' }
+];
+
 const completePhaseChecklist = (career, phase, index) => {
   const project = phase.miniProject || `Build a ${career.name} project for this step.`;
   const topics = phase.topics || career.requiredSkills?.slice(0, 4) || career.skills?.slice(0, 4) || [];
@@ -1042,9 +1094,9 @@ const normalizeCareer = (career) => {
 
   return {
     ...normalized,
-    skillsDetailed: makeSkillDetails(normalized),
-    interviewQuestions: makeQuestions(normalized, preparedTopics),
-    quizzes: makeQuizzes(normalized, preparedTopics)
+    skillsDetailed: career.skillsDetailed || makeSkillDetails(normalized),
+    interviewQuestions: career.interviewQuestions || makeQuestions(normalized, preparedTopics),
+    quizzes: career.quizzes || makeQuizzes(normalized, preparedTopics)
   };
 };
 
@@ -1231,10 +1283,13 @@ const completeCareers = [
     tagline: 'Build fast, accessible, polished product interfaces that turn data and workflows into usable software.',
     description: 'Frontend Engineers own the user-facing layer of software products. They combine React, browser fundamentals, design systems, API integration, accessibility, performance, and product judgment.',
     salaryPotential: '$90k-$165k+',
+    salaryNote: 'Typical US frontend engineer base salary ranges: entry around $90k, mid-level around $120k, senior around $165k, and lead roles around $195k before equity or bonuses. Actual pay depends heavily on location, company stage, industry, and portfolio strength.',
     demandLevel: 'High',
     beginnerFriendliness: 'High',
-    requiredSkills: ['HTML', 'CSS', 'JavaScript', 'React', 'accessibility', 'responsive design', 'state management', 'API integration', 'performance'],
+    requiredSkills: ['Semantic HTML', 'CSS layout', 'JavaScript', 'accessibility', 'responsive design', 'state management', 'API integration', 'performance'],
     tools: ['React', 'Vite', 'Tailwind CSS', 'Figma', 'Storybook', 'Chrome DevTools', 'GitHub', 'Lighthouse'],
+    skillsDetailed: frontendSkillDetails,
+    interviewQuestions: frontendInterviewQuestions,
     accent: 'from-indigo-600 via-sky-500 to-teal-400',
     unlocked: true,
     cv: {
@@ -1251,7 +1306,7 @@ const completeCareers = [
         tools: ['VS Code', 'Chrome DevTools', 'GitHub', 'MDN'],
         miniProject: 'Build a responsive personal portfolio with project cards, contact form, and accessible navigation.',
         outcome: 'You can build clean static interfaces that behave well on mobile and desktop.',
-        checklist: ['Use semantic landmarks', 'Build responsive grid', 'Handle form validation', 'Deploy portfolio']
+        checklist: ['Use semantic landmarks', 'Build responsive grid', 'Handle form validation', 'Deploy the site to static hosting']
       },
       {
         phase: 'Intermediate',
