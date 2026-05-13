@@ -1,66 +1,98 @@
-
 import React from 'react';
 import SEOHead from '@/components/SEOHead.jsx';
+import PolicyPageShell from '@/components/PolicyPageShell.jsx';
+
+const sections = [
+  {
+    title: 'What this policy covers',
+    body: 'This policy explains how Career2Day handles information when you use our career roadmaps, CV builder, interview preparation tools, quizzes, blog, contact forms, and related website features.',
+  },
+  {
+    title: 'Information we collect',
+    body: 'We collect only the information needed to run and improve the platform.',
+    items: [
+      'Account and contact information, such as your name, email address, login details, and support messages.',
+      'Career content you choose to enter, including CV details, skills, projects, education, work history, target roles, progress notes, quiz activity, and interview practice history.',
+      'Usage and device information, such as pages visited, browser type, approximate location, error logs, referral source, and performance data.',
+      'Payment-related information if paid features are offered. Card details are handled by payment providers; Career2Day does not store full card numbers.',
+    ],
+  },
+  {
+    title: 'CV builder and roadmap data',
+    body: 'Content you add to the CV builder or roadmap tools belongs to you. Some features may store drafts, preferences, and progress in your browser so the app can restore your work on the same device. If account-based saving is enabled, the same type of content may be stored securely with your account so you can access it across sessions.',
+  },
+  {
+    title: 'How we use information',
+    items: [
+      'Provide, personalize, and maintain the Career2Day experience.',
+      'Save progress, generate CV content, show role-specific roadmaps, and organize interview preparation.',
+      'Send account, support, security, billing, or product update messages.',
+      'Understand which features are useful, fix bugs, measure performance, and improve content quality.',
+      'Protect the platform from spam, abuse, fraud, security incidents, and unauthorized access.',
+    ],
+  },
+  {
+    title: 'Cookies and local storage',
+    body: 'Career2Day may use cookies, local storage, and similar browser technologies for sign-in sessions, theme preferences, saved drafts, progress tracking, analytics, and basic security. You can clear browser storage at any time, but doing so may remove local drafts or preferences.',
+  },
+  {
+    title: 'When we share information',
+    body: 'We do not sell your personal information. We may share limited information with trusted service providers that help us host the website, process payments, send email, analyze reliability, provide support, or protect the service. We may also disclose information if required by law, to enforce our terms, or to prevent harm.',
+  },
+  {
+    title: 'Security and retention',
+    body: 'We use practical administrative, technical, and organizational safeguards to protect information. No online service can guarantee perfect security, so avoid adding sensitive personal data that is not needed for career preparation. We keep information only as long as reasonably needed for the purposes described here, unless a longer period is required for legal, tax, security, or dispute reasons.',
+  },
+  {
+    title: 'Your choices',
+    items: [
+      'You can update or remove information in your account where the platform provides those controls.',
+      'You can request access, correction, deletion, or export of personal information by contacting us.',
+      'You can unsubscribe from marketing emails using the link in the email, while still receiving important account or transaction messages.',
+      'You can clear cookies and local storage in your browser, which may remove saved drafts on that device.',
+    ],
+  },
+  {
+    title: 'Children and international users',
+    body: 'Career2Day is intended for learners and job seekers who are at least 13 years old. If you use the platform from outside the country where our systems or service providers operate, your information may be processed in other regions with different data protection rules.',
+  },
+  {
+    title: 'Updates to this policy',
+    body: 'We may update this policy as Career2Day changes. When we do, we will revise the date on this page and, when appropriate, provide additional notice in the product or by email.',
+  },
+];
 
 export default function PrivacyPolicyPage() {
   const schema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Career2Day",
-    "url": "https://career2day.com",
-    "logo": "https://career2day.com/logo.png"
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Career2Day',
+    url: 'https://career2day.com',
+    logo: 'https://career2day.com/logo.png',
   };
 
   return (
-    <div className="min-h-screen bg-background pt-32 pb-24 px-4 sm:px-6 lg:px-8">
-      <SEOHead 
+    <>
+      <SEOHead
         title="Privacy Policy - Career2Day"
-        description="Read Career2Day's privacy policy to understand how we protect your data and personal information."
-        keywords="privacy policy, data protection, privacy"
+        description="Learn how Career2Day collects, uses, protects, and manages information for career roadmaps, CV building, and interview preparation."
+        keywords="privacy policy, data protection, Career2Day privacy"
         ogUrl="https://career2day.com/privacy-policy"
         type="website"
         schema={schema}
       />
-      <div className="max-w-3xl mx-auto prose prose-slate dark:prose-invert prose-headings:font-bold prose-a:text-primary">
-        <h1 className="text-4xl md:text-5xl tracking-tight mb-4">Privacy Policy</h1>
-        <p className="text-muted-foreground mb-8">Last updated: April 26, 2026</p>
-        
-        <h2>1. Introduction</h2>
-        <p>Welcome to Career2Day. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website and tell you about your privacy rights and how the law protects you.</p>
-        
-        <h2>2. Information We Collect</h2>
-        <p>We may collect, use, store and transfer different kinds of personal data about you which we have grouped together as follows:</p>
-        <ul>
-          <li><strong>Identity Data:</strong> includes first name, last name, username or similar identifier.</li>
-          <li><strong>Contact Data:</strong> includes email address and telephone numbers.</li>
-          <li><strong>Technical Data:</strong> includes internet protocol (IP) address, your login data, browser type and version, time zone setting and location.</li>
-          <li><strong>Profile Data:</strong> includes your username and password, your interests, preferences, feedback and survey responses, as well as CV data you input into our builder.</li>
-        </ul>
-        
-        <h2>3. How We Use Your Information</h2>
-        <p>We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:</p>
-        <ul>
-          <li>Where we need to perform the contract we are about to enter into or have entered into with you (e.g., providing CV building services).</li>
-          <li>Where it is necessary for our legitimate interests (or those of a third party) and your interests and fundamental rights do not override those interests.</li>
-          <li>Where we need to comply with a legal obligation.</li>
-        </ul>
-
-        <h2>4. Data Security</h2>
-        <p>We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used or accessed in an unauthorized way, altered or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors and other third parties who have a business need to know.</p>
-
-        <h2>5. Your Rights</h2>
-        <p>Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to:</p>
-        <ul>
-          <li>Request access to your personal data.</li>
-          <li>Request correction of your personal data.</li>
-          <li>Request erasure of your personal data.</li>
-          <li>Object to processing of your personal data.</li>
-        </ul>
-
-        <h2>6. Contact Us</h2>
-        <p>If you have any questions about this privacy policy or our privacy practices, please contact us at:</p>
-        <p>Email: <a href="mailto:privacy@career2day.com">privacy@career2day.com</a></p>
-      </div>
-    </div>
+      <PolicyPageShell
+        title="Privacy Policy"
+        description="A clear explanation of what Career2Day collects, why it is used, when it is shared, and how you can manage your information."
+        lastUpdated="May 13, 2026"
+        contactEmail="privacy@career2day.com"
+        highlights={[
+          { title: 'You own your CV content', body: 'Your resume details, projects, and career notes remain your content.' },
+          { title: 'No selling personal data', body: 'We do not sell personal information to advertisers or data brokers.' },
+          { title: 'Practical control', body: 'You can request access, correction, deletion, or export of your information.' },
+        ]}
+        sections={sections}
+      />
+    </>
   );
 }
