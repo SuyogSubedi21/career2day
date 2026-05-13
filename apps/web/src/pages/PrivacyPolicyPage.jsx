@@ -85,7 +85,7 @@ export default function PrivacyPolicyPage() {
         title="Privacy Policy"
         description="A clear explanation of what Career2Day collects, why it is used, when it is shared, and how you can manage your information."
         lastUpdated="May 13, 2026"
-        contactEmail="privacy@career2day.com"
+        contactEmail="admin@career2day.com"
         highlights={[
           { title: 'You own your CV content', body: 'Your resume details, projects, and career notes remain your content.' },
           { title: 'No selling personal data', body: 'We do not sell personal information to advertisers or data brokers.' },

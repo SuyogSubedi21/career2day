@@ -36,7 +36,7 @@ const sections = [
   },
   {
     title: 'How to request a refund',
-    body: 'Email support@career2day.com with your account email, purchase date, payment reference or receipt, the product or plan purchased, and a short explanation of the issue. Clear details help us review faster.',
+    body: 'Email admin@career2day.com with your account email, purchase date, payment reference or receipt, the product or plan purchased, and a short explanation of the issue. Clear details help us review faster.',
   },
   {
     title: 'Review and processing time',
@@ -75,7 +75,7 @@ export default function RefundPolicyPage() {
         title="Refund Policy"
         description="A straightforward refund policy for paid Career2Day features, with clear eligibility rules, request steps, and processing timelines."
         lastUpdated="May 13, 2026"
-        contactEmail="support@career2day.com"
+        contactEmail="admin@career2day.com"
         highlights={[
           { title: '7-day review window', body: 'Eligible paid purchases can be reviewed within 7 calendar days.' },
           { title: 'Free tools stay free', body: 'Free features, trials, and credits do not require refunds.' },

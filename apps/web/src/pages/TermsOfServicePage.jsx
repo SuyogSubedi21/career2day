@@ -86,7 +86,7 @@ export default function TermsOfServicePage() {
         title="Terms of Service"
         description="The practical rules for using Career2Day, including accounts, acceptable use, paid features, platform content, and career guidance limits."
         lastUpdated="May 13, 2026"
-        contactEmail="terms@career2day.com"
+        contactEmail="admin@career2day.com"
         highlights={[
           { title: 'Career support, not guarantees', body: 'We help with preparation, but jobs and salaries depend on employers and markets.' },
           { title: 'Your content stays yours', body: 'You own the CV details and personal career information you add.' },

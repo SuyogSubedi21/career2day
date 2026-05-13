@@ -28,9 +28,9 @@ export default function ContactPage() {
 
         <div className="grid gap-5 md:grid-cols-2">
           {[
-            ['General support', 'support@career2day.com', Mail],
-            ['Privacy requests', 'privacy@career2day.com', ShieldCheck],
-            ['Content feedback', 'editorial@career2day.com', MessageSquare],
+            ['General support', 'admin@career2day.com', Mail],
+            ['Privacy requests', 'admin@career2day.com', ShieldCheck],
+            ['Content feedback', 'admin@career2day.com', MessageSquare],
             ['Location', 'Kathmandu, Nepal', MapPin]
           ].map(([title, value, Icon]) => (
             <section key={title} className="rounded-lg border border-border bg-card p-6 shadow-sm">

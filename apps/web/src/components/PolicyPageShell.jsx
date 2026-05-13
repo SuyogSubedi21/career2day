@@ -7,7 +7,7 @@ export default function PolicyPageShell({
   lastUpdated,
   highlights = [],
   sections = [],
-  contactEmail = 'support@career2day.com',
+  contactEmail = 'admin@career2day.com',
 }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/50 px-4 pb-24 pt-32 text-slate-950 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 dark:text-white sm:px-6 lg:px-8">
