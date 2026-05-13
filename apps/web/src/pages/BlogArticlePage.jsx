@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import DOMPurify from 'dompurify';
 import SEOHead from '@/components/SEOHead.jsx';
 import BlogInsightCharts from '@/components/blog/BlogInsightCharts.jsx';
 import pb from '@/lib/pocketbaseClient.js';
@@ -247,7 +248,7 @@ export default function BlogArticlePage() {
           
           <div className="blog-article-content prose prose-lg dark:prose-invert max-w-none text-foreground">
             {article.content?.includes('<') ? (
-              <div dangerouslySetInnerHTML={{ __html: article.content }} />
+              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }} />
             ) : (
               <div className="whitespace-pre-wrap">{article.content}</div>
             )}

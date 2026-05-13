@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { Mail, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,31 +22,31 @@ export default function ForgotPasswordPage() {
     }
 
     setIsSubmitting(true);
-    console.log(`[ForgotPassword] Initiating password reset request for: ${email}`);
-    
     try {
-      await pb.collection('users').requestPasswordReset(email, { $autoCancel: false });
-      console.log(`[ForgotPassword] Successfully requested password reset for: ${email}`);
-      toast.success('Password reset email sent. Check your inbox and spam folder.');
+      await pb.collection('users').requestPasswordReset(email.trim().toLowerCase(), { $autoCancel: false });
+      toast.success('If an account exists, a reset link has been sent.');
       setIsSubmitted(true);
     } catch (error) {
       console.error('[ForgotPassword] Password reset request error:', error);
-      toast.error(error.message || 'Failed to send reset link. Please try again.');
+      toast.error('Could not send the reset email. Check PocketBase SMTP settings and try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950">
       <Helmet>
         <title>Forgot Password | Career2Day</title>
       </Helmet>
       
-      <div className="w-full max-w-md bg-card rounded-2xl shadow-xl border border-border/50 p-8">
+      <div className="w-full max-w-md rounded-[1.5rem] border border-slate-200 bg-white p-8 shadow-[0_24px_70px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-slate-900">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Reset Password</h1>
-          <p className="text-muted-foreground">Enter your email and we'll send you a link to reset your password.</p>
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white">
+            <ShieldCheck className="h-7 w-7" />
+          </div>
+          <h1 className="text-3xl font-black tracking-tight mb-2">Reset your password</h1>
+          <p className="text-muted-foreground">Enter your account email. If it exists, PocketBase will send a secure reset link.</p>
         </div>
 
         {isSubmitted ? (
@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-2">Check your email</h2>
               <p className="text-muted-foreground">
-                We've sent a password reset link to <br/>
+                If this account exists, we sent a reset link to <br/>
                 <span className="font-medium text-foreground">{email}</span>
               </p>
             </div>

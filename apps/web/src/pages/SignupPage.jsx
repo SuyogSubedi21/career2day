@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet';
-import { Loader2, Eye, EyeOff, User, Lock, Mail } from 'lucide-react';
+import { Loader2, Eye, EyeOff, User, Lock, Mail, Briefcase, CheckCircle2, ArrowRight } from 'lucide-react';
 import GoogleIcon from '@/components/icons/GoogleIcon.jsx';
 
 export default function SignupPage() {
@@ -81,20 +81,52 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <Helmet>
-        <title>Create Account | CareerFlow</title>
+        <title>Create Account | Career2Day</title>
       </Helmet>
 
-      {/* Decorative background blurs */}
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-accent/10 blur-[100px] pointer-events-none" />
+      <div className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-6xl overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-slate-900 lg:grid-cols-[440px_1fr]">
+        <section className="hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          <Link to="/" className="inline-flex items-center gap-3 text-white">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600">
+              <Briefcase className="h-5 w-5" />
+            </span>
+            <span className="text-xl font-black tracking-tight">Career2Day</span>
+          </Link>
 
-      <div className="w-full max-w-[480px] bg-card border border-border shadow-xl rounded-2xl p-8 relative z-10">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">Create an Account</h1>
-          <p className="text-muted-foreground">Start building your future today</p>
-        </div>
+          <div>
+            <h1 className="text-4xl font-black leading-tight tracking-tight">Build a launch-ready career profile.</h1>
+            <p className="mt-5 text-lg leading-8 text-slate-300">
+              Create one account for roadmap progress, CV drafts, interview practice, and saved careers.
+            </p>
+          </div>
+
+          <div className="grid gap-4">
+            {['Free career roadmaps', 'Role-aware CV builder', 'Interview prep with hints and answers'].map((item) => (
+              <div key={item} className="flex items-center gap-3 text-sm text-slate-300">
+                <CheckCircle2 className="h-5 w-5 text-blue-300" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="flex items-center justify-center p-6 sm:p-10">
+          <div className="w-full max-w-lg">
+            <div className="mb-8 lg:hidden">
+              <Link to="/" className="inline-flex items-center gap-3 text-foreground">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                  <Briefcase className="h-5 w-5" />
+                </span>
+                <span className="text-xl font-black tracking-tight">Career2Day</span>
+              </Link>
+            </div>
+
+            <div className="mb-8">
+              <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">Create your account</h1>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Start with free tools and keep your work connected.</p>
+            </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
@@ -108,6 +140,7 @@ export default function SignupPage() {
                 className="pl-10 h-11 bg-background text-foreground"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
                 disabled={loading}
                 required
               />
@@ -125,6 +158,7 @@ export default function SignupPage() {
                 className="pl-10 h-11 bg-background text-foreground"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 disabled={loading}
                 required
               />
@@ -143,6 +177,7 @@ export default function SignupPage() {
                   className="pl-10 pr-10 h-11 bg-background text-foreground"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   disabled={loading}
                   required
                 />
@@ -160,6 +195,7 @@ export default function SignupPage() {
                   className="pl-10 pr-10 h-11 bg-background text-foreground"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
                   disabled={loading}
                   required
                 />
@@ -187,18 +223,18 @@ export default function SignupPage() {
               className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
             />
             <Label htmlFor="terms" className="font-normal text-sm text-muted-foreground leading-snug cursor-pointer">
-              I agree to the <a href="#" className="text-primary hover:underline">Terms of Service</a> and <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
+              I agree to the <Link to="/terms-of-service" className="text-primary hover:underline">Terms of Service</Link> and <Link to="/privacy-policy" className="text-primary hover:underline">Privacy Policy</Link>.
             </Label>
           </div>
 
-          <Button type="submit" className="w-full h-11 text-base font-medium" disabled={loading}>
+          <Button type="submit" className="h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/20" disabled={loading}>
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Creating account...
               </>
             ) : (
-              'Create Account'
+              <>Create account <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
           </Button>
         </form>
@@ -209,7 +245,7 @@ export default function SignupPage() {
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        <Button type="button" variant="outline" className="w-full h-11 font-medium" disabled={loading} onClick={handleGoogleSignup}>
+        <Button type="button" variant="outline" className="h-12 w-full rounded-xl font-bold" disabled={loading} onClick={handleGoogleSignup}>
           <GoogleIcon className="mr-2 h-5 w-5" />
           Continue with Google
         </Button>
@@ -222,6 +258,8 @@ export default function SignupPage() {
             </Link>
           </p>
         </div>
+          </div>
+        </section>
       </div>
     </div>
   );

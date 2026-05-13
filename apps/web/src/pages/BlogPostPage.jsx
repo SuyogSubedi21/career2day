@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet';
 import { Calendar, Clock, ChevronLeft } from 'lucide-react';
 import { blogArticles } from '@/lib/blogData.js';
 import RelatedArticles from '@/components/ui-custom/RelatedArticles.jsx';
+import DOMPurify from 'dompurify';
 
 export default function BlogPostPage() {
   const { slug } = useParams();
@@ -84,7 +85,7 @@ export default function BlogPostPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16">
           <div 
             className="blog-prose"
-            dangerouslySetInnerHTML={{ __html: article.content }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
           />
         </div>
       </article>

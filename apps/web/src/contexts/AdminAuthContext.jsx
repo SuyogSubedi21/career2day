@@ -10,7 +10,7 @@ const AdminAuthContext = createContext({
   logout: () => {}
 });
 
-const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || 'suyogsubedivlogs@gmail.com').toLowerCase();
+const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || 'admin@career2day.com').toLowerCase();
 
 const isAllowedAdmin = (record) => {
   if (!record) return false;

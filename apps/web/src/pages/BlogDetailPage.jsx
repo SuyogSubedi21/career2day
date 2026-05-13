@@ -6,6 +6,7 @@ import { Calendar, Clock, User, ArrowLeft, Twitter, Linkedin, Facebook } from 'l
 import { Button } from '@/components/ui/button';
 import { getArticleBySlug } from '@/lib/blogArticlesData.js';
 import TableOfContents from '@/components/ui-custom/TableOfContents.jsx';
+import DOMPurify from 'dompurify';
 
 export default function BlogDetailPage() {
   const { blogSlug } = useParams();
@@ -89,7 +90,7 @@ export default function BlogDetailPage() {
             <div className="glass-card rounded-3xl p-8 md:p-12 border-border/50">
               <div 
                 className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-3xl prose-h2:mt-10 prose-h2:mb-6 prose-p:leading-relaxed prose-p:text-foreground/80 prose-li:text-foreground/80 prose-a:text-primary hover:prose-a:text-primary/80"
-                dangerouslySetInnerHTML={{ __html: article.content }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
               />
             </div>
 

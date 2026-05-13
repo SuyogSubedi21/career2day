@@ -20,7 +20,6 @@ export default function ResetPasswordPage() {
   const token = searchParams.get('token') || params.token;
 
   useEffect(() => {
-    console.log(`[ResetPassword] Initializing with token: ${token ? 'Present' : 'Missing'}`);
     if (!token) {
       toast.error('Invalid or missing reset token');
     }
@@ -45,11 +44,9 @@ export default function ResetPasswordPage() {
     }
 
     setIsSubmitting(true);
-    console.log(`[ResetPassword] Submitting new password for token...`);
     
     try {
       await pb.collection('users').confirmPasswordReset(token, password, confirmPassword, { $autoCancel: false });
-      console.log(`[ResetPassword] Password reset successful`);
       toast.success('Password updated successfully. You can now log in with your new password.');
       navigate('/login');
     } catch (error) {

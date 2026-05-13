@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet';
-import { Loader2, Eye, EyeOff, Lock, Mail, Briefcase } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Lock, Mail, Briefcase, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import GoogleIcon from '@/components/icons/GoogleIcon.jsx';
 
@@ -60,28 +60,65 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
       <Helmet>
-        <title>Login | CareerMastery</title>
+        <title>Login | Career2Day</title>
       </Helmet>
 
-      {/* Decorative background effects */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/15 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-accent/20 blur-[120px] pointer-events-none" />
-
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-[420px] glass-card-premium rounded-[2rem] p-8 md:p-10 relative z-10"
-      >
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary shadow-lg shadow-primary/30 text-primary-foreground mb-6 hover:scale-105 transition-transform">
-            <Briefcase className="w-6 h-6" />
+      <div className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-6xl overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-slate-900 lg:grid-cols-[1fr_440px]">
+        <section className="hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          <Link to="/" className="inline-flex items-center gap-3 text-white">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600">
+              <Briefcase className="h-5 w-5" />
+            </span>
+            <span className="text-xl font-black tracking-tight">Career2Day</span>
           </Link>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground mb-2">Welcome Back</h1>
-          <p className="text-muted-foreground text-sm font-medium">Sign in to continue your career journey</p>
-        </div>
+
+          <div className="max-w-xl">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-blue-100">
+              <Sparkles className="h-4 w-4" />
+              Roadmaps, CVs, and interview prep in one workspace
+            </div>
+            <h1 className="text-5xl font-black leading-tight tracking-tight">
+              Pick up exactly where your career plan left off.
+            </h1>
+            <p className="mt-5 text-lg leading-8 text-slate-300">
+              Sign in to manage saved CVs, bookmarked careers, interview progress, and roadmap activity.
+            </p>
+          </div>
+
+          <div className="grid gap-3 text-sm text-slate-300">
+            {['Protected account access', 'Browser-based CV workspace', 'Progress saved to your profile'].map((item) => (
+              <div key={item} className="flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 text-blue-300" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="flex items-center justify-center p-6 sm:p-10"
+        >
+          <div className="w-full max-w-md">
+            <div className="mb-8 lg:hidden">
+              <Link to="/" className="inline-flex items-center gap-3 text-foreground">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                  <Briefcase className="h-5 w-5" />
+                </span>
+                <span className="text-xl font-black tracking-tight">Career2Day</span>
+              </Link>
+            </div>
+
+            <div className="mb-8">
+              <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">Welcome back</h1>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                Continue your roadmap, CV drafts, and interview preparation.
+              </p>
+            </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2.5">
@@ -95,6 +132,7 @@ export default function LoginPage() {
                 className="pl-10 h-12 bg-background/50 border-border/50 text-foreground focus-visible:ring-primary shadow-sm rounded-xl transition-all"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 disabled={loading}
                 required
               />
@@ -117,6 +155,7 @@ export default function LoginPage() {
                 className="pl-10 pr-10 h-12 bg-background/50 border-border/50 text-foreground focus-visible:ring-primary shadow-sm rounded-xl transition-all"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
                 disabled={loading}
                 required
               />
@@ -131,14 +170,14 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base font-bold rounded-xl shadow-lg shadow-primary/20 transition-all hover:translate-y-[-1px] active:translate-y-[1px]" disabled={loading}>
+          <Button type="submit" className="h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/20" disabled={loading}>
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Signing in...
               </>
             ) : (
-              'Login'
+              <>Sign in <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
           </Button>
         </form>
@@ -149,7 +188,7 @@ export default function LoginPage() {
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        <Button type="button" variant="outline" className="w-full h-12 rounded-xl font-bold" disabled={loading} onClick={handleGoogleLogin}>
+        <Button type="button" variant="outline" className="h-12 w-full rounded-xl font-bold" disabled={loading} onClick={handleGoogleLogin}>
           <GoogleIcon className="mr-2 h-5 w-5" />
           Continue with Google
         </Button>
@@ -162,7 +201,9 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-      </motion.div>
+          </div>
+        </motion.section>
+      </div>
     </div>
   );
 }
