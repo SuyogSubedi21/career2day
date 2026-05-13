@@ -50,7 +50,10 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(email, password, name);
+      const result = await register(email, password, confirmPassword, name);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
       toast.success('Account created successfully!');
       navigate('/login');
     } catch (error) {

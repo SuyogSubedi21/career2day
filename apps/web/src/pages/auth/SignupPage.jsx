@@ -189,7 +189,7 @@ export default function SignupPage() {
             variant="outline" 
             className="w-full h-12 bg-background hover:bg-muted text-foreground transition-all" 
             disabled={isLoading || !!success}
-            onClick={() => loginWithGoogle().then(() => navigate('/dashboard'))}
+            onClick={() => loginWithGoogle({ mode: 'signup' }).then(() => navigate('/dashboard'))}
           >
             <GoogleIcon className="mr-2 h-5 w-5" />
             Google

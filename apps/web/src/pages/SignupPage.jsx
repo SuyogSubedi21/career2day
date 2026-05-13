@@ -71,7 +71,7 @@ export default function SignupPage() {
   const handleGoogleSignup = async () => {
     setLoading(true);
     try {
-      await loginWithGoogle();
+      await loginWithGoogle({ mode: 'signup' });
       navigate('/dashboard');
     } catch {
       // AuthContext shows the error toast.

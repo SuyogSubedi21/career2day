@@ -28,6 +28,14 @@ const shouldRefreshAuth = () => {
   return secondsUntilExpiry < AUTH_REFRESH_EXPIRY_WINDOW_SECONDS && Date.now() - lastRefresh > AUTH_REFRESH_INTERVAL_MS;
 };
 
+const ACCOUNT_EXISTS_ERROR = 'ACCOUNT_EXISTS';
+
+const isFreshOAuthRecord = (record) => {
+  const createdAt = Date.parse(record?.created || '');
+  if (!Number.isFinite(createdAt)) return false;
+  return Date.now() - createdAt < 2 * 60 * 1000;
+};
+
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(pb.authStore.isValid ? pb.authStore.model : null);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,9 +89,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithGoogle = () => {
-    return pb.collection('users').authWithOAuth2({ provider: 'google' })
+  const loginWithGoogle = ({ mode = 'login' } = {}) => {
+    return pb.collection('users').authWithOAuth2({
+      provider: 'google',
+      createData: {
+        plan: 'free',
+        status: 'active',
+        emailVisibility: true,
+      },
+    })
       .then(async (authData) => {
+        const isExistingAccount = mode === 'signup'
+          && authData?.meta?.isNew !== true
+          && !isFreshOAuthRecord(authData?.record);
+
+        if (isExistingAccount) {
+          pb.authStore.clear();
+          setCurrentUser(null);
+          const accountExistsError = new Error('Account already exists. Please log in instead.');
+          accountExistsError.code = ACCOUNT_EXISTS_ERROR;
+          throw accountExistsError;
+        }
+
         // Removed success toast per Task 1 request
         try {
           await logActivity('login', '/login', 'google_oauth');
@@ -94,7 +121,11 @@ export const AuthProvider = ({ children }) => {
       })
       .catch((error) => {
         console.error('Google login error:', error);
-        toast.error('Failed to log in with Google');
+        if (error.code === ACCOUNT_EXISTS_ERROR) {
+          toast.error('Account already exists. Please log in instead.');
+        } else {
+          toast.error('Failed to log in with Google');
+        }
         throw error;
       });
   };
@@ -132,7 +163,7 @@ export const AuthProvider = ({ children }) => {
       let errorMessage = 'Failed to create account. Please try again.';
 
       if (error.status === 400 && error.data?.data?.email) {
-        errorMessage = 'This email is already registered';
+        errorMessage = 'An account already exists for this email. Please log in instead.';
       } else if (error.status === 400 && error.data?.data?.password) {
         errorMessage = 'Password must be at least 8 characters';
       } else if (error.status === 0 || error.isAbort || !navigator.onLine) {

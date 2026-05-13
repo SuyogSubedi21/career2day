@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { Lock, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,9 +14,10 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchParams] = useSearchParams();
+  const params = useParams();
   const navigate = useNavigate();
   
-  const token = searchParams.get('token');
+  const token = searchParams.get('token') || params.token;
 
   useEffect(() => {
     console.log(`[ResetPassword] Initializing with token: ${token ? 'Present' : 'Missing'}`);

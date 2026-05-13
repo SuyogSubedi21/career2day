@@ -167,6 +167,7 @@ export default function App() {
                 <Route path="/register" element={<Navigate to="/signup" replace />} />
                 <Route path="/forgot-password" element={<MainLayout><ForgotPasswordPage /></MainLayout>} />
                 <Route path="/reset-password" element={<MainLayout><ResetPasswordPage /></MainLayout>} />
+                <Route path="/reset-password/:token" element={<MainLayout><ResetPasswordPage /></MainLayout>} />
 
                 {/* Public Routes */}
                 <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
