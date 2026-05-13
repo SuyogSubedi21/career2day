@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SEOHead from '@/components/SEOHead.jsx';
 import { allCareerSummaries, calculateReadinessScore, getCareerPlatformBySlug } from '@/data/careerPlatformData.js';
+import { getSalaryMarketsForCareer } from '@/data/salaryMarketsByCareer.js';
 import { useRetention } from '@/hooks/useRetention.js';
 import { getLocalizedSalaryMarkets } from '@/lib/utils/localSalaryMarkets.js';
 
@@ -31,6 +32,7 @@ export default function CareerDetailPage() {
   const [quizDone, setQuizDone] = useState(false);
   const [activeQuizLevel, setActiveQuizLevel] = useState('beginner');
   const [activePanel, setActivePanel] = useState('overview');
+  const [selectedCountry, setSelectedCountry] = useState('USA');
   const { retention, badges, completeAction } = useRetention(career);
 
   if (!career) {
@@ -61,11 +63,14 @@ export default function CareerDetailPage() {
   const totalWeeks = career.roadmap.reduce((sum, phase) => sum + phase.timelineWeeks, 0);
 
   const salaryData = career.analytics.salary.map(([level, salary]) => ({ level, salary }));
+  const uploadedSalaryMarkets = getSalaryMarketsForCareer(career.slug);
   const localizedSalaryMarkets = getLocalizedSalaryMarkets({
     entryUsd: (salaryData[0]?.salary || salaryData[1]?.salary || 0) * 1000,
     midUsd: (salaryData[1]?.salary || salaryData[0]?.salary || 0) * 1000,
     seniorUsd: (salaryData[2]?.salary || salaryData[1]?.salary || 0) * 1000
   });
+  const salaryMarkets = uploadedSalaryMarkets.length ? uploadedSalaryMarkets : localizedSalaryMarkets;
+  const selectedSalaryMarket = salaryMarkets.find((market) => market.country === selectedCountry) || salaryMarkets[0];
   const quizQuestions = career.quizzes.filter((item) => item.difficulty === activeQuizLevel);
   const currentQuiz = quizQuestions[quizIndex] || quizQuestions[0];
   const activeAnswered = quizQuestions.filter((item) => answers[item.id]);
@@ -77,10 +82,11 @@ export default function CareerDetailPage() {
     ['What tools should I learn?', career.tools.join(', ')],
     ['What should I build?', career.roadmap.map((phase) => phase.miniProject).join(' ')]
   ];
-  const capstoneScore = scoreProject(projectSubmission, career);
+  const capstoneBrief = getCapstoneBrief(career);
+  const capstoneScore = scoreProject(projectSubmission, career, capstoneBrief);
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-20 text-slate-950 dark:bg-[#080b12] dark:text-white">
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_45%,#f8fafc_100%)] pb-20 text-slate-950 dark:bg-[linear-gradient(180deg,#070b13_0%,#0b1220_45%,#070b13_100%)] dark:text-white">
       <SEOHead
         title={career.seo?.title || `${career.name} Roadmap, Salary, Interview Questions and CV | Career2Day`}
         description={career.seo?.description || career.description}
@@ -107,7 +113,7 @@ export default function CareerDetailPage() {
         </div>
       </nav>
 
-      <section className="border-b border-slate-200/70 bg-white px-4 py-12 sm:px-6 lg:px-8 dark:border-white/10 dark:bg-[#080b12]" id="overview">
+      <section className="border-b border-slate-200/70 bg-white px-4 py-12 shadow-[0_20px_80px_rgba(15,23,42,0.06)] sm:px-6 lg:px-8 dark:border-white/10 dark:bg-[#080b12]" id="overview">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_340px]">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">{career.category}</p>
@@ -157,7 +163,7 @@ export default function CareerDetailPage() {
               </Button>
             </div>
           </div>
-          <aside className="rounded-lg border border-slate-200 bg-slate-50 p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+          <aside className="rounded-lg border border-slate-200 bg-slate-50 p-5 shadow-lg shadow-slate-900/5 dark:border-white/10 dark:bg-white/10">
             <p className="text-sm font-bold text-slate-500">Readiness score</p>
             <div className="mt-2 text-5xl font-extrabold">{readiness.score}%</div>
             <p className="mt-2 font-semibold">{readiness.level}</p>
@@ -193,7 +199,7 @@ export default function CareerDetailPage() {
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Salary</p>
                 <h3 className="mt-1 text-2xl font-extrabold">Salary progression</h3>
               </div>
-              <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+              <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
                 <div className="min-h-[300px]">
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={salaryData}>
@@ -208,14 +214,26 @@ export default function CareerDetailPage() {
                 <div className="grid gap-3">
                   {salaryData.slice(0, 3).map((item, index) => <InfoCard key={item.level} label={`${item.level} level`} value={formatSalaryRange(item.salary, index)} />)}
                   <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
-                    <h4 className="text-sm font-extrabold">Salary by country</h4>
-                    <div className="mt-3 grid gap-2">
-                      {localizedSalaryMarkets.map((market) => (
-                        <div key={market.country} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-xs dark:bg-white/10">
-                          <span className="font-bold text-slate-600 dark:text-slate-300">{market.country}</span>
-                          <span className="text-right font-extrabold text-slate-900 dark:text-white">{market.rangeLabel}</span>
-                        </div>
-                      ))}
+                    <div className="flex items-center justify-between gap-3">
+                      <h4 className="text-sm font-extrabold">Salary by country</h4>
+                      <select
+                        value={selectedSalaryMarket?.country || selectedCountry}
+                        onChange={(event) => setSelectedCountry(event.target.value)}
+                        className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm font-bold outline-none transition focus:border-slate-900 dark:border-white/10 dark:bg-slate-950"
+                      >
+                        {salaryMarkets.map((market) => (
+                          <option key={market.country} value={market.country}>{market.country}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mt-4 rounded-md bg-white p-4 shadow-sm dark:bg-white/10">
+                      <div className="text-xs font-bold uppercase tracking-wide text-slate-500">{selectedSalaryMarket?.country || 'Selected market'}</div>
+                      <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                        <SalaryCell label="Entry" value={selectedSalaryMarket?.entryLabel || selectedSalaryMarket?.entry} />
+                        <SalaryCell label="Mid" value={selectedSalaryMarket?.midLabel || selectedSalaryMarket?.mid} />
+                        <SalaryCell label="Senior" value={selectedSalaryMarket?.seniorLabel || selectedSalaryMarket?.senior} />
+                        <SalaryCell label="Lead" value={selectedSalaryMarket?.lead || selectedSalaryMarket?.leadLabel || selectedSalaryMarket?.rangeLabel} />
+                      </div>
                     </div>
                   </div>
                   <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
@@ -317,14 +335,15 @@ export default function CareerDetailPage() {
         <Section id="projects" eyebrow="Portfolio projects" title="Build proof employers can inspect">
           <div className="grid gap-4 lg:grid-cols-2">
             {career.projects.map((project) => (
-              <article key={project.title} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+              <article key={project.title} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5 dark:border-white/10 dark:bg-white/10">
+                <div className="mb-4 inline-flex rounded-md bg-slate-100 px-2.5 py-1 text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:bg-white/10 dark:text-slate-300">Portfolio proof</div>
                 <h3 className="text-xl font-extrabold">{project.title}</h3>
                 <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{project.description}</p>
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <ListBlock title="Skills used" items={project.skillsUsed} />
-                  <ListBlock title="Tools used" items={project.toolsUsed} />
+                  <ListBlock title="Skills used" items={project.skillsUsed || career.requiredSkills?.slice(0, 4) || []} />
+                  <ListBlock title="Tools used" items={project.toolsUsed || career.tools?.slice(0, 4) || []} />
                 </div>
-                <Callout title="Why it helps applications" text={project.applicationValue} className="mt-4 bg-slate-50 dark:bg-white/5" />
+                <Callout title="Why it helps applications" text={project.applicationValue || `Shows employers you can apply ${career.name} skills to a scoped, reviewable project with evidence.`} className="mt-4 bg-slate-50 dark:bg-white/5" />
               </article>
             ))}
           </div>
@@ -333,15 +352,26 @@ export default function CareerDetailPage() {
 
       {activePanel === 'projects' && (
         <Section id="final-project" eyebrow="Final project" title="Build and submit a job-ready capstone">
-        <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+        <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-lg shadow-slate-900/5 dark:border-white/10 dark:bg-white/10">
             <h3 className="text-2xl font-extrabold">{career.name} capstone brief</h3>
             <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
               Build one complete project that combines the roadmap skills, tools, documentation, and interview story. This stays in your browser for now; you can share the URL or exported file with a mentor for manual review.
             </p>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <Callout title="Project scope" text={career.roadmap[career.roadmap.length - 1].miniProject} />
-              <Callout title="Required evidence" text="README, screenshots or demo, tools used, tradeoffs, known limitations, and one measurable result or learning." />
+              <Callout title="Project scope" text={capstoneBrief.scope} />
+              <Callout title="Required evidence" text={capstoneBrief.evidence} />
+            </div>
+            <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+              <h4 className="text-sm font-extrabold">Accuracy checklist</h4>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                {capstoneBrief.checks.map((check) => (
+                  <div key={check} className="flex items-start gap-2 text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                    {check}
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="mt-5 grid gap-4">
               <label className="grid gap-2 text-sm font-bold">Project title<Input className="rounded-md" value={projectSubmission.title} onChange={(event) => setProjectSubmission((current) => ({ ...current, title: event.target.value }))} /></label>
@@ -355,7 +385,7 @@ export default function CareerDetailPage() {
               </label>
             </div>
           </div>
-          <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
+          <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-lg shadow-slate-900/5 dark:border-white/10 dark:bg-white/10">
             <div className="flex items-center gap-3">
               <FileCheck2 className="h-8 w-8 text-slate-700 dark:text-slate-200" />
               <div>
@@ -373,8 +403,8 @@ export default function CareerDetailPage() {
                 </div>
               ))}
             </div>
-            <p className="mt-5 rounded-md bg-slate-50 p-3 text-xs font-semibold text-slate-500 dark:bg-white/5">
-              Manual mentor rating can be added later with a backend review queue. This version gives private local feedback only.
+            <p className="mt-5 rounded-md bg-slate-50 p-3 text-xs font-semibold leading-5 text-slate-500 dark:bg-white/5">
+              Rating is based on the submitted text, link, and attachment metadata. It checks role fit and evidence quality, but it does not inspect the external project itself.
             </p>
           </aside>
         </div>
@@ -476,6 +506,15 @@ function MiniMetric({ label, value }) {
   );
 }
 
+function SalaryCell({ label, value }) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/5">
+      <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{label}</div>
+      <div className="mt-1 font-extrabold text-slate-950 dark:text-white">{value || 'N/A'}</div>
+    </div>
+  );
+}
+
 function ListBlock({ title, items, className = '' }) {
   return (
     <div className={`rounded-lg border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/5 ${className}`}>
@@ -500,7 +539,7 @@ function RoadmapSkillsSidebar({ career }) {
   ].filter(([, items]) => items.length);
 
   return (
-    <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10 lg:sticky lg:top-24">
+    <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/10">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Skills</p>
       <h3 className="mt-1 text-xl font-extrabold">Skills you will learn</h3>
       <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Use this list as a quick guide. The roadmap shows when to practise each skill.</p>
@@ -553,32 +592,71 @@ function Callout({ title, text, className = '' }) {
   );
 }
 
-function scoreProject(submission, career) {
+function getCapstoneBrief(career) {
+  const finalRoadmapProject = career.roadmap?.[career.roadmap.length - 1]?.miniProject;
+  const strongestProject = career.projects?.[0];
+  const coreSkills = (career.requiredSkills || career.skills || []).slice(0, 5);
+  const tools = (career.tools || []).slice(0, 5);
+
+  return {
+    scope:
+      strongestProject?.description ||
+      finalRoadmapProject ||
+      `Build a complete ${career.name} project that solves a realistic problem, documents decisions, and proves the main skills from this roadmap.`,
+    evidence: `Include a public link or attachment, README, setup notes, screenshots or demo, ${tools.slice(0, 3).join(', ') || 'role tools'}, validation evidence, tradeoffs, and one measurable outcome.`,
+    checks: [
+      `Uses at least two relevant ${career.name} skills`,
+      'Includes setup or reproduction notes',
+      'Shows validation, tests, evaluation, or review evidence',
+      'Documents tradeoffs, risks, and next improvements',
+      'Connects the project to a measurable user, business, or technical outcome',
+      'Can be explained in an interview without relying on buzzwords'
+    ],
+    coreSkills,
+    tools
+  };
+}
+
+function scoreProject(submission, career, brief = getCapstoneBrief(career)) {
   const notes = `${submission.notes} ${submission.selfReview}`.toLowerCase();
   const hasTitle = submission.title.trim().length > 4;
   const hasUrl = /^https?:\/\//.test(submission.url.trim()) || submission.url.includes('.');
   const hasFile = Boolean(submission.fileName);
-  const hasDepth = submission.notes.trim().length > 180;
-  const hasReflection = submission.selfReview.trim().length > 80;
-  const mentionsTools = career.tools.some((tool) => notes.includes(tool.toLowerCase().split(' ')[0]));
-  const mentionsOutcome = ['result', 'improved', 'measured', 'metric', 'outcome', 'learned'].some((word) => notes.includes(word));
-  const mentionsTradeoff = ['tradeoff', 'limitation', 'challenge', 'improve', 'risk'].some((word) => notes.includes(word));
+  const hasProjectEvidence = hasUrl || hasFile;
+  const hasDepth = submission.notes.trim().length >= 220;
+  const hasReflection = submission.selfReview.trim().length >= 90;
+  const roleTerms = [career.name, ...(brief.coreSkills || []), ...(career.requiredSkills || [])]
+    .map((term) => String(term).toLowerCase().split(/[ /,()-]/)[0])
+    .filter((term) => term.length > 2);
+  const toolTerms = (brief.tools || career.tools || [])
+    .map((tool) => String(tool).toLowerCase().split(/[ /,()-]/)[0])
+    .filter((tool) => tool.length > 2);
+  const mentionsRoleSkills = roleTerms.some((term) => notes.includes(term));
+  const mentionsTools = toolTerms.some((tool) => notes.includes(tool));
+  const mentionsValidation = ['test', 'tested', 'evaluation', 'evaluate', 'validated', 'metric', 'benchmark', 'review', 'accessibility', 'security', 'quality'].some((word) => notes.includes(word));
+  const mentionsOutcome = ['result', 'improved', 'reduced', 'increased', 'measured', 'metric', 'outcome', 'impact', 'latency', 'accuracy', 'conversion', 'cost'].some((word) => notes.includes(word));
+  const mentionsTradeoff = ['tradeoff', 'trade-off', 'limitation', 'challenge', 'risk', 'constraint', 'fallback', 'alternative', 'compromise'].some((word) => notes.includes(word));
+  const mentionsDocumentation = ['readme', 'setup', 'install', 'architecture', 'diagram', 'docs', 'documentation', 'runbook'].some((word) => notes.includes(word));
+  const mentionsDeployment = ['deploy', 'deployed', 'live', 'production', 'hosted', 'docker', 'ci', 'github'].some((word) => notes.includes(word) || submission.url.toLowerCase().includes(word));
 
   const rubric = [
-    { label: 'Clear title', points: hasTitle ? 10 : 0 },
-    { label: 'Project link', points: hasUrl ? 15 : 0 },
-    { label: 'Attachment', points: hasFile ? 10 : 0 },
-    { label: 'Detailed notes', points: hasDepth ? 20 : 0 },
-    { label: 'Tools mentioned', points: mentionsTools ? 15 : 0 },
-    { label: 'Outcome evidence', points: mentionsOutcome ? 15 : 0 },
-    { label: 'Reflection', points: hasReflection && mentionsTradeoff ? 15 : hasReflection ? 8 : 0 }
+    { label: 'Clear project title', points: hasTitle ? 8 : 0 },
+    { label: 'Reviewable evidence', points: hasProjectEvidence ? 14 : 0 },
+    { label: 'Role skill fit', points: mentionsRoleSkills ? 14 : 0 },
+    { label: 'Relevant tools used', points: mentionsTools ? 12 : 0 },
+    { label: 'Detailed implementation notes', points: hasDepth ? 14 : 0 },
+    { label: 'Validation or testing', points: mentionsValidation ? 12 : 0 },
+    { label: 'Measurable outcome', points: mentionsOutcome ? 10 : 0 },
+    { label: 'Documentation and setup', points: mentionsDocumentation ? 8 : 0 },
+    { label: 'Deployment or reproducibility', points: mentionsDeployment ? 4 : 0 },
+    { label: 'Reflection and tradeoffs', points: hasReflection && mentionsTradeoff ? 4 : hasReflection ? 2 : 0 }
   ];
   const score = rubric.reduce((sum, item) => sum + item.points, 0);
 
-  let feedback = 'Add a title, link, detailed notes, and reflection to receive a meaningful project rating.';
-  if (score >= 85) feedback = 'Strong capstone. It includes proof, tools, outcome evidence, and reflection. This is close to portfolio-ready.';
-  else if (score >= 65) feedback = 'Good progress. Add more measurable outcomes, tradeoffs, or documentation to make it recruiter-ready.';
-  else if (score >= 40) feedback = 'Early draft. The idea is visible, but the submission needs clearer evidence, tools, and reflection.';
+  let feedback = 'Add a title, reviewable link or attachment, implementation notes, role tools, validation evidence, and reflection to receive a meaningful rating.';
+  if (score >= 85) feedback = 'Portfolio-ready direction. The submission connects role skills, tooling, validation, measurable impact, documentation, and tradeoffs.';
+  else if (score >= 65) feedback = 'Good project foundation. Add stronger validation, measurable impact, setup notes, or tradeoff detail to make it interview-ready.';
+  else if (score >= 40) feedback = 'Useful early draft. The project idea is visible, but it needs clearer role fit, evidence, validation, and outcome detail.';
 
   return { score, feedback, rubric };
 }

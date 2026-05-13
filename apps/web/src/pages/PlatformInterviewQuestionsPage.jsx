@@ -1,12 +1,18 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpenCheck, CheckCircle2, ChevronDown, Filter, Search } from 'lucide-react';
+import { ArrowLeft, BookOpenCheck, CheckCircle2, ChevronDown, Eye, Filter, Lightbulb, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SEOHead from '@/components/SEOHead.jsx';
 import { getCareerPlatformBySlug } from '@/data/careerPlatformData.js';
 
 const levels = ['all', 'beginner', 'intermediate', 'advanced'];
+const levelLabels = {
+  all: 'All',
+  beginner: 'Easy',
+  intermediate: 'Medium',
+  advanced: 'Hard'
+};
 
 export default function PlatformInterviewQuestionsPage() {
   const { careerSlug } = useParams();
@@ -15,6 +21,8 @@ export default function PlatformInterviewQuestionsPage() {
   const [topic, setTopic] = useState('all');
   const [query, setQuery] = useState('');
   const [openId, setOpenId] = useState(null);
+  const [revealedHints, setRevealedHints] = useState({});
+  const [revealedAnswers, setRevealedAnswers] = useState({});
   const [completed, setCompleted] = useLocalState(`career2day-interview-${careerSlug}`, {});
 
   const questions = useMemo(() => {
@@ -48,7 +56,7 @@ export default function PlatformInterviewQuestionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-950 dark:bg-[#080b12] dark:text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_42%,#f8fafc_100%)] text-slate-950 dark:bg-[linear-gradient(180deg,#070b13_0%,#0b1220_42%,#070b13_100%)] dark:text-white">
       <SEOHead title={`${career.name} Interview Questions | Career2Day`} description={`Practice 100 structured ${career.name} interview questions with short answers, detailed explanations, mistakes, and examples.`} />
       <section className="px-4 pb-10 pt-28 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
@@ -65,10 +73,10 @@ export default function PlatformInterviewQuestionsPage() {
                 Cleanly grouped questions with one focus at a time: question, short answer, detailed answer, common mistake, and practical example.
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-2 rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm dark:border-white/10 dark:bg-white/10">
-              <Stat value={counts.beginner} label="Beginner" />
-              <Stat value={counts.intermediate} label="Intermediate" />
-              <Stat value={counts.advanced} label="Advanced" />
+            <div className="grid grid-cols-3 gap-2 rounded-lg border border-slate-200 bg-white p-4 text-center shadow-lg shadow-slate-900/5 dark:border-white/10 dark:bg-white/10">
+              <Stat value={counts.beginner} label="Easy" />
+              <Stat value={counts.intermediate} label="Medium" />
+              <Stat value={counts.advanced} label="Hard" />
             </div>
           </div>
         </div>
@@ -76,7 +84,7 @@ export default function PlatformInterviewQuestionsPage() {
 
       <section className="px-4 pb-24 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="sticky top-20 z-20 mb-6 rounded-lg border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-[#080b12]/90">
+          <div className="mb-6 rounded-lg border border-slate-200 bg-white/90 p-4 shadow-lg shadow-slate-900/5 backdrop-blur-xl dark:border-white/10 dark:bg-[#080b12]/90">
             <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -86,7 +94,7 @@ export default function PlatformInterviewQuestionsPage() {
                 {levels.map((item) => (
                   <Button key={item} type="button" variant={level === item ? 'default' : 'outline'} className="rounded-md capitalize" onClick={() => setLevel(item)}>
                     {item === 'all' && <Filter className="mr-2 h-4 w-4" />}
-                    {item}
+                    {levelLabels[item]}
                   </Button>
                 ))}
               </div>
@@ -105,7 +113,7 @@ export default function PlatformInterviewQuestionsPage() {
             {questions.map((item, index) => {
               const isOpen = openId === item.id;
               return (
-                <article key={item.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/10">
+                <article key={item.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:shadow-md dark:border-white/10 dark:bg-white/10">
                   <button type="button" onClick={() => setOpenId(isOpen ? null : item.id)} className="grid w-full gap-4 p-5 text-left md:grid-cols-[110px_1fr_auto] md:items-center">
                     <div>
                       <div className="text-xs font-extrabold uppercase tracking-wide text-slate-400">Question</div>
@@ -113,13 +121,12 @@ export default function PlatformInterviewQuestionsPage() {
                     </div>
                     <div>
                       <div className="mb-2 flex flex-wrap gap-2">
-                        <Badge>{item.difficulty}</Badge>
+                        <Badge>{levelLabels[item.difficulty] || item.difficulty}</Badge>
                         <Badge muted>{item.topic}</Badge>
                         <Badge muted>{item.relatedSkill}</Badge>
                         {completed[item.id] && <Badge>completed</Badge>}
                       </div>
                       <h2 className="text-lg font-extrabold leading-7">{item.question}</h2>
-                      <p className="mt-2 text-sm font-semibold text-slate-600 dark:text-slate-300">{item.shortAnswer}</p>
                     </div>
                     <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -130,17 +137,56 @@ export default function PlatformInterviewQuestionsPage() {
                           {completed[item.id] ? 'Marked completed' : 'Mark as completed'}
                         </Button>
                       </div>
-                      <div className="grid gap-4 lg:grid-cols-[1fr_0.8fr]">
-                        <Panel title="Detailed answer">
-                          {item.detailedAnswer}
-                        </Panel>
+                      <div className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+                        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/10">
+                          <h3 className="text-sm font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-300">Practice flow</h3>
+                          <div className="mt-4 grid gap-3">
+                            <Button
+                              type="button"
+                              variant={revealedHints[item.id] ? 'secondary' : 'outline'}
+                              className="justify-start rounded-md"
+                              onClick={() => setRevealedHints((current) => ({ ...current, [item.id]: true }))}
+                            >
+                              <Lightbulb className="mr-2 h-4 w-4" /> Reveal hint
+                            </Button>
+                            <Button
+                              type="button"
+                              variant={revealedAnswers[item.id] ? 'secondary' : 'default'}
+                              className="justify-start rounded-md"
+                              onClick={() => {
+                                setRevealedHints((current) => ({ ...current, [item.id]: true }));
+                                setRevealedAnswers((current) => ({ ...current, [item.id]: true }));
+                              }}
+                            >
+                              <Eye className="mr-2 h-4 w-4" /> Reveal final answer
+                            </Button>
+                          </div>
+                          {revealedHints[item.id] ? (
+                            <Panel title="Hint" className="mt-4 border border-amber-200 bg-amber-50 shadow-none dark:border-amber-400/20 dark:bg-amber-400/10">
+                              {item.hint || 'Start with the decision you would make, then name the evidence, risk, and tradeoff.'}
+                            </Panel>
+                          ) : (
+                            <LockedPanel title="Hint" text="Try answering out loud before opening the hint." />
+                          )}
+                        </div>
                         <div className="grid gap-4">
-                          <Panel title="Common mistake">
-                            {item.commonMistake}
-                          </Panel>
-                          <Panel title="Real-world example">
-                            {item.realWorldExample}
-                          </Panel>
+                          {revealedAnswers[item.id] ? (
+                            <>
+                              <Panel title="Final answer">
+                                {item.detailedAnswer}
+                              </Panel>
+                              <div className="grid gap-4 md:grid-cols-2">
+                                <Panel title="Common mistake">
+                                  {item.commonMistake}
+                                </Panel>
+                                <Panel title="Real-world example">
+                                  {item.realWorldExample}
+                                </Panel>
+                              </div>
+                            </>
+                          ) : (
+                            <LockedPanel title="Final answer" text="Reveal the final answer after you have tried your own response." />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -188,13 +234,22 @@ function Badge({ children, muted = false }) {
   return <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${muted ? 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300' : 'bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300'}`}>{children}</span>;
 }
 
-function Panel({ title, children }) {
+function Panel({ title, children, className = '' }) {
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-white/10">
+    <div className={`rounded-lg bg-white p-4 shadow-sm dark:bg-white/10 ${className}`}>
       <h3 className="mb-2 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-300">
         <CheckCircle2 className="h-4 w-4 text-emerald-500" /> {title}
       </h3>
       <p className="text-sm leading-7 text-slate-700 dark:text-slate-200">{children}</p>
+    </div>
+  );
+}
+
+function LockedPanel({ title, text }) {
+  return (
+    <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm font-semibold text-slate-500 dark:border-white/15 dark:bg-white/5 dark:text-slate-400">
+      <div className="text-xs font-extrabold uppercase tracking-wide">{title}</div>
+      <p className="mt-2 leading-6">{text}</p>
     </div>
   );
 }

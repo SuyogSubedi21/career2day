@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useParams, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -79,6 +79,16 @@ const MainLayout = ({ children }) => (
   </div>
 );
 
+const ScrollToTop = () => {
+  const { pathname, search } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname, search]);
+
+  return null;
+};
+
 const FallbackLoader = () => (
   <div className="min-h-[60vh] flex items-center justify-center">
     <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -104,6 +114,11 @@ const CVBuilderRoute = () => {
   return <SmartCVBuilderPage />;
 };
 
+const NavigateToCareer = () => {
+  const { careerSlug } = useParams();
+  return <Navigate to={`/careers/${careerSlug}`} replace />;
+};
+
 const AppInitializer = () => {
   const { isAdminLoggedIn } = useAdminAuth();
   
@@ -124,6 +139,7 @@ export default function App() {
     <ThemeProvider>
       <CurrencyProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <GlobalTracker />
           <AuthProvider>
             <AdminAuthProvider>
@@ -167,6 +183,8 @@ export default function App() {
                 {/* Careers Routes */}
                 <Route path="/careers" element={<MainLayout><CareersListingPage /></MainLayout>} />
                 <Route path="/careers/:careerSlug" element={<MainLayout><CareerDetailPage /></MainLayout>} />
+                <Route path="/career-roadmaps" element={<Navigate to="/careers" replace />} />
+                <Route path="/career-roadmaps/:careerSlug" element={<NavigateToCareer />} />
                 <Route path="/cv-builder" element={<MainLayout><CVBuilderRoute /></MainLayout>} />
                 <Route path="/cv-builder/editor" element={<MainLayout><SmartCVBuilderPage /></MainLayout>} />
                 <Route path="/cv-builder/:templateId" element={<MainLayout><CVBuilderRoute /></MainLayout>} />

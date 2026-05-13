@@ -3,6 +3,7 @@ import { aiEngineerCareer } from './careers/ai-engineer.js';
 import { generativeAiEngineerCareer } from './careers/generative-ai-engineer.js';
 import { aiResearchScientistCareer } from './careers/ai-research-scientist.js';
 import { dataScientistCareer } from './careers/data-scientist.js';
+import { uploadedCareerRoadmapsBySlug } from './uploadedCareerRoadmaps.js';
 
 const careerNames = [
   'AI Engineer',
@@ -361,8 +362,8 @@ const answerTemplate = ({ career, context, topic, difficulty, type, focus, const
 const makeQuestions = (career, topics) => {
   const levels = [
     ['beginner', 30],
-    ['intermediate', 40],
-    ['advanced', 30]
+    ['intermediate', 30],
+    ['advanced', 40]
   ];
   const context = roleContext(career);
   const profile = roleInterviewProfile(career);
@@ -405,6 +406,7 @@ const makeQuestions = (career, topics) => {
         question,
         shortAnswer: answer,
         detailedAnswer: `${answer} A top interview response should be specific about the first diagnostic step, the evidence that would confirm or reject the hypothesis, the release or mitigation path, and what would be monitored afterward. It should avoid vague tool-name answers and show judgment about when a simpler design is safer.`,
+        hint: `Anchor your answer in ${topic.name}, mention one concrete check, and explain the tradeoff for ${career.name} work.`,
         difficulty,
         topic: topic.name,
         type: blueprint.type,
@@ -415,6 +417,22 @@ const makeQuestions = (career, topics) => {
       };
     })
   );
+};
+
+const ensureInterviewSet = (career, topics) => {
+  const generated = makeQuestions(career, topics);
+  const existing = (career.interviewQuestions || []).map((question, index) => ({
+    ...question,
+    hint: question.hint || `Name the key decision, the evidence you would check, and the tradeoff for ${career.name}.`,
+    id: question.id || `${career.slug}-provided-iq-${index + 1}`
+  }));
+  const targets = { beginner: 30, intermediate: 30, advanced: 40 };
+
+  return Object.entries(targets).flatMap(([difficulty, target]) => {
+    const provided = existing.filter((question) => question.difficulty === difficulty);
+    const supplement = generated.filter((question) => question.difficulty === difficulty);
+    return [...provided, ...supplement].slice(0, target);
+  });
 };
 
 const quizBlueprints = {
@@ -1095,8 +1113,105 @@ const normalizeCareer = (career) => {
   return {
     ...normalized,
     skillsDetailed: career.skillsDetailed || makeSkillDetails(normalized),
-    interviewQuestions: career.interviewQuestions || makeQuestions(normalized, preparedTopics),
+    interviewQuestions: ensureInterviewSet(normalized, preparedTopics),
     quizzes: career.quizzes || makeQuizzes(normalized, preparedTopics)
+  };
+};
+
+const uploadedSkillCard = (careerName, name, category = 'skill') => ({
+  name,
+  explanation:
+    category === 'tool'
+      ? `${name} appears in the uploaded ${careerName} roadmap as a tool to practise.`
+      : `${name} appears in the uploaded ${careerName} roadmap as a skill to learn.`,
+  whyItMatters: 'It is part of the step-by-step roadmap for this career and should be backed by project evidence.'
+});
+
+const applyUploadedRoadmap = (career) => {
+  const uploaded = uploadedCareerRoadmapsBySlug[career.slug];
+  if (!uploaded?.roadmap?.length) return career;
+
+  const description = uploaded.intro
+    ? uploaded.intro.replace(new RegExp(`^${career.name}\\s+Roadmap\\s+`, 'i'), '').trim()
+    : career.description;
+  const uploadedSkills = uniqueList(uploaded.roadmap.flatMap((phase) => phase.topics || [])).slice(0, 18);
+  const uploadedTools = uniqueList(uploaded.roadmap.flatMap((phase) => phase.tools || []));
+  const primarySkills = uploadedSkills.slice(0, 8);
+  const technicalSkills = uploadedSkills.slice(8, 18);
+  const tools = uploadedTools.length ? uploadedTools : career.tools;
+  const uploadedTopics = uploaded.roadmap.flatMap((phase) =>
+    (phase.topics?.length ? phase.topics : [phase.phase]).slice(0, 6).map((topic) => ({
+      name: topic,
+      skill: topic,
+      tools: phase.tools?.length ? phase.tools : tools.slice(0, 4),
+      mistake: `Learning ${topic} without building reviewable ${career.name} evidence.`,
+      example: phase.miniProject || `Use ${topic} in a practical ${career.name} portfolio project.`,
+      correct: phase.outcome || phase.expectedOutcome || `Apply ${topic} in a realistic ${career.name} workflow.`
+    }))
+  );
+  const uploadedProjects = uploaded.roadmap
+    .filter((phase) => phase.miniProject)
+    .slice(-4)
+    .map((phase, index) =>
+      expandProject(
+        { ...career, skills: uploadedSkills, requiredSkills: uploadedSkills, tools },
+        {
+          title: `${phase.phase} Portfolio Project`,
+          description: phase.miniProject,
+          skillsUsed: (phase.topics?.length ? phase.topics : uploadedSkills).slice(0, 5),
+          toolsUsed: (phase.tools?.length ? phase.tools : tools).slice(0, 5),
+          applicationValue: phase.outcome || phase.expectedOutcome
+        },
+        index
+      )
+    );
+  const skillsDetailed = {
+    core: primarySkills.map((name) => uploadedSkillCard(career.name, name)),
+    technical: technicalSkills.map((name) => uploadedSkillCard(career.name, name)),
+    tools: tools.map((name) => uploadedSkillCard(career.name, name, 'tool')),
+    soft: career.skillsDetailed?.soft || []
+  };
+
+  return {
+    ...career,
+    description: description || career.description,
+    requiredSkills: uploadedSkills.length ? uploadedSkills.slice(0, 12) : career.requiredSkills,
+    skills: uploadedSkills.length ? uploadedSkills.slice(0, 12) : career.skills,
+    tools,
+    topics: uploadedTopics.length ? uploadedTopics.slice(0, 24) : career.topics,
+    projects: uploadedProjects.length ? uploadedProjects : career.projects,
+    interviewQuestions: ensureInterviewSet(
+      {
+        ...career,
+        requiredSkills: uploadedSkills.length ? uploadedSkills.slice(0, 12) : career.requiredSkills,
+        skills: uploadedSkills.length ? uploadedSkills.slice(0, 12) : career.skills,
+        tools,
+        interviewQuestions: []
+      },
+      uploadedTopics.length ? uploadedTopics.slice(0, 24) : career.topics
+    ),
+    skillsDetailed,
+    cv: {
+      ...(career.cv || {}),
+      skills: uploadedSkills.length ? uploadedSkills.slice(0, 12) : career.cv?.skills,
+      atsKeywords: uniqueList([career.name, ...uploadedSkills.slice(0, 12), ...tools.slice(0, 8)])
+    },
+    analytics: {
+      ...(career.analytics || {}),
+      skills: uploadedSkills.length ? uploadedSkills.slice(0, 6).map((skill, index) => [skill, 90 - index * 4]) : career.analytics?.skills
+    },
+    roadmap: uploaded.roadmap.map((phase) => ({
+      phase: phase.phase,
+      timelineWeeks: phase.timelineWeeks || 4,
+      topics: phase.topics?.length ? phase.topics : [phase.phase],
+      tools: phase.tools || [],
+      miniProject: phase.miniProject,
+      outcome: phase.outcome || phase.expectedOutcome,
+      expectedOutcome: phase.expectedOutcome || phase.outcome,
+      nextAction: phase.nextAction,
+      checklist: phase.checklist?.length ? phase.checklist : (phase.topics || [phase.phase]).slice(0, 6).map((topic) => `Build evidence for: ${topic}`)
+    })),
+    roadmapSource: 'uploaded-roadmap-zip'
   };
 };
 
@@ -1356,7 +1471,7 @@ const completeCareers = [
     topics: frontendTopics
   },
   ...roleProfiles.map(buildGeneratedCareer)
-].map(normalizeCareer);
+].map(normalizeCareer).map(applyUploadedRoadmap);
 
 export const careerPlatformData = completeCareers;
 

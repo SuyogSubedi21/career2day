@@ -56,7 +56,7 @@ export default function Footer() {
         
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Career2Day. All rights reserved.
+            &copy; {new Date().getFullYear()} Career2Day. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
             Built by <span className="font-medium text-foreground">Suyog Subedi</span>
