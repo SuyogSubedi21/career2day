@@ -94,7 +94,7 @@ export default function AboutPage() {
                   </div>
 
                   <Button asChild variant="outline" className="mt-6 w-full rounded-xl">
-                    <a href="https://www.linkedin.com/in/suyogsubedi/" target="_blank" rel="noreferrer">
+                    <a href="https://www.linkedin.com/in/suyog-subedi-724510316" target="_blank" rel="noreferrer">
                       <Linkedin className="w-4 h-4 mr-2" />
                       Connect on LinkedIn
                     </a>
