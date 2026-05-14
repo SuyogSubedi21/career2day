@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
       setIsSubmitted(true);
     } catch (error) {
       console.error('[ForgotPassword] Password reset request error:', error);
-      toast.error('Could not send the reset email. Check PocketBase SMTP settings and try again.');
+      toast.error('Could not send the reset email. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }
@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
             <ShieldCheck className="h-7 w-7" />
           </div>
           <h1 className="text-3xl font-black tracking-tight mb-2">Reset your password</h1>
-          <p className="text-muted-foreground">Enter your account email. If it exists, PocketBase will send a secure reset link.</p>
+          <p className="text-muted-foreground">Enter your account email. If it exists, Career2Day will send a secure reset link.</p>
         </div>
 
         {isSubmitted ? (

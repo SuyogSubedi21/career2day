@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet';
 import { Loader2, Eye, EyeOff, Lock, Mail, Briefcase, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
 import GoogleIcon from '@/components/icons/GoogleIcon.jsx';
 
 export default function LoginPage() {
@@ -33,8 +32,7 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await login(email, password);
-      toast.success('Welcome back!');
+      await login(email.trim().toLowerCase(), password);
       navigate(from, { replace: true });
     } catch (error) {
       let errorMessage = 'Failed to log in. Please check your credentials.';
@@ -97,12 +95,7 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <motion.section
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="flex items-center justify-center p-6 sm:p-10"
-        >
+        <section className="flex items-center justify-center p-6 sm:p-10">
           <div className="w-full max-w-md">
             <div className="mb-8 lg:hidden">
               <Link to="/" className="inline-flex items-center gap-3 text-foreground">
@@ -151,7 +144,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder="Password"
                 className="pl-10 pr-10 h-12 bg-background/50 border-border/50 text-foreground focus-visible:ring-primary shadow-sm rounded-xl transition-all"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -202,7 +195,7 @@ export default function LoginPage() {
           </p>
         </div>
           </div>
-        </motion.section>
+        </section>
       </div>
     </div>
   );

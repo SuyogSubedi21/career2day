@@ -5,12 +5,13 @@ import { ArrowLeft, Zap, Target, Flame } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import SEOHead from '@/components/SEOHead.jsx';
+import { getCareerPlatformBySlug } from '@/data/careerPlatformData.js';
 
 export default function QuizDifficultyPage() {
   const { careerSlug } = useParams();
+  const career = getCareerPlatformBySlug(careerSlug);
   
-  // Format slug to readable string for fallback UI
-  const careerName = careerSlug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  const careerName = career?.name || careerSlug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
   const difficulties = [
     {
@@ -46,7 +47,7 @@ export default function QuizDifficultyPage() {
   ];
 
   return (
-    <div className="min-h-[100dvh] bg-background py-16 flex flex-col items-center">
+    <div className="min-h-[100dvh] bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] py-16 flex flex-col items-center dark:bg-[linear-gradient(180deg,#070b13_0%,#0b1220_100%)]">
       <SEOHead 
         title={`Select Difficulty - ${careerName} Quiz`}
         description={`Choose a difficulty level to begin your ${careerName} technical assessment.`}
@@ -54,9 +55,9 @@ export default function QuizDifficultyPage() {
       
       <div className="max-w-4xl w-full px-4 sm:px-6">
         <Button variant="ghost" asChild className="mb-8 pl-0 hover:bg-transparent hover:text-primary transition-colors">
-          <Link to="/quiz" className="flex items-center text-muted-foreground">
+          <Link to={`/careers/${careerSlug}`} className="flex items-center text-muted-foreground">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Quizzes
+            Back to Career Path
           </Link>
         </Button>
 
@@ -73,7 +74,7 @@ export default function QuizDifficultyPage() {
           {difficulties.map(level => {
             const Icon = level.icon;
             return (
-              <Card key={level.id} className="bg-card border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+              <Card key={level.id} className="bg-card/95 border-border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <CardContent className="p-6 flex flex-col h-full items-center text-center">
                   <div className={`w-16 h-16 rounded-2xl ${level.bgColor} flex items-center justify-center mb-6`}>
                     <Icon className={`w-8 h-8 ${level.color}`} />

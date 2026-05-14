@@ -47,7 +47,7 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const result = await register(email, password, confirmPassword, name);
+      const result = await register(email.trim().toLowerCase(), password, confirmPassword, name.trim());
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -173,7 +173,7 @@ export default function SignupPage() {
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="Password"
                   className="pl-10 pr-10 h-11 bg-background text-foreground"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -191,7 +191,7 @@ export default function SignupPage() {
                 <Input
                   id="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="Confirm password"
                   className="pl-10 pr-10 h-11 bg-background text-foreground"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}

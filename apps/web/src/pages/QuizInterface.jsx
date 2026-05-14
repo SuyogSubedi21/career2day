@@ -76,18 +76,18 @@ export default function QuizInterface() {
         <SEOHead title="Quiz Not Found | Career2Day" />
         <h1 className="text-3xl font-extrabold">Quiz not found</h1>
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground">We could not find questions for this career and difficulty.</p>
-        <Button asChild className="mt-8"><Link to="/quiz">Back to quizzes</Link></Button>
+        <Button asChild className="mt-8"><Link to={`/careers/${careerSlug}`}>Back to career path</Link></Button>
       </div>
     );
   }
 
   if (!started) {
     return (
-      <div className="min-h-[100dvh] bg-background px-4 py-16">
+      <div className="min-h-[100dvh] bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 py-16 dark:bg-[linear-gradient(180deg,#070b13_0%,#0b1220_100%)]">
         <SEOHead title={`${careerName} ${difficulty} Quiz | Career2Day`} />
         <div className="mx-auto max-w-3xl">
           <Button asChild variant="ghost" className="mb-8 -ml-3">
-            <Link to={`/quiz/${careerSlug}/difficulty`}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Link>
+            <Link to={`/careers/${careerSlug}`}><ArrowLeft className="mr-2 h-4 w-4" /> Back to career path</Link>
           </Button>
           <Card className="overflow-hidden rounded-2xl border-border bg-card shadow-xl">
             <CardContent className="p-8 md:p-12">
@@ -119,7 +119,7 @@ export default function QuizInterface() {
       <div className="mx-auto max-w-4xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <Button asChild variant="ghost" className="-ml-3">
-            <Link to={`/quiz/${careerSlug}/difficulty`}><ArrowLeft className="mr-2 h-4 w-4" /> Exit</Link>
+            <Link to={`/careers/${careerSlug}`}><ArrowLeft className="mr-2 h-4 w-4" /> Exit to career path</Link>
           </Button>
           <div className={`inline-flex items-center rounded-md px-4 py-2 text-sm font-extrabold ${timeLeft < 60 ? 'bg-destructive/10 text-destructive' : 'bg-muted text-foreground'}`}>
             <Clock className="mr-2 h-4 w-4" /> {formatTime(timeLeft)}

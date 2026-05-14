@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { useLocation, Navigate, Link } from 'react-router-dom';
-import { Award, RefreshCcw, LayoutList, Home, CheckCircle2, XCircle } from 'lucide-react';
+import { useLocation, Navigate, Link, useParams } from 'react-router-dom';
+import { Award, RefreshCcw, LayoutList, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
@@ -9,9 +9,10 @@ import SEOHead from '@/components/SEOHead.jsx';
 
 export default function QuizResultsPage() {
   const location = useLocation();
+  const params = useParams();
   
   if (!location.state || !location.state.answers) {
-    return <Navigate to="/quiz" replace />;
+    return <Navigate to={`/careers/${params.careerSlug || ''}`} replace />;
   }
 
   const { answers, score, totalQuestions, careerSlug, difficulty } = location.state;
@@ -29,7 +30,7 @@ export default function QuizResultsPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background py-12 md:py-20">
+    <div className="min-h-[100dvh] bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] py-12 dark:bg-[linear-gradient(180deg,#070b13_0%,#0b1220_100%)] md:py-20">
       <SEOHead title={`Quiz Results - ${score}/${totalQuestions}`} />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
@@ -70,8 +71,8 @@ export default function QuizResultsPage() {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="min-w-[160px]">
-                <Link to="/quiz">
-                  <Home className="w-4 h-4 mr-2" /> All Quizzes
+                <Link to={`/careers/${careerSlug}`}>
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Career Path
                 </Link>
               </Button>
             </div>
