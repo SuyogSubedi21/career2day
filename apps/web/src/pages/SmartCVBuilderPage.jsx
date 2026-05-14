@@ -305,24 +305,25 @@ function CVPreview({ profile, template, style }) {
   const sectionClass = style.headingStyle === 'block' ? 'bg-slate-100 px-2 py-1' : style.headingStyle === 'plain' ? '' : 'border-b border-slate-200 pb-1';
   const showPhoto = template.supportsPhoto && profile.photo;
   const css = { '--cv-accent': style.accent, '--cv-header': style.header, '--cv-sidebar': style.sidebar, fontFamily };
+  const pageClass = 'mx-auto min-h-[1123px] max-w-[794px] bg-white text-slate-950 shadow-sm';
 
   if (template.family === 'sidebar') {
-    return <div id="smart-cv-template" className="mx-auto grid min-h-[900px] max-w-[780px] grid-cols-[250px_1fr] bg-white text-slate-950 shadow-sm" style={css}><aside className="p-7 text-white" style={{ background: 'var(--cv-sidebar)' }}>{showPhoto && <img src={profile.photo} alt="" className="mb-5 h-28 w-28 rounded-md object-cover" />}<h2 className="text-3xl font-extrabold">{profile.name}</h2><p className="mt-2 font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-5 text-sm opacity-80">{profile.email}<br />{profile.phone}<br />{profile.location}<br />{profile.website}</p><CVSection title="Skills" sectionClass={sectionClass} dark><SkillPills text={profile.skills} dark /></CVSection></aside><main className={pad}><CVContent profile={profile} sectionClass={sectionClass} /></main></div>;
+    return <div id="smart-cv-template" className={`${pageClass} grid grid-cols-[250px_1fr]`} style={css}><aside className="p-7 text-white" style={{ background: 'var(--cv-sidebar)' }}>{showPhoto && <img src={profile.photo} alt="" className="mb-5 h-28 w-28 rounded-md object-cover" />}<h2 className="text-3xl font-extrabold">{profile.name}</h2><p className="mt-2 font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-5 text-sm opacity-80">{profile.email}<br />{profile.phone}<br />{profile.location}<br />{profile.website}</p><CVSection title="Skills" sectionClass={sectionClass} dark><SkillPills text={profile.skills} dark /></CVSection></aside><main className={pad}><CVContent profile={profile} sectionClass={sectionClass} /></main></div>;
   }
   if (template.family === 'bold' || template.family === 'leadership') {
-    return <div id="smart-cv-template" className="mx-auto min-h-[900px] max-w-[780px] bg-white text-slate-950 shadow-sm" style={css}><header className={`${pad} text-white`} style={{ background: 'var(--cv-header)' }}><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-2 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-3 text-sm opacity-80">{profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><main className={`grid gap-4 ${pad} md:grid-cols-[1fr_0.72fr]`}><div><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Experience" sectionClass={sectionClass}><BulletText text={profile.experience} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><BulletText text={formatLeveledProjectText(profile.projects)} /></CVSection></div><div><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><BulletText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
+    return <div id="smart-cv-template" className={pageClass} style={css}><header className={`${pad} text-white`} style={{ background: 'var(--cv-header)' }}><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-2 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-3 text-sm opacity-80">{profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><main className={`grid gap-4 ${pad} md:grid-cols-[1fr_0.72fr]`}><div><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Experience" sectionClass={sectionClass}><EntryText text={profile.experience} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><EntryText text={formatLeveledProjectText(profile.projects)} /></CVSection></div><div><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><EntryText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
   }
   if (template.family === 'impact' || template.family === 'grid' || template.family === 'showcase') {
-    return <div id="smart-cv-template" className={`mx-auto min-h-[900px] max-w-[780px] bg-white ${pad} text-slate-950 shadow-sm`} style={css}><header className={`grid gap-5 rounded-md border-l-8 bg-slate-50 p-6 ${showPhoto ? 'grid-cols-[96px_1fr] items-center' : ''}`} style={{ borderColor: 'var(--cv-accent)' }}>{showPhoto && <img src={profile.photo} alt="" className="h-24 w-24 rounded-md object-cover" />}<div><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-1 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-2 text-sm text-slate-600">{profile.email} | {profile.phone} | {profile.location}</p></div></header><main className="grid gap-4 md:grid-cols-[1fr_0.75fr]"><div><CVContent profile={profile} sectionClass={sectionClass} /></div><div><CVSection title="Links" sectionClass={sectionClass}><BulletText text={profile.website} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
+    return <div id="smart-cv-template" className={`${pageClass} ${pad}`} style={css}><header className={`grid gap-5 rounded-md border-l-8 bg-slate-50 p-6 ${showPhoto ? 'grid-cols-[96px_1fr] items-center' : ''}`} style={{ borderColor: 'var(--cv-accent)' }}>{showPhoto && <img src={profile.photo} alt="" className="h-24 w-24 rounded-md object-cover" />}<div><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-1 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-2 text-sm text-slate-600">{profile.email} | {profile.phone} | {profile.location}</p></div></header><main className="grid gap-4 md:grid-cols-[1fr_0.75fr]"><div><CVContent profile={profile} sectionClass={sectionClass} /></div><div><CVSection title="Links" sectionClass={sectionClass}><BulletText text={profile.website} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
   }
   if (template.family === 'ats' || template.family === 'academic' || template.family === 'graduate') {
-    return <div id="smart-cv-template" className={`mx-auto min-h-[900px] max-w-[780px] bg-white ${pad} text-slate-950 shadow-sm`} style={css}><header className="text-center"><h2 className="text-3xl font-bold">{profile.name}</h2><p className="mt-1 text-sm">{profile.title} | {profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><CVContent profile={profile} sectionClass={sectionClass} /></div>;
+    return <div id="smart-cv-template" className={`${pageClass} ${pad}`} style={css}><header className="text-center"><h2 className="text-3xl font-bold">{profile.name}</h2><p className="mt-1 text-sm">{profile.title} | {profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><CVContent profile={profile} sectionClass={sectionClass} /></div>;
   }
-  return <div id="smart-cv-template" className={`mx-auto min-h-[900px] max-w-[780px] bg-white ${pad} text-slate-950 shadow-sm`} style={css}><header className="border-b-4 pb-5" style={{ borderColor: 'var(--cv-header)' }}><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-1 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-2 text-sm text-slate-600">{profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><CVContent profile={profile} sectionClass={sectionClass} /></div>;
+  return <div id="smart-cv-template" className={`${pageClass} ${pad}`} style={css}><header className="border-b-4 pb-5" style={{ borderColor: 'var(--cv-header)' }}><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-1 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-2 text-sm text-slate-600">{profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><CVContent profile={profile} sectionClass={sectionClass} /></div>;
 }
 
 function CVContent({ profile, sectionClass }) {
-  return <><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><BulletText text={formatLeveledProjectText(profile.projects)} /></CVSection><CVSection title="Experience" sectionClass={sectionClass}><BulletText text={profile.experience} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><BulletText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></>;
+  return <><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><EntryText text={formatLeveledProjectText(profile.projects)} /></CVSection><CVSection title="Experience" sectionClass={sectionClass}><EntryText text={profile.experience} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><EntryText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></>;
 }
 
 function CVSection({ title, children, sectionClass, dark = false }) {
@@ -352,6 +353,31 @@ function SkillPills({ text, dark = false }) {
 function BulletText({ text }) {
   const lines = String(text).split('\n').map((line) => line.trim()).filter(Boolean);
   return <ul className="list-disc space-y-0.5 pl-4">{lines.map((line) => <li key={line} className="pl-0.5 leading-[1.35]">{line}</li>)}</ul>;
+}
+
+function EntryText({ text }) {
+  const lines = String(text).split('\n').map((line) => line.trim()).filter(Boolean);
+  if (!lines.length) return null;
+
+  const [firstLine, ...detailLines] = lines;
+  const parts = firstLine.split('|').map((part) => part.trim()).filter(Boolean);
+  const hasStructuredHeader = parts.length >= 2;
+  const title = hasStructuredHeader ? parts[0] : firstLine;
+  const subtitle = hasStructuredHeader ? parts.slice(1, -1).join(' - ') : '';
+  const date = hasStructuredHeader ? parts[parts.length - 1] : '';
+
+  return (
+    <div className="space-y-1.5">
+      <div className="grid grid-cols-[minmax(0,1fr)_max-content] gap-4">
+        <div>
+          <p className="font-bold leading-[1.25] text-slate-950">{title}</p>
+          {subtitle && <p className="mt-0.5 text-[10px] font-semibold leading-[1.25] text-slate-600">{subtitle}</p>}
+        </div>
+        {date && <p className="max-w-[140px] text-right text-[10px] font-semibold leading-[1.25] text-slate-600">{date}</p>}
+      </div>
+      {detailLines.length > 0 && <BulletText text={detailLines.join('\n')} />}
+    </div>
+  );
 }
 
 function SuggestionRow({ title, items, onPick }) {
