@@ -21,7 +21,7 @@ export const exportElementToPdf = async (element, fileName) => {
     if (parent) parent.style.transform = 'none';
 
     const canvas = await html2canvas(element, {
-      scale: 2,
+      scale: 3,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
@@ -29,18 +29,18 @@ export const exportElementToPdf = async (element, fileName) => {
       windowHeight: element.scrollHeight
     });
 
-    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+    const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const imgHeight = (canvas.height * pageWidth) / canvas.width;
     let y = 0;
 
-    pdf.addImage(imgData, 'JPEG', 0, y, pageWidth, imgHeight);
+    pdf.addImage(imgData, 'PNG', 0, y, pageWidth, imgHeight);
     while (imgHeight + y > pageHeight) {
       y -= pageHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, y, pageWidth, imgHeight);
+      pdf.addImage(imgData, 'PNG', 0, y, pageWidth, imgHeight);
     }
 
     pdf.save(fileName);
