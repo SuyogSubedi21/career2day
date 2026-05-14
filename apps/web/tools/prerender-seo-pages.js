@@ -189,24 +189,32 @@ const layout = ({ title, description, canonical, content, schema }) => {
   const schemaScript = schema
     ? `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
     : '';
-  html = html.replace('</head>', `${schemaScript}\n  </head>`);
+  const fallbackStyles = `
+    <style>
+      html{background:#f8fafc;color:#0f172a}body{margin:0;background:linear-gradient(180deg,#f8fafc 0%,#eef2f7 52%,#f8fafc 100%);font-family:Inter,Arial,sans-serif}#seo-shell{min-height:100vh}#seo-nav{position:sticky;top:0;z-index:10;border-bottom:1px solid #e2e8f0;background:rgba(248,250,252,.94);backdrop-filter:blur(16px)}#seo-nav-inner{max-width:1120px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}#seo-brand{margin-right:auto;font-weight:900;color:#0f172a;text-decoration:none;letter-spacing:-.02em}#seo-nav a:not(#seo-brand){color:#334155;text-decoration:none;font-weight:700;font-size:14px}#seo-static-content{max-width:960px;margin:0 auto;padding:56px 20px 72px;line-height:1.72;color:#1e293b}#seo-static-content h1{max-width:780px;margin:0 0 18px;font-size:clamp(36px,6vw,64px);line-height:1.02;letter-spacing:-.04em;color:#020617}#seo-static-content h2{margin:34px 0 10px;font-size:24px;line-height:1.2;color:#0f172a}#seo-static-content h3{margin:22px 0 8px;font-size:18px;color:#0f172a}#seo-static-content p{max-width:820px;margin:0 0 14px;font-size:18px}#seo-static-content ul{max-width:840px;margin:12px 0 0;padding-left:22px}#seo-static-content li{margin:8px 0;font-size:17px}#seo-static-content a{color:#1d4ed8;font-weight:800}#seo-footer{max-width:960px;margin:0 auto;padding:24px 20px 48px;color:#64748b}#seo-footer a{color:#334155;font-weight:800;text-decoration:none}@media (prefers-color-scheme:dark){html{background:#070b13;color:#e5e7eb}body{background:linear-gradient(180deg,#070b13 0%,#0b1220 52%,#070b13 100%)}#seo-nav{border-color:rgba(255,255,255,.1);background:rgba(7,11,19,.9)}#seo-brand,#seo-static-content h1,#seo-static-content h2,#seo-static-content h3{color:#fff}#seo-nav a:not(#seo-brand),#seo-static-content,#seo-footer a{color:#cbd5e1}#seo-static-content a{color:#93c5fd}#seo-footer{color:#94a3b8}}
+    </style>
+  `;
+  html = html.replace('</head>', `${schemaScript}${fallbackStyles}\n  </head>`);
 
   const seoNav = `
-    <nav aria-label="Main navigation" style="max-width:960px;margin:0 auto;padding:20px;font-family:Inter,Arial,sans-serif;display:flex;gap:18px;flex-wrap:wrap">
-      <a href="/">Home</a>
-      <a href="/careers">Careers</a>
-      <a href="/cv-builder">CV Builder</a>
-      <a href="/blog">Blog</a>
-      <a href="/pricing">Pricing</a>
-      <a href="/contact">Contact Us</a>
+    <nav id="seo-nav" aria-label="Main navigation">
+      <div id="seo-nav-inner">
+        <a id="seo-brand" href="/">Career2Day</a>
+        <a href="/">Home</a>
+        <a href="/careers">Careers</a>
+        <a href="/cv-builder">CV Builder</a>
+        <a href="/blog">Blog</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/contact">Contact Us</a>
+      </div>
     </nav>
   `;
   const seoFooter = `
-    <footer style="max-width:960px;margin:0 auto;padding:20px;font-family:Inter,Arial,sans-serif">
+    <footer id="seo-footer">
       <a href="/contact">Contact Us</a>
     </footer>
   `;
-  const seoContent = `<div id="root">${seoNav}<main id="seo-static-content" style="max-width:960px;margin:0 auto;padding:48px 20px;font-family:Inter,Arial,sans-serif;line-height:1.7;color:#111827">${content}</main>${seoFooter}</div>`;
+  const seoContent = `<div id="root"><div id="seo-shell">${seoNav}<main id="seo-static-content">${content}</main>${seoFooter}</div></div>`;
   html = html.replace('<div id="root"></div>', seoContent);
   return html;
 };
