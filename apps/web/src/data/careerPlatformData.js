@@ -4,6 +4,7 @@ import { generativeAiEngineerCareer } from './careers/generative-ai-engineer.js'
 import { aiResearchScientistCareer } from './careers/ai-research-scientist.js';
 import { dataScientistCareer } from './careers/data-scientist.js';
 import { uploadedCareerRoadmapsBySlug } from './uploadedCareerRoadmaps.js';
+import { getCareerPhaseResources } from './careerResourceData.js';
 
 const careerNames = [
   'AI Engineer',
@@ -1065,6 +1066,7 @@ const completePhase = (career, phase, index) => {
       (index === 2
         ? 'Prepare a portfolio demo, CV bullets, and interview story from this work.'
         : 'Write what you validated, what failed, and what you will improve next.'),
+    resources: phase.resources || getCareerPhaseResources(career.slug, index),
     checklist: completePhaseChecklist(career, phase, index)
   };
 };
@@ -1200,7 +1202,7 @@ const applyUploadedRoadmap = (career) => {
       ...(career.analytics || {}),
       skills: uploadedSkills.length ? uploadedSkills.slice(0, 6).map((skill, index) => [skill, 90 - index * 4]) : career.analytics?.skills
     },
-    roadmap: uploaded.roadmap.map((phase) => ({
+    roadmap: uploaded.roadmap.map((phase, phaseIndex) => ({
       phase: phase.phase,
       timelineWeeks: phase.timelineWeeks || 4,
       topics: phase.topics?.length ? phase.topics : [phase.phase],
@@ -1209,6 +1211,7 @@ const applyUploadedRoadmap = (career) => {
       outcome: phase.outcome || phase.expectedOutcome,
       expectedOutcome: phase.expectedOutcome || phase.outcome,
       nextAction: phase.nextAction,
+      resources: getCareerPhaseResources(career.slug, phaseIndex),
       checklist: phase.checklist?.length ? phase.checklist : (phase.topics || [phase.phase]).slice(0, 6).map((topic) => `Build evidence for: ${topic}`)
     })),
     roadmapSource: 'uploaded-roadmap-zip'

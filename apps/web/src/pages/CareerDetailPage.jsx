@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowRight, BookOpenCheck, CheckCircle2, ChevronRight, FileCheck2, FileText, FolderKanban, Target, Upload } from 'lucide-react';
+import { ArrowRight, BookOpenCheck, CheckCircle2, ChevronRight, ExternalLink, FileCheck2, FileText, FolderKanban, Target, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SEOHead from '@/components/SEOHead.jsx';
@@ -267,7 +267,7 @@ export default function CareerDetailPage() {
                 const percent = Math.round((phaseComplete / phase.checklist.length) * 100);
                 return (
                   <article key={phase.phase} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/10">
-                    <div className="grid gap-0 md:grid-cols-[160px_minmax(0,1fr)]">
+                    <div className="grid gap-0 md:grid-cols-[260px_minmax(0,1fr)]">
                       <div className="border-b border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-white/5 md:border-b-0 md:border-r">
                         <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 text-sm font-extrabold text-white dark:bg-white dark:text-slate-950">{phaseIndex + 1}</div>
                         <h3 className="text-xl font-extrabold">Step {phaseIndex + 1}</h3>
@@ -275,6 +275,7 @@ export default function CareerDetailPage() {
                         <p className="mt-1 text-sm font-bold text-slate-500">{phase.timelineWeeks} weeks</p>
                         <div className="mt-4 h-2 rounded-full bg-slate-100 dark:bg-white/10"><div className="h-2 rounded-full bg-slate-900 dark:bg-white" style={{ width: `${percent}%` }} /></div>
                         <p className="mt-2 text-xs font-bold text-slate-500">{percent}% complete</p>
+                        <PhaseResources resources={phase.resources} />
                       </div>
                       <div className="p-5">
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Learn this first</p>
@@ -502,6 +503,43 @@ function MiniMetric({ label, value }) {
     <div className="rounded-md bg-slate-50 p-3 dark:bg-white/5">
       <div className="font-extrabold">{value}</div>
       <div className="text-[11px] font-bold uppercase text-slate-500">{label}</div>
+    </div>
+  );
+}
+
+function PhaseResources({ resources }) {
+  if (!resources || (!resources.free?.length && !resources.paid?.length && !resources.specific?.length)) return null;
+
+  const groups = [
+    ['Free', resources.free || []],
+    ['Paid', resources.paid || []],
+    ['Role-specific', resources.specific || []]
+  ].filter(([, items]) => items.length);
+
+  return (
+    <div className="mt-5 rounded-md border border-slate-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/5">
+      <h4 className="text-sm font-extrabold">Resources</h4>
+      <div className="mt-3 grid gap-3">
+        {groups.map(([title, items]) => (
+          <div key={title}>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{title}</p>
+            <div className="mt-1 grid gap-1.5">
+              {items.slice(0, 4).map((item) => (
+                <a
+                  key={`${title}-${item.name}`}
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex items-start justify-between gap-2 rounded-md px-2 py-1.5 text-xs font-bold leading-5 text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  <span>{item.name}</span>
+                  <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400 transition group-hover:text-slate-700 dark:group-hover:text-white" />
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
