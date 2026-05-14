@@ -548,11 +548,11 @@ const routes = [
   }],
   ['/about', {
     title: 'About Career2Day',
-    description: 'Career2Day helps learners present skills clearly through career roadmaps, interview preparation and CV building tools.',
+    description: 'Career2Day helps learners prepare with career roadmaps, interview practice, quizzes and a role-aware CV builder.',
     canonical: `${siteUrl}/about`,
-    content: simplePage('About Career2Day', 'Career2Day was created to help learners turn preparation into proof that can be used in applications and interviews.', [
-      ['Mission', 'Make practical career preparation accessible through structured roadmaps, interview practice and CV tools.'],
-      ['Founder story', 'The platform began as a student-built response to the problem of capable candidates being hidden by weak CVs and unclear preparation.']
+    content: simplePage('About Career2Day', 'Career2Day was created to bring roadmaps, interview preparation, quizzes and CV building into one practical career readiness platform.', [
+      ['Mission', 'Help learners follow a clear path from choosing a career to building projects, practising interviews, checking readiness and creating a role-aware CV.'],
+      ['Founder story', 'The platform began as a student-built response to the problem of beginners being stuck between scattered tutorials, unclear preparation and weak application materials.']
     ]),
     schema: pageSchema('/about', 'About Career2Day', 'About the Career2Day platform.')
   }],
