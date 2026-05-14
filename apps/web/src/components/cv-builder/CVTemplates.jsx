@@ -57,9 +57,9 @@ const renderBullets = (text) => {
   if (bulletStrings.length === 0) return null;
   
   return (
-    <ul style={{ margin: 0, paddingLeft: '0.85rem', marginTop: '0.18rem', listStyleType: 'disc' }}>
+    <ul style={{ margin: 0, paddingLeft: '0.72rem', marginTop: '0.1rem', listStyleType: 'disc' }}>
       {bulletStrings.map((bullet, idx) => (
-        <li key={idx} style={{ marginBottom: '0.1rem' }}>{bullet}</li>
+        <li key={idx} style={{ marginBottom: '0.04rem' }}>{bullet}</li>
       ))}
     </ul>
   );
@@ -147,12 +147,12 @@ const MasterTemplate = ({ cvData, config }) => {
       color: color,
       textTransform: styling.sectionTitles === 'uppercase-tracking' ? 'uppercase' : 'none',
       letterSpacing: styling.sectionTitles === 'uppercase-tracking' ? '0.08em' : 'normal',
-      marginBottom: '0.45rem',
+      marginBottom: '0.28rem',
       paddingBottom: styling.sectionTitles === 'underline' || isSidebar ? '0.25rem' : '0',
       borderBottom: styling.sectionTitles === 'underline' || isSidebar ? `1px solid ${isSidebar ? color + '40' : secondaryColor}` : 'none',
       display: styling.sectionTitles === 'pill' ? 'inline-block' : 'block',
       backgroundColor: styling.sectionTitles === 'pill' ? secondaryColor : 'transparent',
-      padding: styling.sectionTitles === 'pill' ? '0.18rem 0.7rem' : (styling.sectionTitles === 'underline' || isSidebar ? '0 0 0.25rem 0' : '0'),
+      padding: styling.sectionTitles === 'pill' ? '0.12rem 0.5rem' : (styling.sectionTitles === 'underline' || isSidebar ? '0 0 0.18rem 0' : '0'),
       borderRadius: styling.sectionTitles === 'pill' ? '9999px' : '0'
     };
     return <h3 style={style}>{title}</h3>;
@@ -181,7 +181,7 @@ const MasterTemplate = ({ cvData, config }) => {
   );
 
   const renderTimelineItem = (title, subtitle, date, description, tColor, mColor) => (
-    <div style={{ position: 'relative', paddingLeft: '0.65rem', paddingBottom: '0.45rem', borderLeft: `1px solid #cbd5e1` }}>
+    <div style={{ position: 'relative', paddingLeft: '0.58rem', paddingBottom: '0.28rem', borderLeft: `1px solid #cbd5e1` }}>
       <div style={{ position: 'absolute', left: '-3px', top: '6px', width: '5px', height: '5px', borderRadius: '50%', backgroundColor: accentColor }} />
       {renderItemHeader(title, subtitle, date, tColor, mColor)}
       {description && <div style={{ fontSize: '0.56rem', lineHeight: '1.35', color: mColor }}>{renderBullets(description)}</div>}
@@ -189,7 +189,7 @@ const MasterTemplate = ({ cvData, config }) => {
   );
 
   const renderStandardItem = (title, subtitle, date, description, tColor, mColor) => (
-    <div style={{ marginBottom: '0.55rem' }}>
+    <div style={{ marginBottom: '0.32rem' }}>
       {renderItemHeader(title, subtitle, date, tColor, mColor)}
       {description && <div style={{ fontSize: '0.56rem', lineHeight: '1.35', color: mColor }}>{renderBullets(description)}</div>}
     </div>
@@ -198,12 +198,12 @@ const MasterTemplate = ({ cvData, config }) => {
   const renderSkills = (skills, isSidebar, tColor) => {
     if (!skills?.length) return null;
     return (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.16rem 0.22rem' }}>
         {skills.map((skill, idx) => (
           <span key={idx} style={{
             backgroundColor: isSidebar ? (isSidebarDarkText ? secondaryColor : 'rgba(255,255,255,0.12)') : secondaryColor,
             color: isSidebar ? tColor : primaryColor,
-            padding: '0.08rem 0.25rem',
+            padding: '0.06rem 0.2rem',
             borderRadius: '2px',
             fontSize: '0.52rem',
             fontWeight: '600',
@@ -225,7 +225,7 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'summary':
         if (!cvData?.professionalSummary) return null;
         return (
-          <div key="summary" style={{ marginBottom: '0.75rem' }}>
+          <div key="summary" style={{ marginBottom: '0.46rem' }}>
             {renderSectionTitle('Professional Summary', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ fontSize: '0.56rem', lineHeight: '1.35', color: mutedColor }}>{cvData.professionalSummary}</div>
           </div>
@@ -234,7 +234,7 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'experience':
         if (!cvData?.experience?.length) return null;
         return (
-          <div key="experience" style={{ marginBottom: '0.75rem' }}>
+          <div key="experience" style={{ marginBottom: '0.46rem' }}>
             {renderSectionTitle('Experience', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {cvData.experience.map((exp, idx) => (
@@ -251,7 +251,7 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'education':
         if (!cvData?.education?.length) return null;
         return (
-          <div key="education" style={{ marginBottom: '0.75rem' }}>
+          <div key="education" style={{ marginBottom: '0.46rem' }}>
             {renderSectionTitle('Education', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {cvData.education.map((edu, idx) => {
@@ -271,7 +271,7 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'projects':
         if (!cvData?.projects?.length) return null;
         return (
-          <div key="projects" style={{ marginBottom: '0.75rem' }}>
+          <div key="projects" style={{ marginBottom: '0.46rem' }}>
             {renderSectionTitle('Projects', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {cvData.projects.slice(0, 3).map((proj, idx) => (
@@ -288,7 +288,7 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'skills':
         if (!cvData?.skills?.length) return null;
         return (
-          <div key="skills" style={{ marginBottom: '0.75rem' }}>
+          <div key="skills" style={{ marginBottom: '0.46rem' }}>
             {renderSectionTitle('Skills', isSidebar ? textColor : primaryColor, isSidebar)}
             {renderSkills(cvData.skills, isSidebar, textColor)}
           </div>
@@ -297,9 +297,9 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'certifications':
         if (!cvData?.certifications?.length) return null;
         return (
-          <div key="certifications" style={{ marginBottom: '0.75rem' }}>
+          <div key="certifications" style={{ marginBottom: '0.46rem' }}>
             {renderSectionTitle('Certifications', isSidebar ? textColor : primaryColor, isSidebar)}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.12rem' }}>
               {cvData.certifications.map((cert, idx) => (
                 <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <div>
@@ -316,9 +316,9 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'languages':
         if (!cvData?.languages?.length) return null;
         return (
-          <div key="languages" style={{ marginBottom: '0.75rem' }}>
+          <div key="languages" style={{ marginBottom: '0.46rem' }}>
             {renderSectionTitle('Languages', isSidebar ? textColor : primaryColor, isSidebar)}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.08rem' }}>
               {cvData.languages.map((lang, idx) => (
                 <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: '700', fontSize: '0.56rem', color: textColor }}>{lang.name}</span>
@@ -332,7 +332,7 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'volunteer':
         if (!cvData?.volunteer?.length) return null;
         return (
-          <div key="volunteer" style={{ marginBottom: '0.75rem' }}>
+          <div key="volunteer" style={{ marginBottom: '0.46rem' }}>
             {renderSectionTitle('Volunteer', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {cvData.volunteer.map((vol, idx) => (
