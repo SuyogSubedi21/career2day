@@ -8,6 +8,10 @@ const clampRem = (value, min, max, fallback) => {
   return `${Math.min(max, Math.max(min, numericValue))}rem`;
 };
 
+const formatDateRange = (date) => String(date || '')
+  .replace(/\s+[-–—]\s+/g, ' - ')
+  .trim();
+
 // --- Inline SVG Icons for PDF compatibility ---
 const MailIcon = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -154,25 +158,39 @@ const MasterTemplate = ({ cvData, config }) => {
     return <h3 style={style}>{title}</h3>;
   };
 
+  const renderItemHeader = (title, subtitle, date, tColor, mColor) => (
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) max-content', gap: '0.75rem', alignItems: 'start', marginBottom: '0.15rem' }}>
+      <div style={{ minWidth: 0 }}>
+        <h4 style={{ fontWeight: '700', fontSize: '0.62rem', color: tColor, margin: 0, lineHeight: '1.25' }}>{title}</h4>
+        {subtitle && <div style={{ fontSize: '0.56rem', fontWeight: '600', color: mColor, marginTop: '0.06rem', lineHeight: '1.25' }}>{subtitle}</div>}
+      </div>
+      {date && (
+        <div style={{
+          maxWidth: '1.35in',
+          textAlign: 'right',
+          fontSize: '0.5rem',
+          fontWeight: '700',
+          color: textMuted,
+          lineHeight: '1.25',
+          whiteSpace: 'normal'
+        }}>
+          {formatDateRange(date)}
+        </div>
+      )}
+    </div>
+  );
+
   const renderTimelineItem = (title, subtitle, date, description, tColor, mColor) => (
     <div style={{ position: 'relative', paddingLeft: '0.65rem', paddingBottom: '0.45rem', borderLeft: `1px solid #cbd5e1` }}>
       <div style={{ position: 'absolute', left: '-3px', top: '6px', width: '5px', height: '5px', borderRadius: '50%', backgroundColor: accentColor }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', marginBottom: '0.15rem' }}>
-        <h4 style={{ fontWeight: '700', fontSize: '0.62rem', color: tColor, margin: 0 }}>{title}</h4>
-        {date && <span style={{ fontSize: '0.52rem', fontWeight: '700', color: textMuted, whiteSpace: 'nowrap' }}>{date}</span>}
-      </div>
-      {subtitle && <div style={{ fontSize: '0.56rem', fontWeight: '600', color: mColor, marginBottom: '0.12rem' }}>{subtitle}</div>}
+      {renderItemHeader(title, subtitle, date, tColor, mColor)}
       {description && <div style={{ fontSize: '0.56rem', lineHeight: '1.35', color: mColor }}>{renderBullets(description)}</div>}
     </div>
   );
 
   const renderStandardItem = (title, subtitle, date, description, tColor, mColor) => (
     <div style={{ marginBottom: '0.55rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', marginBottom: '0.15rem' }}>
-        <h4 style={{ fontWeight: '700', fontSize: '0.62rem', color: tColor, margin: 0 }}>{title}</h4>
-        {date && <span style={{ fontSize: '0.52rem', fontWeight: '700', color: textMuted, whiteSpace: 'nowrap' }}>{date}</span>}
-      </div>
-      {subtitle && <div style={{ fontSize: '0.56rem', fontWeight: '600', color: mColor, marginBottom: '0.12rem' }}>{subtitle}</div>}
+      {renderItemHeader(title, subtitle, date, tColor, mColor)}
       {description && <div style={{ fontSize: '0.56rem', lineHeight: '1.35', color: mColor }}>{renderBullets(description)}</div>}
     </div>
   );
