@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpenCheck, CheckCircle2, ChevronDown, Eye, Filter, Lightbulb, Search } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpenCheck, CheckCircle2, ChevronDown, Eye, Filter, Lightbulb, RotateCcw, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SEOHead from '@/components/SEOHead.jsx';
@@ -54,6 +54,19 @@ export default function PlatformInterviewQuestionsPage() {
     intermediate: career.interviewQuestions.filter((item) => item.difficulty === 'intermediate').length,
     advanced: career.interviewQuestions.filter((item) => item.difficulty === 'advanced').length
   };
+  const completedCount = career.interviewQuestions.filter((item) => completed[item.id]).length;
+  const openIndex = questions.findIndex((item) => item.id === openId);
+  const hasFilters = level !== 'all' || topic !== 'all' || query.trim().length > 0;
+  const clearFilters = () => {
+    setLevel('all');
+    setTopic('all');
+    setQuery('');
+    setOpenId(null);
+  };
+  const openQuestionAt = (index) => {
+    const nextQuestion = questions[index];
+    if (nextQuestion) setOpenId(nextQuestion.id);
+  };
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_42%,#f8fafc_100%)] text-slate-950 dark:bg-[linear-gradient(180deg,#070b13_0%,#0b1220_42%,#070b13_100%)] dark:text-white">
@@ -99,6 +112,14 @@ export default function PlatformInterviewQuestionsPage() {
                 ))}
               </div>
             </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-slate-500 dark:text-slate-300">
+              <p>Showing {questions.length} of {career.interviewQuestions.length} questions - {completedCount} completed</p>
+              {hasFilters && (
+                <Button type="button" variant="ghost" className="h-9 rounded-md px-2" onClick={clearFilters}>
+                  <RotateCcw className="mr-2 h-4 w-4" /> Clear filters
+                </Button>
+              )}
+            </div>
             <div className="mt-3 flex gap-2 overflow-x-auto">
               <Button type="button" variant={topic === 'all' ? 'default' : 'outline'} className="rounded-md whitespace-nowrap" onClick={() => setTopic('all')}>All topics</Button>
               {topics.map((item) => (
@@ -110,6 +131,13 @@ export default function PlatformInterviewQuestionsPage() {
           </div>
 
           <div className="grid gap-4">
+            {!questions.length && (
+              <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm dark:border-white/15 dark:bg-white/10">
+                <h2 className="text-2xl font-extrabold">No questions match this filter</h2>
+                <p className="mx-auto mt-2 max-w-xl text-slate-600 dark:text-slate-300">Clear the filters or search a broader topic to continue practicing.</p>
+                <Button type="button" className="mt-5 rounded-md" onClick={clearFilters}>Show all questions</Button>
+              </div>
+            )}
             {questions.map((item, index) => {
               const isOpen = openId === item.id;
               return (
@@ -132,7 +160,15 @@ export default function PlatformInterviewQuestionsPage() {
                   </button>
                   {isOpen && (
                     <div className="border-t border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-white/5">
-                      <div className="mb-4 flex justify-end">
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap gap-2">
+                          <Button type="button" variant="outline" className="rounded-md" disabled={openIndex <= 0} onClick={() => openQuestionAt(openIndex - 1)}>
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+                          </Button>
+                          <Button type="button" variant="outline" className="rounded-md" disabled={openIndex < 0 || openIndex >= questions.length - 1} onClick={() => openQuestionAt(openIndex + 1)}>
+                            Next <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </div>
                         <Button type="button" className="rounded-lg" variant={completed[item.id] ? 'outline' : 'default'} onClick={() => setCompleted((current) => ({ ...current, [item.id]: !current[item.id] }))}>
                           {completed[item.id] ? 'Marked completed' : 'Mark as completed'}
                         </Button>
