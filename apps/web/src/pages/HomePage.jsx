@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react'; // ← NEW
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, BarChart3, BookOpenCheck, Brain, CheckCircle2, FileText, GraduationCap, MessageSquareText, ShieldCheck, Target, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card'; // ← NEW
+import { Input } from '@/components/ui/input'; // ← NEW
 import SEOHead from '@/components/SEOHead.jsx';
 import { getFeaturedPlatformCareers } from '@/data/careerPlatformData.js';
 
@@ -27,6 +29,12 @@ const testimonials = [
   ['Jordan K.', 'Frontend Engineer', 'The interview practice felt tied to the projects, not like a separate question bank. That made the answers much easier to remember.'],
   ['Samira P.', 'Career switcher', 'The readiness score gave me a clear next action instead of a vague feeling that I should study more.']
 ];
+
+const launchStats = [ // ← NEW
+  { value: 50, suffix: '+', label: 'Career Roadmaps' }, // ← NEW
+  { value: 500, suffix: '+', label: 'Interview Questions' }, // ← NEW
+  { value: 10, suffix: '', label: 'Tech Categories' } // ← NEW
+]; // ← NEW
 
 export default function HomePage() {
   return (
@@ -108,6 +116,10 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      <StatsRow /> {/* // ← NEW */}
+
+      <EmailCaptureSection /> {/* // ← NEW */}
 
       <Section eyebrow="How it works" title="Learn, prepare, apply without losing context">
         <div className="grid gap-5 md:grid-cols-3">
@@ -193,9 +205,111 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <section className="px-4 pb-8 sm:px-6 lg:px-8"> {/* // ← NEW */}
+        <div className="mx-auto max-w-6xl rounded-xl border-l-4 border-blue-600 bg-gray-50 p-6 dark:bg-gray-800"> {/* // ← NEW */}
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between"> {/* // ← NEW */}
+            <div> {/* // ← NEW */}
+              <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white">Powerful Pro features are on the way</h2> {/* // ← NEW */}
+              <p className="mt-2 text-slate-600 dark:text-slate-300">AI CV feedback and mock interviews — coming soon</p> {/* // ← NEW */}
+            </div> {/* // ← NEW */}
+            {/* // ← NEW */}
+            <Button asChild variant="outline" className="border-slate-200 bg-white font-bold text-slate-950 hover:bg-slate-50 dark:border-gray-700 dark:bg-white/10 dark:text-white dark:hover:bg-white/15">
+              <Link to="/careers">Explore Free Roadmaps</Link>
+            </Button>
+          </div> {/* // ← NEW */}
+        </div> {/* // ← NEW */}
+      </section> {/* // ← NEW */}
+
     </div>
   );
 }
+
+function StatsRow() { // ← NEW
+  const [hasStarted, setHasStarted] = useState(false); // ← NEW
+  const [counts, setCounts] = useState(launchStats.map(() => 0)); // ← NEW
+  const statsRef = useRef(null); // ← NEW
+
+  useEffect(() => { // ← NEW
+    const node = statsRef.current; // ← NEW
+    if (!node) return undefined; // ← NEW
+
+    const observer = new IntersectionObserver(([entry]) => { // ← NEW
+      if (entry.isIntersecting) { // ← NEW
+        setHasStarted(true); // ← NEW
+        observer.disconnect(); // ← NEW
+      } // ← NEW
+    }, { threshold: 0.35 }); // ← NEW
+
+    observer.observe(node); // ← NEW
+    return () => observer.disconnect(); // ← NEW
+  }, []); // ← NEW
+
+  useEffect(() => { // ← NEW
+    if (!hasStarted) return undefined; // ← NEW
+
+    let frameId; // ← NEW
+    const duration = 1200; // ← NEW
+    const start = performance.now(); // ← NEW
+
+    const tick = (now) => { // ← NEW
+      const progress = Math.min((now - start) / duration, 1); // ← NEW
+      const eased = 1 - Math.pow(1 - progress, 3); // ← NEW
+      setCounts(launchStats.map((stat) => Math.round(stat.value * eased))); // ← NEW
+
+      if (progress < 1) { // ← NEW
+        frameId = requestAnimationFrame(tick); // ← NEW
+      } // ← NEW
+    }; // ← NEW
+
+    frameId = requestAnimationFrame(tick); // ← NEW
+    return () => cancelAnimationFrame(frameId); // ← NEW
+  }, [hasStarted]); // ← NEW
+
+  return ( // ← NEW
+    <section ref={statsRef} className="px-4 py-12 sm:px-6 lg:px-8"> {/* // ← NEW */}
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-3"> {/* // ← NEW */}
+        {launchStats.map((stat, index) => ( // ← NEW
+          <Card key={stat.label} className="border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/10"> {/* // ← NEW */}
+            <CardContent className="p-6 text-center"> {/* // ← NEW */}
+              <div className="text-4xl font-extrabold text-blue-600 dark:text-blue-400">{counts[index]}{stat.suffix}</div> {/* // ← NEW */}
+              <div className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">{stat.label}</div> {/* // ← NEW */}
+            </CardContent> {/* // ← NEW */}
+          </Card> // ← NEW
+        ))} {/* // ← NEW */}
+      </div> {/* // ← NEW */}
+    </section> // ← NEW
+  ); // ← NEW
+} // ← NEW
+
+function EmailCaptureSection() { // ← NEW
+  const [email, setEmail] = useState(''); // ← NEW
+  const [submitted, setSubmitted] = useState(false); // ← NEW
+
+  const handleSubmit = (event) => { // ← NEW
+    event.preventDefault(); // ← NEW
+    setSubmitted(true); // ← NEW
+    setEmail(''); // ← NEW
+  }; // ← NEW
+
+  return ( // ← NEW
+    <section className="px-4 py-12 sm:px-6 lg:px-8"> {/* // ← NEW */}
+      <div className="mx-auto max-w-6xl rounded-2xl bg-gray-50 p-8 dark:bg-gray-900"> {/* // ← NEW */}
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center"> {/* // ← NEW */}
+          <div> {/* // ← NEW */}
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">We just launched — and everything is free</h2> {/* // ← NEW */}
+            <p className="mt-3 text-slate-600 dark:text-slate-300">Be among the first. Early users get priority access to Pro features.</p> {/* // ← NEW */}
+            {submitted && <p className="mt-4 text-sm font-bold text-blue-600 dark:text-blue-400">🎉 Thanks! We'll notify you when Pro launches.</p>} {/* // ← NEW */}
+          </div> {/* // ← NEW */}
+          <form onSubmit={handleSubmit} className="flex w-full flex-col gap-3 sm:flex-row lg:w-[420px]"> {/* // ← NEW */}
+            <Input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="Email address" className="h-12 bg-white dark:bg-white/10" /> {/* // ← NEW */}
+            <Button type="submit" className="h-12 bg-blue-600 px-6 font-bold text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700">Notify Me</Button> {/* // ← NEW */}
+          </form> {/* // ← NEW */}
+        </div> {/* // ← NEW */}
+      </div> {/* // ← NEW */}
+    </section> // ← NEW
+  ); // ← NEW
+} // ← NEW
 
 function Section({ eyebrow, title, children }) {
   return (

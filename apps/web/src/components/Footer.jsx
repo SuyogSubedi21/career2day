@@ -2,12 +2,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Briefcase, Twitter, Linkedin, Mail } from 'lucide-react';
+import { Badge } from '@/components/ui/badge'; // ← NEW
 
 export default function Footer() {
   return (
     <footer className="bg-background border-t border-border pt-16 pb-8 mt-auto shrink-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12"> {/* // ← NEW */}
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4 group">
               <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center text-primary-foreground">
@@ -31,6 +32,7 @@ export default function Footer() {
               <li><Link to="/practice" className="hover:text-primary transition-colors">Interview Practice</Link></li>
               <li><Link to="/cv-builder" className="hover:text-primary transition-colors">CV Builder</Link></li>
               <li><Link to="/my-cvs" className="hover:text-primary transition-colors">My CVs</Link></li>
+              <li><Link to="/pricing" className="hover:text-primary transition-colors">Pricing</Link></li> {/* // ← NEW */}
             </ul>
           </div>
 
@@ -51,11 +53,23 @@ export default function Footer() {
               <li><Link to="/refund-policy" className="hover:text-primary transition-colors">Refund Policy</Link></li>
             </ul>
           </div>
+
+          <div> {/* // ← NEW */}
+            <h3 className="font-semibold mb-4 text-foreground">Coming Soon</h3> {/* // ← NEW */}
+            <ul className="space-y-3 text-sm text-muted-foreground"> {/* // ← NEW */}
+              {['AI CV Feedback', 'Mock Interviews', 'ATS Checker'].map((item) => ( // ← NEW
+                <li key={item} className="flex items-center gap-2"> {/* // ← NEW */}
+                  <span>{item}</span> {/* // ← NEW */}
+                  <Badge className="border-transparent bg-blue-600 text-white hover:bg-blue-600">Soon</Badge> {/* // ← NEW */}
+                </li> // ← NEW
+              ))} {/* // ← NEW */}
+            </ul> {/* // ← NEW */}
+          </div> {/* // ← NEW */}
         </div>
         
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Career2Day. All rights reserved.
+            &copy; 2025 Career2Day. All rights reserved. Built for learners, by learners. {/* // ← NEW */}
           </p>
           <p className="text-sm text-muted-foreground">
             Built by <span className="font-medium text-foreground">Suyog Subedi</span>
