@@ -9,9 +9,10 @@ import { getQuizQuestions } from '@/data/quizData.js';
 import { getCareerPlatformBySlug } from '@/data/careerPlatformData.js';
 
 const difficultyMinutes = {
-  simple: 5,
-  medium: 10,
-  hard: 15
+  easy: 10,
+  simple: 10,
+  medium: 15,
+  hard: 20
 };
 
 const formatTime = (seconds) => {

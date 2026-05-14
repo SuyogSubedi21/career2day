@@ -3,13 +3,13 @@ import { CAREERS_LIST } from '@/lib/interviewQuestionsData.js';
 
 // Base generator to ensure all 50 careers have 30 questions (10 per difficulty)
 const generateQuestionsForCareer = (careerSlug, careerName) => {
-  const difficulties = ['simple', 'medium', 'hard'];
+  const difficulties = ['easy', 'medium', 'hard'];
   const questions = [];
   
   let idCounter = 1;
 
   difficulties.forEach(difficulty => {
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 20; i++) {
       questions.push({
         id: `${careerSlug}-${difficulty}-${idCounter++}`,
         careerSlug,
@@ -85,5 +85,18 @@ CAREERS_LIST.forEach(careerSlug => {
 export const quizDatabase = allQuestions;
 
 export const getQuizQuestions = (careerSlug, difficulty) => {
-  return quizDatabase.filter(q => q.careerSlug === careerSlug && q.difficulty === difficulty);
+  const normalizedDifficulty = difficulty === 'simple' ? 'easy' : difficulty;
+  const legacyDifficulty = normalizedDifficulty === 'easy' ? 'simple' : normalizedDifficulty;
+  const careerName = formatNameFromSlug(careerSlug);
+  const existing = quizDatabase
+    .filter(q => q.careerSlug === careerSlug && (q.difficulty === normalizedDifficulty || q.difficulty === legacyDifficulty))
+    .map(q => ({ ...q, difficulty: normalizedDifficulty }));
+
+  if (existing.length >= 20) return existing.slice(0, 20);
+
+  const generated = generateQuestionsForCareer(careerSlug, careerName)
+    .filter(q => q.difficulty === normalizedDifficulty)
+    .filter(q => !existing.some(existingQuestion => existingQuestion.id === q.id));
+
+  return [...existing, ...generated].slice(0, 20);
 };

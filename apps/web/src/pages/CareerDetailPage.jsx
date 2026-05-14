@@ -256,7 +256,7 @@ export default function CareerDetailPage() {
                     <p className="font-extrabold">Progress: {roadmapCompletion}%</p>
                     <p className="text-sm text-slate-600 dark:text-slate-300">Start at Beginner, finish each checklist, then build the project for that step.</p>
                   </div>
-                  <Button variant="outline" className="rounded-md" onClick={() => setActivePanel('quiz')}>Take Quiz</Button>
+                  <Button asChild variant="outline" className="rounded-md"><Link to={`/quiz/${career.slug}/difficulty`}>Take Quiz</Link></Button>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {badges.length ? badges.map((badge) => <span key={badge} className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold dark:bg-white/10">{badge}</span>) : <span className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500 dark:bg-white/10">No badges yet</span>}
@@ -414,6 +414,16 @@ export default function CareerDetailPage() {
 
       {activePanel === 'quiz' && (
         <Section id="quiz" eyebrow="Quiz" title="Test your readiness">
+          <div className="rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-white/10 dark:bg-white/10">
+            <h3 className="text-3xl font-extrabold">Start a timed quiz</h3>
+            <p className="mx-auto mt-3 max-w-2xl text-slate-600 dark:text-slate-300">Choose Easy, Medium, or Hard, then start a 20-question timed quiz. Answers stay hidden until you submit.</p>
+            <Button asChild className="mt-6 rounded-md"><Link to={`/quiz/${career.slug}/difficulty`}>Choose Difficulty</Link></Button>
+          </div>
+        </Section>
+      )}
+
+      {false && activePanel === 'quiz' && (
+        <Section id="quiz-disabled" eyebrow="Quiz" title="Test your readiness">
         <div className="mb-5 flex flex-wrap gap-2">
           {['beginner', 'intermediate', 'advanced'].map((level) => (
             <Button key={level} variant={activeQuizLevel === level ? 'default' : 'outline'} className="rounded-md capitalize" onClick={() => {

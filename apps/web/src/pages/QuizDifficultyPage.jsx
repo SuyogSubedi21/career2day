@@ -14,13 +14,13 @@ export default function QuizDifficultyPage() {
 
   const difficulties = [
     {
-      id: 'simple',
-      title: 'Simple',
+      id: 'easy',
+      title: 'Easy',
       icon: Zap,
       color: 'text-emerald-500',
       bgColor: 'bg-emerald-500/10',
-      questions: 10,
-      time: '~5 mins',
+      questions: 20,
+      time: '10 mins',
       description: 'Fundamental concepts and definitions. Perfect for entry-level verification.'
     },
     {
@@ -29,8 +29,8 @@ export default function QuizDifficultyPage() {
       icon: Target,
       color: 'text-amber-500',
       bgColor: 'bg-amber-500/10',
-      questions: 10,
-      time: '~10 mins',
+      questions: 20,
+      time: '15 mins',
       description: 'Applied knowledge and architectural understanding. Great for mid-level practice.'
     },
     {
@@ -39,8 +39,8 @@ export default function QuizDifficultyPage() {
       icon: Flame,
       color: 'text-destructive',
       bgColor: 'bg-destructive/10',
-      questions: 10,
-      time: '~15 mins',
+      questions: 20,
+      time: '20 mins',
       description: 'Deep technical constraints, anti-patterns, and complex scenarios. Challenge yourself.'
     }
   ];
