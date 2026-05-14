@@ -428,6 +428,25 @@ export default function CareerDetailPage() {
             <div className="py-8 text-center">
               <h3 className="text-3xl font-extrabold">Quiz complete</h3>
               <p className="mt-3 text-slate-600 dark:text-slate-300">Score: {activeScore}% ({activeCorrect.length}/{quizQuestions.length})</p>
+              <div className="mx-auto mt-6 grid max-w-3xl gap-3 text-left">
+                {quizQuestions.map((question, index) => {
+                  const userAnswer = answers[question.id];
+                  const isCorrect = userAnswer === question.correctAnswer;
+                  return (
+                    <article key={question.id} className="rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+                      <div className="flex items-start justify-between gap-4">
+                        <h4 className="font-extrabold">{index + 1}. {question.question}</h4>
+                        <span className={`rounded-md px-2 py-1 text-xs font-bold ${isCorrect ? 'bg-emerald-500/10 text-emerald-700' : 'bg-rose-500/10 text-rose-700'}`}>
+                          {isCorrect ? 'Correct' : 'Review'}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Your answer: <span className="font-bold">{userAnswer || 'Not answered'}</span></p>
+                      {!isCorrect && <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Correct answer: <span className="font-bold">{question.correctAnswer}</span></p>}
+                      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{question.explanation}</p>
+                    </article>
+                  );
+                })}
+              </div>
               <Button className="mt-6 rounded-md" onClick={() => {
                 setQuizDone(false);
                 setQuizIndex(0);
@@ -444,13 +463,11 @@ export default function CareerDetailPage() {
               <div className="mt-6 grid gap-3">
                 {currentQuiz.options.map((option) => {
                   const selected = answers[currentQuiz.id] === option;
-                  const correct = option === currentQuiz.correctAnswer;
                   return (
-                    <button key={option} type="button" className={`rounded-md border p-4 text-left text-sm font-semibold transition ${selected ? 'border-slate-900 bg-slate-50 dark:border-white dark:bg-white/10' : 'border-slate-200 bg-white hover:border-slate-500 dark:border-white/10 dark:bg-white/5'} ${selected && correct ? 'border-emerald-700' : ''}`} onClick={() => setAnswers((current) => ({ ...current, [currentQuiz.id]: option }))}>{option}</button>
+                    <button key={option} type="button" className={`rounded-md border p-4 text-left text-sm font-semibold transition ${selected ? 'border-slate-900 bg-slate-50 dark:border-white dark:bg-white/10' : 'border-slate-200 bg-white hover:border-slate-500 dark:border-white/10 dark:bg-white/5'}`} onClick={() => setAnswers((current) => ({ ...current, [currentQuiz.id]: option }))}>{option}</button>
                   );
                 })}
               </div>
-              {answers[currentQuiz.id] && <Callout title={answers[currentQuiz.id] === currentQuiz.correctAnswer ? 'Correct' : `Correct answer: ${currentQuiz.correctAnswer}`} text={currentQuiz.explanation} className="mt-5" />}
               <div className="mt-6 flex justify-between">
                 <Button variant="outline" className="rounded-md" disabled={quizIndex === 0} onClick={() => setQuizIndex((value) => Math.max(0, value - 1))}>Previous</Button>
                 {quizIndex === quizQuestions.length - 1 ? <Button className="rounded-md" onClick={() => setQuizDone(true)}>Finish quiz</Button> : <Button className="rounded-md" onClick={() => setQuizIndex((value) => Math.min(quizQuestions.length - 1, value + 1))}>Next</Button>}

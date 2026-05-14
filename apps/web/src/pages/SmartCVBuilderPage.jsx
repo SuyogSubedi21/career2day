@@ -328,7 +328,7 @@ function CVContent({ profile, sectionClass }) {
 }
 
 function CVSection({ title, children, sectionClass, dark = false }) {
-  return <section className="mt-2.5"><h3 className={`mb-1 text-[10px] font-extrabold uppercase leading-4 tracking-[0.12em] ${dark ? 'text-white/80' : 'text-slate-500'} ${sectionClass}`}>{title}</h3><div className={`text-[11px] leading-[1.28] ${dark ? 'text-white/85' : 'text-slate-700'}`}>{children}</div></section>;
+  return <section className="mt-2.5"><h3 className={`mb-1 text-[11px] font-extrabold uppercase leading-4 tracking-[0.12em] ${dark ? 'text-white/80' : 'text-slate-500'} ${sectionClass}`}>{title}</h3><div className={`text-[12px] leading-[1.3] ${dark ? 'text-white/85' : 'text-slate-700'}`}>{children}</div></section>;
 }
 
 function Field({ label, value, onChange }) {
@@ -348,12 +348,12 @@ function SelectField({ label, value, onChange, options }) {
 }
 
 function SkillPills({ text, dark = false }) {
-  return <div className="flex flex-wrap gap-1">{String(text).split(',').map((skill) => skill.trim()).filter(Boolean).map((skill) => <span key={skill} className={`rounded-sm px-1.5 py-0.5 text-[10px] font-bold leading-4 ${dark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-700'}`}>{skill}</span>)}</div>;
+  return <div className="flex flex-wrap gap-1">{String(text).split(',').map((skill) => skill.trim()).filter(Boolean).map((skill) => <span key={skill} className={`rounded-sm px-1.5 py-0.5 text-[11px] font-bold leading-4 ${dark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-700'}`}>{skill}</span>)}</div>;
 }
 
 function BulletText({ text }) {
   const lines = String(text).split('\n').map((line) => line.trim()).filter(Boolean);
-  return <ul className="list-disc space-y-0 pl-4">{lines.map((line) => <li key={line} className="pl-0.5 leading-[1.28]">{line}</li>)}</ul>;
+  return <ul className="list-disc space-y-0 pl-4">{lines.map((line) => <li key={line} className="pl-0.5 leading-[1.3]">{line}</li>)}</ul>;
 }
 
 function EntryText({ text }) {
@@ -372,9 +372,9 @@ function EntryText({ text }) {
       <div className="grid grid-cols-[minmax(0,1fr)_max-content] gap-4">
         <div>
           <p className="font-bold leading-[1.25] text-slate-950">{title}</p>
-          {subtitle && <p className="mt-0.5 text-[10px] font-semibold leading-[1.25] text-slate-600">{subtitle}</p>}
+          {subtitle && <p className="mt-0.5 text-[11px] font-semibold leading-[1.25] text-slate-600">{subtitle}</p>}
         </div>
-        {date && <p className="max-w-[140px] text-right text-[10px] font-semibold leading-[1.25] text-slate-600">{date}</p>}
+        {date && <p className="max-w-[150px] text-right text-[11px] font-semibold leading-[1.25] text-slate-600">{date}</p>}
       </div>
       {detailLines.length > 0 && <BulletText text={detailLines.join('\n')} />}
     </div>

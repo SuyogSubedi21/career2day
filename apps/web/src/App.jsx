@@ -59,6 +59,10 @@ import SmartCVBuilderPage from '@/pages/SmartCVBuilderPage.jsx';
 import CVBuilderPage from '@/pages/CVBuilderPage.jsx';
 import PlatformInterviewQuestionsPage from '@/pages/PlatformInterviewQuestionsPage.jsx';
 import InterviewQuestionsListPage from '@/pages/InterviewQuestionsListPage.jsx';
+import QuizSelectionPage from '@/pages/QuizSelectionPage.jsx';
+import QuizDifficultyPage from '@/pages/QuizDifficultyPage.jsx';
+import QuizInterface from '@/pages/QuizInterface.jsx';
+import QuizResultsPage from '@/pages/QuizResultsPage.jsx';
 import { getAllTemplates } from '@/data/cvTemplatesData.js';
 
 // Lazy Load legacy CV template gallery to optimize initial bundle
@@ -193,10 +197,10 @@ export default function App() {
                 {/* Interview Questions & Quiz Routes */}
                 <Route path="/interview-questions" element={<MainLayout><InterviewQuestionsListPage /></MainLayout>} />
                 <Route path="/interview-questions/:careerSlug" element={<MainLayout><PlatformInterviewQuestionsPage /></MainLayout>} />
-                <Route path="/quiz" element={<MainLayout><ComingSoonPage /></MainLayout>} />
-                <Route path="/quiz/:careerSlug/difficulty" element={<MainLayout><ComingSoonPage /></MainLayout>} />
-                <Route path="/quiz/:careerSlug/:difficulty" element={<MainLayout><ComingSoonPage /></MainLayout>} />
-                <Route path="/quiz/:careerSlug/:difficulty/results" element={<MainLayout><ComingSoonPage /></MainLayout>} />
+                <Route path="/quiz" element={<MainLayout><QuizSelectionPage /></MainLayout>} />
+                <Route path="/quiz/:careerSlug/difficulty" element={<MainLayout><QuizDifficultyPage /></MainLayout>} />
+                <Route path="/quiz/:careerSlug/:difficulty" element={<MainLayout><QuizInterface /></MainLayout>} />
+                <Route path="/quiz/:careerSlug/:difficulty/results" element={<MainLayout><QuizResultsPage /></MainLayout>} />
 
                 {/* CV Template Gallery is public */}
                 <Route path="/cv-templates" element={
