@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, Twitter, Linkedin, Mail } from 'lucide-react';
+import { Briefcase, Instagram, Linkedin, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge'; // ← NEW
 
 export default function Footer() {
@@ -20,8 +20,8 @@ export default function Footer() {
               Empowering the next generation of tech leaders with premium roadmaps, tools, and resources.
             </p>
             <div className="flex items-center gap-4 text-muted-foreground">
-              <a href="https://twitter.com" target="_blank" rel="noreferrer" aria-label="Twitter" className="hover:text-primary transition-colors"><Twitter className="w-5 h-5" /></a>
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="hover:text-primary transition-colors"><Linkedin className="w-5 h-5" /></a>
+              <a href="https://www.instagram.com/careers2dayroadmaps/" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover:text-primary transition-colors"><Instagram className="w-5 h-5" /></a>
+              <a href="https://www.linkedin.com/in/suyog-subedi-724510316/" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="hover:text-primary transition-colors"><Linkedin className="w-5 h-5" /></a>
               <a href="mailto:admin@career2day.com" aria-label="Email" className="hover:text-primary transition-colors"><Mail className="w-5 h-5" /></a>
             </div>
           </div>
@@ -69,7 +69,7 @@ export default function Footer() {
         
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            &copy; 2025 Career2Day. All rights reserved. Built for learners, by learners. {/* // ← NEW */}
+            &copy; 2026 Career2Day. All rights reserved. Built for learners, by learners. {/* // ← NEW */}
           </p>
           <p className="text-sm text-muted-foreground">
             Built by <span className="font-medium text-foreground">Suyog Subedi</span>

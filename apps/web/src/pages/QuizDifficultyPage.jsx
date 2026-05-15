@@ -92,7 +92,11 @@ export default function QuizDifficultyPage() {
                     {level.description}
                   </p>
                   
-                  <Button asChild className="w-full mt-auto" variant={level.id === 'hard' ? 'destructive' : level.id === 'medium' ? 'secondary' : 'default'}>
+                  <Button
+                    asChild
+                    className={`w-full mt-auto ${level.id === 'medium' ? 'bg-amber-400 text-amber-950 hover:bg-amber-500' : ''}`}
+                    variant={level.id === 'hard' ? 'destructive' : 'default'}
+                  >
                     <Link to={`/quiz/${careerSlug}/${level.id}`}>
                       Start {level.title} Quiz
                     </Link>

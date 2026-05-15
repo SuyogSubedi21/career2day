@@ -98,6 +98,18 @@ export default function BlogArticlePage() {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  const getReadingTime = (item) => {
+    const explicitTime = Number(item?.readingTime);
+    if (explicitTime > 0) return explicitTime;
+
+    const text = [item?.title, item?.excerpt, item?.content]
+      .filter(Boolean)
+      .join(' ')
+      .replace(/<[^>]*>/g, ' ');
+    const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.ceil(wordCount / 200));
+  };
+
   const getImageUrl = (item) => {
     if (item?.featuredImage) {
       return pb.files.getUrl(item, item.featuredImage);
@@ -112,6 +124,7 @@ export default function BlogArticlePage() {
   };
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const readingTime = getReadingTime(article);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -185,11 +198,9 @@ export default function BlogArticlePage() {
                 {article.category}
               </Badge>
             )}
-            {article.readingTime && (
-              <span className="text-sm font-medium text-muted-foreground flex items-center">
-                <Clock className="w-4 h-4 mr-1.5" /> {article.readingTime} min read
-              </span>
-            )}
+            <span className="text-sm font-medium text-muted-foreground flex items-center">
+              <Clock className="w-4 h-4 mr-1.5" /> {readingTime} min read
+            </span>
           </div>
           
           <h1 className="text-3xl md:text-5xl font-extrabold text-foreground mb-6 leading-tight text-balance tracking-tight">

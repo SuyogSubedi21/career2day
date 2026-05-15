@@ -77,6 +77,18 @@ export default function BlogPage() {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  const getReadingTime = (article) => {
+    const explicitTime = Number(article.readingTime);
+    if (explicitTime > 0) return explicitTime;
+
+    const text = [article.title, article.excerpt, article.content]
+      .filter(Boolean)
+      .join(' ')
+      .replace(/<[^>]*>/g, ' ');
+    const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.ceil(wordCount / 200));
+  };
+
   const getImageUrl = (article, index) => {
     if (article.featuredImage) {
       return pb.files.getUrl(article, article.featuredImage);
@@ -213,6 +225,7 @@ export default function BlogPage() {
           <div className="blog-grid">
             {filteredArticles.map((article, index) => {
               const isFeatured = index === 0 && selectedCategory === 'All' && !searchQuery;
+              const readingTime = getReadingTime(article);
               
               return (
                 <Link 
@@ -263,11 +276,9 @@ export default function BlogPage() {
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-3 text-xs font-medium text-muted-foreground">
-                          {article.readingTime && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" />{article.readingTime} min
-                            </span>
-                          )}
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" />{readingTime} min read
+                          </span>
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
                             {formatDate(article.publishedAt || article.created)}
