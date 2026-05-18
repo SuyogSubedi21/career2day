@@ -33,9 +33,8 @@ export const AdminAuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('admin_session');
-    if (adminPb.authStore.isValid) {
-      adminPb.authStore.clear();
-    }
+    localStorage.removeItem('career2day_admin_auth');
+    adminPb.authStore.clear();
     setIsAdminLoggedIn(false);
     setAdminEmail(null);
   };
@@ -46,18 +45,25 @@ export const AdminAuthProvider = ({ children }) => {
       if (sessionStr) {
         const session = JSON.parse(sessionStr);
         if (session.expiresAt && new Date(session.expiresAt) > new Date()) {
+          if (!adminPb.authStore.isValid && session.token && session.model) {
+            adminPb.authStore.save(session.token, session.model);
+          }
+
           if (adminPb.authStore.isValid && isAllowedAdmin(adminPb.authStore.model)) {
             setIsAdminLoggedIn(true);
-            setAdminEmail(session.email);
+            setAdminEmail(session.email || adminPb.authStore.model?.email || null);
           } else {
             localStorage.removeItem('admin_session');
+            localStorage.removeItem('career2day_admin_auth');
           }
         } else {
           localStorage.removeItem('admin_session');
+          localStorage.removeItem('career2day_admin_auth');
         }
       }
     } catch (e) {
       localStorage.removeItem('admin_session');
+      localStorage.removeItem('career2day_admin_auth');
     }
     setIsLoading(false);
   }, []);
@@ -93,7 +99,12 @@ export const AdminAuthProvider = ({ children }) => {
     }
 
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    localStorage.setItem('admin_session', JSON.stringify({ email: user.email, expiresAt }));
+    localStorage.setItem('admin_session', JSON.stringify({
+      email: user.email,
+      expiresAt,
+      token: authData.token,
+      model: user
+    }));
     setIsAdminLoggedIn(true);
     setAdminEmail(user.email);
     return true;

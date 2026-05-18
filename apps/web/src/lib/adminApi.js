@@ -1,7 +1,14 @@
 import adminPb from '@/lib/adminPocketbaseClient.js';
 
-export const getAdminSummary = () => adminPb.send('/api/admin/summary', { method: 'GET' });
+const adminOptions = () => ({
+  method: 'GET',
+  headers: adminPb.authStore.token
+    ? { Authorization: adminPb.authStore.token }
+    : {}
+});
 
-export const getAdminUsers = () => adminPb.send('/api/admin/users', { method: 'GET' });
+export const getAdminSummary = () => adminPb.send('/api/admin/summary', adminOptions());
 
-export const getAdminSubscriptions = () => adminPb.send('/api/admin/subscriptions', { method: 'GET' });
+export const getAdminUsers = () => adminPb.send('/api/admin/users', adminOptions());
+
+export const getAdminSubscriptions = () => adminPb.send('/api/admin/subscriptions', adminOptions());
