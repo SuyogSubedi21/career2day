@@ -67,10 +67,11 @@ export function useAdminDashboardData() {
       ] = await Promise.all([
         Promise.all([
           fetchUsersFromCollection('users'),
-          fetchUsersFromCollection('admin_users')
-        ]).then(([users, adminUsers]) => {
-          const merged = users.length || adminUsers.length
-            ? [...users, ...adminUsers]
+          fetchUsersFromCollection('admin_users'),
+          fetchUsersFromCollection('admins')
+        ]).then(([users, adminUsers, admins]) => {
+          const merged = users.length || adminUsers.length || admins.length
+            ? [...users, ...adminUsers, ...admins]
             : (adminUsersRes.items?.length ? adminUsersRes.items : summaryRes?.users?.items || []).map((user) => normalizeUser(user));
           return merged.sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
         }),
@@ -92,7 +93,7 @@ export function useAdminDashboardData() {
 
       // --- Calculate Stats ---
       const summaryCounts = summaryRes?.counts || {};
-      const totalUsers = summaryCounts.users ?? adminUsersRes.totalItems ?? usersRes.length;
+      const totalUsers = Math.max(summaryCounts.users || 0, adminUsersRes.totalItems || 0, summaryRes?.users?.totalItems || 0, usersRes.length);
       const paidUsers = summaryCounts.activeSubscriptions ?? usersRes.filter(u => u.premium === true).length;
       const freeUsers = Math.max(0, totalUsers - paidUsers);
       

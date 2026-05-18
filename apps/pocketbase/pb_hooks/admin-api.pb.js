@@ -104,15 +104,17 @@ routerAdd("GET", "/api/admin/summary", (e) => {
 
   const users = list("users", 2000);
   const adminUsers = list("admin_users", 2000);
+  const admins = list("admins", 2000);
   const subscriptions = list("subscriptions_stripe", 2000);
   const userItems = [
     ...usersPayload(users).map((user) => ({ ...user, collection: "users" })),
-    ...usersPayload(adminUsers).map((user) => ({ ...user, collection: "admin_users" }))
+    ...usersPayload(adminUsers).map((user) => ({ ...user, collection: "admin_users" })),
+    ...usersPayload(admins).map((user) => ({ ...user, collection: "admins" }))
   ].sort((a, b) => String(b.created || "").localeCompare(String(a.created || "")));
 
   return e.json(200, {
     counts: {
-      users: users.length + adminUsers.length,
+      users: userItems.length,
       subscriptions: subscriptions.length,
       activeSubscriptions: subscriptions.filter((item) => get(item, "status", "") === "active").length,
       pageViews: list("page_views", 2000).length,
@@ -156,6 +158,7 @@ routerAdd("GET", "/api/admin/users", (e) => {
 
     const users = listRecords("users", "-created", 1000);
     const adminUsers = listRecords("admin_users", "-created", 1000);
+    const admins = listRecords("admins", "-created", 1000);
     const externalAuths = listRecords("_externalAuths", "-created", 2000);
     const authProvidersByUser = {};
 
@@ -168,7 +171,7 @@ routerAdd("GET", "/api/admin/users", (e) => {
     });
 
     return e.json(200, {
-      totalItems: users.length + adminUsers.length,
+      totalItems: users.length + adminUsers.length + admins.length,
       items: [
         ...usersPayload(users).map((user) => ({
           ...user,
@@ -179,6 +182,11 @@ routerAdd("GET", "/api/admin/users", (e) => {
           ...user,
           authProvider: "email",
           collection: "admin_users"
+        })),
+        ...usersPayload(admins).map((user) => ({
+          ...user,
+          authProvider: "email",
+          collection: "admins"
         }))
       ].sort((a, b) => String(b.created || "").localeCompare(String(a.created || "")))
     });

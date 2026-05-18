@@ -59,7 +59,8 @@ export default function AdminUserManagementPage() {
         .catch(async () => {
           const items = [
             ...(await fetchCollectionUsers('users')),
-            ...(await fetchCollectionUsers('admin_users'))
+            ...(await fetchCollectionUsers('admin_users')),
+            ...(await fetchCollectionUsers('admins'))
           ].sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
           return { items, totalItems: items.length };
         })
