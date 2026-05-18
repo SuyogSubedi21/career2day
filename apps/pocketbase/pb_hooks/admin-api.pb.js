@@ -31,8 +31,20 @@ function requireAdmin(e) {
 
 function listRecords(name, sort, limit) {
   try {
-    const records = $app.findRecordsByFilter(name, "id != ''", sort || "-created", limit || 1000, 0);
-    return records.filter((record) => !!record);
+    const max = limit || 1000;
+    let records = [];
+    try {
+      records = $app.findAllRecords(name).filter((record) => !!record);
+    } catch (allErr) {
+      $app.logger().warn("[admin-api] findAllRecords failed for " + name + ": " + allErr.message);
+      records = $app.findRecordsByFilter(name, "id != ''", sort || "-created", max, 0).filter((record) => !!record);
+    }
+
+    if ((sort || "-created") === "-created") {
+      records = records.sort((a, b) => String(recordDate(b)).localeCompare(String(recordDate(a))));
+    }
+
+    return records.slice(0, max);
   } catch (err) {
     $app.logger().warn("[admin-api] Could not read " + name + ": " + err.message);
     return [];
@@ -42,6 +54,14 @@ function listRecords(name, sort, limit) {
 function recordDate(record) {
   try {
     return record.get("created") || record.created || "";
+  } catch {
+    return "";
+  }
+}
+
+function collectionName(record) {
+  try {
+    return record.collection().name || "";
   } catch {
     return "";
   }
@@ -93,14 +113,7 @@ routerAdd("GET", "/api/admin/summary", (e) => {
     return e.json(403, { message: "Admin access required." });
   }
 
-  const list = (name, limit) => {
-    try {
-      return $app.findRecordsByFilter(name, "id != ''", "", limit || 2000, 0).filter((record) => !!record);
-    } catch (err) {
-      $app.logger().warn("[admin-api] Could not read " + name + ": " + err.message);
-      return [];
-    }
-  };
+  const list = (name, limit) => listRecords(name, "-created", limit || 2000);
 
   const users = list("users", 2000);
   const adminUsers = list("admin_users", 2000);
@@ -129,6 +142,15 @@ routerAdd("GET", "/api/admin/summary", (e) => {
     users: {
       totalItems: userItems.length,
       items: userItems
+    },
+    diagnostics: {
+      authCollection: collectionName(e.auth),
+      authEmail,
+      collectionCounts: {
+        users: users.length,
+        admin_users: adminUsers.length,
+        admins: admins.length
+      }
     }
   });
 }, $apis.requireAuth("users", "admin_users", "admins"));
