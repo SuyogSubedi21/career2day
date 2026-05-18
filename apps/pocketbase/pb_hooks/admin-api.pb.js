@@ -50,10 +50,12 @@ function recordDate(record) {
 function usersPayload(records) {
   return records.map((record) => ({
     id: record.id,
-    name: safeGet(record, "name", ""),
+    name: safeGet(record, "name", "") || safeGet(record, "username", "") || safeGet(record, "fullName", ""),
     email: safeGet(record, "email", ""),
     created: recordDate(record),
-    authProvider: safeGet(record, "authProvider", "") || safeGet(record, "provider", "")
+    authProvider: safeGet(record, "authProvider", "") || safeGet(record, "provider", "") || "email",
+    status: safeGet(record, "status", ""),
+    verified: safeGet(record, "verified", false) === true
   }));
 }
 
@@ -101,11 +103,12 @@ routerAdd("GET", "/api/admin/summary", (e) => {
   };
 
   const users = list("users", 2000);
+  const adminUsers = list("admin_users", 2000);
   const subscriptions = list("subscriptions_stripe", 2000);
 
   return e.json(200, {
     counts: {
-      users: users.length,
+      users: users.length + adminUsers.length,
       subscriptions: subscriptions.length,
       activeSubscriptions: subscriptions.filter((item) => get(item, "status", "") === "active").length,
       pageViews: list("page_views", 2000).length,
@@ -118,7 +121,7 @@ routerAdd("GET", "/api/admin/summary", (e) => {
       roadmaps: list("careerRoadmaps", 2000).length
     }
   });
-}, $apis.requireAuth("users"));
+}, $apis.requireAuth("users", "admin_users", "admins"));
 
 routerAdd("GET", "/api/admin/users", (e) => {
   try {
@@ -143,8 +146,9 @@ routerAdd("GET", "/api/admin/users", (e) => {
       return e.json(403, { message: "Admin access required." });
     }
 
-    const users = $app.findRecordsByFilter("users", "id != ''", "", 1000, 0).filter((record) => !!record);
-    const externalAuths = $app.findRecordsByFilter("_externalAuths", "id != ''", "", 2000, 0).filter((record) => !!record);
+    const users = listRecords("users", "-created", 1000);
+    const adminUsers = listRecords("admin_users", "-created", 1000);
+    const externalAuths = listRecords("_externalAuths", "-created", 2000);
     const authProvidersByUser = {};
 
     externalAuths.forEach((record) => {
@@ -156,20 +160,25 @@ routerAdd("GET", "/api/admin/users", (e) => {
     });
 
     return e.json(200, {
-      totalItems: users.length,
-      items: users.map((record) => ({
-        id: record.id,
-        name: get(record, "name", ""),
-        email: get(record, "email", ""),
-        created: get(record, "created", "") || record.created || "",
-        authProvider: authProvidersByUser[record.id] || "email"
-      }))
+      totalItems: users.length + adminUsers.length,
+      items: [
+        ...usersPayload(users).map((user) => ({
+          ...user,
+          authProvider: authProvidersByUser[user.id] || user.authProvider || "email",
+          collection: "users"
+        })),
+        ...usersPayload(adminUsers).map((user) => ({
+          ...user,
+          authProvider: "email",
+          collection: "admin_users"
+        }))
+      ].sort((a, b) => String(b.created || "").localeCompare(String(a.created || "")))
     });
   } catch (err) {
     $app.logger().error("[admin-api] Users route failed: " + err.message);
     return e.json(500, { message: err.message || "Failed to load admin users." });
   }
-}, $apis.requireAuth("users"));
+}, $apis.requireAuth("users", "admin_users", "admins"));
 
 routerAdd("GET", "/api/admin/subscriptions", (e) => {
   const get = (record, field, fallback) => {
@@ -212,4 +221,4 @@ routerAdd("GET", "/api/admin/subscriptions", (e) => {
       created: get(record, "created", "") || record.created || ""
     }))
   });
-}, $apis.requireAuth("users"));
+}, $apis.requireAuth("users", "admin_users", "admins"));

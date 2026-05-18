@@ -21,6 +21,25 @@ const currentAdminFallback = () => {
   }];
 };
 
+const normalizeUser = (user, collection = user.collection || 'users') => ({
+  ...user,
+  id: user.id,
+  name: user.name || user.username || user.fullName || 'No name provided',
+  email: user.email || 'No email',
+  authProvider: user.authProvider || user.provider || 'email',
+  created: user.created || '',
+  collection
+});
+
+const fetchCollectionUsers = async (collection) => {
+  try {
+    const items = await pb.collection(collection).getFullList({ sort: '-created', $autoCancel: false });
+    return items.map((item) => normalizeUser(item, collection));
+  } catch {
+    return [];
+  }
+};
+
 export default function AdminUserManagementPage() {
   const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -34,12 +53,15 @@ export default function AdminUserManagementPage() {
       setError(null);
       const records = await getAdminUsers()
         .catch(async () => {
-          const items = await pb.collection('users').getFullList({ sort: '-created', $autoCancel: false });
+          const items = [
+            ...(await fetchCollectionUsers('users')),
+            ...(await fetchCollectionUsers('admin_users'))
+          ].sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
           return { items, totalItems: items.length };
         })
         .catch(() => ({ items: currentAdminFallback(), totalItems: currentAdminFallback().length }));
 
-      const items = records.items?.length ? records.items : currentAdminFallback();
+      const items = records.items?.length ? records.items.map((item) => normalizeUser(item)) : currentAdminFallback();
       setUsers(items);
       setTotalUsers(records.totalItems || items.length);
     } catch (err) {

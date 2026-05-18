@@ -4,6 +4,24 @@ import pb from '@/lib/pocketbaseClient.js';
 import { subDays, format, isAfter, startOfMonth, subMonths } from 'date-fns';
 import { getAdminSummary, getAdminUsers, getAdminSubscriptions } from '@/lib/adminApi.js';
 
+const normalizeUser = (user, collection = user.collection || 'users') => ({
+  ...user,
+  name: user.name || user.username || user.fullName || '',
+  email: user.email || '',
+  authProvider: user.authProvider || user.provider || 'email',
+  created: user.created || '',
+  collection
+});
+
+const fetchUsersFromCollection = async (collection) => {
+  try {
+    const users = await pb.collection(collection).getFullList({ sort: '-created', $autoCancel: false });
+    return users.map((user) => normalizeUser(user, collection));
+  } catch {
+    return [];
+  }
+};
+
 export function useAdminDashboardData() {
   const [data, setData] = useState({
     totalUsers: 0,
@@ -47,7 +65,15 @@ export function useAdminDashboardData() {
         userActivityRes,
         careersRes
       ] = await Promise.all([
-        pb.collection('users').getFullList({ sort: '-created', $autoCancel: false }).catch(() => adminUsersRes.items || []),
+        Promise.all([
+          fetchUsersFromCollection('users'),
+          fetchUsersFromCollection('admin_users')
+        ]).then(([users, adminUsers]) => {
+          const merged = users.length || adminUsers.length
+            ? [...users, ...adminUsers]
+            : (adminUsersRes.items || []).map((user) => normalizeUser(user));
+          return merged.sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+        }),
         pb.collection('userCVs').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
         pb.collection('downloads').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
         pb.collection('bookmarks').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
