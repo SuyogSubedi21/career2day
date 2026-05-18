@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import SEOHead from '@/components/SEOHead.jsx';
+import { useAuth } from '@/contexts/AuthContext.jsx';
 import { getCareerPlatformBySlug } from '@/data/careerPlatformData.js';
+import pb from '@/lib/pocketbaseClient.js';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
@@ -120,6 +122,7 @@ function TemplateGallery({ career }) {
 }
 
 function CVEditor({ career, template }) {
+  const { currentUser, isAuthenticated } = useAuth();
   const saved = useMemo(() => {
     try {
       return JSON.parse(window.localStorage.getItem(storageKey(career.slug, template.id)) || '{}');
@@ -131,15 +134,84 @@ function CVEditor({ career, template }) {
   const [style, setStyle] = useState({ ...defaultStyle, ...saved.style });
   const [activeSection, setActiveSection] = useState('summary');
   const [saveState, setSaveState] = useState('Saved locally');
+  const [cloudCVId, setCloudCVId] = useState(null);
+  const [cloudLoaded, setCloudLoaded] = useState(false);
 
   useEffect(() => {
     setSaveState('Saving...');
     const timer = setTimeout(() => {
       window.localStorage.setItem(storageKey(career.slug, template.id), JSON.stringify({ profile, style }));
-      setSaveState('Saved locally');
+      setSaveState(isAuthenticated ? 'Saved locally, syncing...' : 'Saved locally');
     }, 250);
     return () => clearTimeout(timer);
-  }, [career.slug, template.id, profile, style]);
+  }, [career.slug, isAuthenticated, template.id, profile, style]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !currentUser) {
+      setCloudCVId(null);
+      setCloudLoaded(true);
+      return undefined;
+    }
+
+    let isMounted = true;
+
+    const loadCloudCV = async () => {
+      setCloudLoaded(false);
+      try {
+        const records = await pb.collection('userCVs').getList(1, 20, {
+          filter: `userId="${currentUser.id}" && templateId="${template.id}"`,
+          sort: '-updated',
+          $autoCancel: false
+        });
+        const record = records.items.find((item) => item.personalInfo?.__careerSlug === career.slug) || records.items[0];
+        if (!isMounted || !record) return;
+
+        setCloudCVId(record.id);
+        setProfile(cloudRecordToProfile(record, career));
+        setStyle({ ...defaultStyle, ...(record.personalInfo?.__smartStyle || {}) });
+        setSaveState('Loaded from your account');
+      } catch (error) {
+        console.warn('[SmartCVBuilderPage] Cloud CV load skipped:', error);
+      } finally {
+        if (isMounted) setCloudLoaded(true);
+      }
+    };
+
+    loadCloudCV();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [career, currentUser, isAuthenticated, template.id]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !currentUser || !cloudLoaded) return undefined;
+
+    const timer = setTimeout(async () => {
+      const hasUserContent = profile.name !== 'Your Name' || profile.email !== 'john.doe@email.com' || profile.phone !== '+1 555 0134' || profile.website !== 'linkedin.com/in/johndoe';
+      if (!hasUserContent) {
+        setSaveState('Saved locally');
+        return;
+      }
+
+      setSaveState('Saving to your account...');
+      try {
+        const payload = profileToCloudRecord(profile, style, career, template, currentUser.id);
+        if (cloudCVId) {
+          await pb.collection('userCVs').update(cloudCVId, payload, { $autoCancel: false });
+        } else {
+          const record = await pb.collection('userCVs').create(payload, { $autoCancel: false });
+          setCloudCVId(record.id);
+        }
+        setSaveState('Saved to your account');
+      } catch (error) {
+        console.warn('[SmartCVBuilderPage] Cloud CV save skipped:', error);
+        setSaveState('Saved locally');
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [career, cloudCVId, cloudLoaded, currentUser, isAuthenticated, profile, style, template]);
 
   const updateProfile = (key, value) => setProfile((current) => ({ ...current, [key]: value }));
   const updateStyle = (patch) => setStyle((current) => ({ ...current, ...patch }));
@@ -461,4 +533,82 @@ function toHtmlList(text) {
 
 function escapeHtml(value) {
   return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function profileToCloudRecord(profile, style, career, template, userId) {
+  return {
+    userId,
+    name: profile.name && profile.name !== 'Your Name' ? `${profile.name}'s CV` : `${career.name} CV`,
+    template: template.id,
+    templateId: template.id,
+    personalInfo: {
+      fullName: profile.name,
+      jobTitle: profile.title,
+      email: profile.email,
+      phone: profile.phone,
+      location: profile.location,
+      website: profile.website,
+      photo: profile.photo,
+      __careerSlug: career.slug,
+      __smartStyle: style
+    },
+    summary: profile.summary,
+    workExperience: textToRows(profile.experience, 'experience'),
+    education: textToRows(profile.education, 'education'),
+    skills: String(profile.skills).split(',').map((name) => ({ name: name.trim(), level: 'Working' })).filter((item) => item.name),
+    certifications: textToRows(profile.certifications, 'certification'),
+    projects: String(profile.projects)
+      .split('\n')
+      .map((line, index) => line.trim())
+      .filter(Boolean)
+      .map((line, index) => ({ name: line.replace(/^Level\s+\d+\s+Project:\s*/i, ''), duration: `Level ${index + 1} Project`, description: line })),
+    languages: [],
+    volunteerExperience: []
+  };
+}
+
+function cloudRecordToProfile(record, career) {
+  const personalInfo = record.personalInfo || {};
+  return {
+    ...defaultProfile(career),
+    name: personalInfo.fullName || personalInfo.name || defaultProfile(career).name,
+    title: personalInfo.jobTitle || personalInfo.title || career.name,
+    email: personalInfo.email || defaultProfile(career).email,
+    phone: personalInfo.phone || defaultProfile(career).phone,
+    location: personalInfo.location || defaultProfile(career).location,
+    website: personalInfo.website || defaultProfile(career).website,
+    summary: record.summary || record.professionalSummary || defaultProfile(career).summary,
+    skills: Array.isArray(record.skills) ? record.skills.map((skill) => skill.name || skill).filter(Boolean).join(', ') : defaultProfile(career).skills,
+    projects: rowsToText(record.projects, 'projects') || defaultProfile(career).projects,
+    experience: rowsToText(record.workExperience || record.experience, 'experience') || defaultProfile(career).experience,
+    education: rowsToText(record.education, 'education') || defaultProfile(career).education,
+    certifications: rowsToText(record.certifications, 'certifications') || defaultProfile(career).certifications,
+    photo: personalInfo.photo || ''
+  };
+}
+
+function textToRows(text, type) {
+  return String(text)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      if (type === 'experience') return { company: line, position: line, description: line };
+      if (type === 'education') return { school: line, degree: line, description: line };
+      return { name: line, issuer: line, description: line };
+    });
+}
+
+function rowsToText(rows, type) {
+  if (!Array.isArray(rows)) return '';
+  return rows
+    .map((row) => {
+      if (typeof row === 'string') return row;
+      if (type === 'projects') return row.description || row.name || '';
+      if (type === 'experience') return row.description || [row.position, row.company, row.startDate].filter(Boolean).join(' | ');
+      if (type === 'education') return row.description || [row.degree, row.school, row.graduationDate].filter(Boolean).join(' | ');
+      return row.description || row.name || row.issuer || '';
+    })
+    .filter(Boolean)
+    .join('\n');
 }

@@ -11,6 +11,7 @@ const AdminAuthContext = createContext({
 });
 
 const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || 'admin@career2day.com').toLowerCase();
+const ADMIN_AUTH_COLLECTIONS = ['admin_users', 'admins', 'users'];
 
 const isAllowedAdmin = (record) => {
   if (!record) return false;
@@ -68,7 +69,22 @@ export const AdminAuthProvider = ({ children }) => {
       throw new Error('Enter the admin email and password.');
     }
 
-    const authData = await pb.collection('users').authWithPassword(cleanEmail, password, { $autoCancel: false });
+    let authData = null;
+    let lastError = null;
+
+    for (const collectionName of ADMIN_AUTH_COLLECTIONS) {
+      try {
+        authData = await pb.collection(collectionName).authWithPassword(cleanEmail, password, { $autoCancel: false });
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (!authData) {
+      throw lastError || new Error('Failed to authenticate.');
+    }
+
     const user = authData.record;
 
     if (!isAllowedAdmin(user)) {

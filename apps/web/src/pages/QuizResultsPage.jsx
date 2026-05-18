@@ -1,22 +1,28 @@
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, Navigate, Link, useParams } from 'react-router-dom';
 import { Award, RefreshCcw, LayoutList, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import SEOHead from '@/components/SEOHead.jsx';
+import { useAuth } from '@/contexts/AuthContext.jsx';
+import pb from '@/lib/pocketbaseClient.js';
 
 export default function QuizResultsPage() {
   const location = useLocation();
   const params = useParams();
-  
-  if (!location.state || !location.state.answers) {
-    return <Navigate to={`/careers/${params.careerSlug || ''}`} replace />;
-  }
+  const { currentUser } = useAuth();
+  const [saveStatus, setSaveStatus] = useState('');
+  const hasSavedRef = useRef(false);
 
-  const { answers, score, totalQuestions, careerSlug, difficulty } = location.state;
-  const percentage = Math.round((score / totalQuestions) * 100);
+  const hasResults = Boolean(location.state?.answers);
+  const answers = location.state?.answers || [];
+  const score = Number(location.state?.score || 0);
+  const totalQuestions = Number(location.state?.totalQuestions || 0);
+  const careerSlug = location.state?.careerSlug || params.careerSlug || '';
+  const difficulty = location.state?.difficulty || '';
+  const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
   
   let feedback = { text: '', color: '' };
   if (percentage >= 90) {
@@ -27,6 +33,107 @@ export default function QuizResultsPage() {
     feedback = { text: 'Average', color: 'text-amber-500' };
   } else {
     feedback = { text: 'Needs Practice', color: 'text-destructive' };
+  }
+
+  useEffect(() => {
+    if (!hasResults || !currentUser || hasSavedRef.current) return;
+    hasSavedRef.current = true;
+
+    const saveResults = async () => {
+      setSaveStatus('Saving progress...');
+      const completedAt = new Date().toISOString();
+      const correctAnswers = score;
+      const questionsAttempted = totalQuestions;
+
+      try {
+        await pb.collection('quizResults').create({
+          userId: currentUser.id,
+          careerSlug,
+          difficulty,
+          score,
+          totalQuestions,
+          percentage,
+          answers,
+          readinessLevel: feedback.text,
+          completedAt
+        }, { $autoCancel: false });
+      } catch (error) {
+        try {
+          await pb.collection('quizResults').create({
+            userId: currentUser.id,
+            scores: { [careerSlug]: percentage },
+            topCareers: [careerSlug]
+          }, { $autoCancel: false });
+        } catch (fallbackError) {
+          console.warn('[QuizResultsPage] quizResults save skipped:', error, fallbackError);
+        }
+      }
+
+      try {
+        const existing = await pb.collection('userProgress').getList(1, 1, {
+          filter: `userId="${currentUser.id}" && courseId="${careerSlug}"`,
+          $autoCancel: false
+        });
+
+        if (existing.items.length > 0) {
+          const record = existing.items[0];
+          const newAttempted = Number(record.questionsAttempted || 0) + questionsAttempted;
+          const newCorrect = Number(record.correctAnswers || 0) + correctAnswers;
+          await pb.collection('userProgress').update(record.id, {
+            questionsAttempted: newAttempted,
+            correctAnswers: newCorrect,
+            accuracy: newAttempted === 0 ? 0 : Math.round((newCorrect / newAttempted) * 100),
+            lastUpdated: completedAt
+          }, { $autoCancel: false });
+        } else {
+          await pb.collection('userProgress').create({
+            userId: currentUser.id,
+            courseId: careerSlug,
+            questionsAttempted,
+            correctAnswers,
+            accuracy: percentage,
+            lastUpdated: completedAt
+          }, { $autoCancel: false });
+        }
+      } catch (error) {
+        console.warn('[QuizResultsPage] userProgress save skipped:', error);
+      }
+
+      try {
+        const existingReadiness = await pb.collection('userReadiness').getList(1, 1, {
+          filter: `userId="${currentUser.id}"`,
+          $autoCancel: false
+        });
+
+        if (existingReadiness.items.length > 0) {
+          await pb.collection('userReadiness').update(existingReadiness.items[0].id, {
+            overallScore: percentage,
+            totalAccuracy: percentage,
+            readinessLevel: feedback.text,
+            lastUpdated: completedAt
+          }, { $autoCancel: false });
+        } else {
+          await pb.collection('userReadiness').create({
+            userId: currentUser.id,
+            overallScore: percentage,
+            totalAccuracy: percentage,
+            totalQuestionsAttempted: questionsAttempted,
+            readinessLevel: feedback.text,
+            lastUpdated: completedAt
+          }, { $autoCancel: false });
+        }
+      } catch (error) {
+        console.warn('[QuizResultsPage] userReadiness save skipped:', error);
+      }
+
+      setSaveStatus('Saved to your account');
+    };
+
+    saveResults();
+  }, [answers, careerSlug, currentUser, difficulty, feedback.text, hasResults, percentage, score, totalQuestions]);
+  
+  if (!hasResults) {
+    return <Navigate to={`/careers/${params.careerSlug || ''}`} replace />;
   }
 
   return (
@@ -45,6 +152,9 @@ export default function QuizResultsPage() {
             <h1 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4">
               Quiz Completed!
             </h1>
+            <p className="mb-6 text-sm font-bold text-muted-foreground">
+              {currentUser ? saveStatus : 'Log in to save quiz progress across devices.'}
+            </p>
             
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-8">
               <div className="text-center">
