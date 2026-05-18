@@ -1,6 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /settings
-Disallow: /checkout
+
 Sitemap: https://career2day.com/sitemap.xml

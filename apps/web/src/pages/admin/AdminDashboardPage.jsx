@@ -1,43 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Activity, CreditCard, Database, Eye, FileText, RefreshCw, Users } from 'lucide-react';
+import { Activity, Bookmark, CreditCard, Database, Eye, FileText, RefreshCw, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { getAdminSummary } from '@/lib/adminApi.js';
+import { useAdminDashboardData } from '@/hooks/useAdminDashboardData.js';
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState({
-    users: 0,
-    subscriptions: 0,
-    activeSubscriptions: 0,
-    pageViews: 0,
-    userActivity: 0,
-    cvs: 0,
-    careers: 0,
-    skills: 0,
-    interviewQuestions: 0,
-    quizzes: 0,
-    roadmaps: 0
-  });
-  const [loading, setLoading] = useState(true);
-
-  const loadStats = async () => {
-    try {
-      setLoading(true);
-      const summary = await getAdminSummary();
-      setStats((prev) => ({ ...prev, ...(summary.counts || {}) }));
-    } catch (e) {
-      toast.error('Failed to load admin dashboard: ' + e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadStats();
-  }, []);
+  const { data, loading, error, refresh } = useAdminDashboardData();
 
   const StatCard = ({ title, value, icon: Icon, hint }) => (
     <Card className="bg-card border border-border shadow-sm">
@@ -66,23 +36,68 @@ export default function AdminDashboardPage() {
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
             <p className="text-muted-foreground mt-2">Users, subscriptions, views, activity, and career content.</p>
           </div>
-          <Button onClick={loadStats} variant="outline" size="sm" className="gap-2">
+          <Button onClick={refresh} variant="outline" size="sm" className="gap-2">
             <RefreshCw className="w-4 h-4" />
             Refresh
           </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard title="Users" value={stats.users} icon={Users} hint="Registered accounts" />
-          <StatCard title="Subscriptions" value={stats.subscriptions} icon={CreditCard} hint={`${stats.activeSubscriptions} active`} />
-          <StatCard title="Page Views" value={stats.pageViews} icon={Eye} hint="Tracked visits" />
-          <StatCard title="User Activity" value={stats.userActivity} icon={Activity} hint="Logged actions" />
-          <StatCard title="Saved CVs" value={stats.cvs} icon={FileText} />
-          <StatCard title="Careers" value={stats.careers} icon={Database} />
-          <StatCard title="Skills" value={stats.skills} icon={Database} />
-          <StatCard title="Interview Q's" value={stats.interviewQuestions} icon={Database} />
-          <StatCard title="Quizzes" value={stats.quizzes} icon={Database} />
-          <StatCard title="Roadmaps" value={stats.roadmaps} icon={Database} />
+          <StatCard title="Users" value={data.totalUsers} icon={Users} hint={`${data.freeUsers} free / ${data.paidUsers} paid`} />
+          <StatCard title="Subscriptions" value={data.paidUsers} icon={CreditCard} hint={`${data.paidUsers} active members`} />
+          <StatCard title="Page Views" value={data.pageViews} icon={Eye} hint="Tracked visits" />
+          <StatCard title="User Activity" value={data.userActivity} icon={Activity} hint="Logged actions" />
+          <StatCard title="Saved CVs" value={data.totalCVs} icon={FileText} />
+          <StatCard title="Downloads" value={data.totalDownloads} icon={FileText} />
+          <StatCard title="Bookmarks" value={data.totalBookmarks} icon={Bookmark} />
+          <StatCard title="Careers" value={data.totalCareers} icon={Database} />
+        </div>
+
+        {error && (
+          <Card className="border-destructive/30 bg-destructive/5">
+            <CardContent className="pt-6 text-sm text-destructive">{error}</CardContent>
+          </Card>
+        )}
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card className="bg-card border border-border shadow-sm">
+            <CardHeader>
+              <CardTitle>Recent Members</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {loading ? (
+                <p className="text-sm text-muted-foreground">Loading members...</p>
+              ) : data.recentUsers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No members found.</p>
+              ) : data.recentUsers.map((user) => (
+                <div key={user.id} className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{user.name || 'No name provided'}</p>
+                    <p className="truncate text-xs text-muted-foreground">{user.email || 'No email'}</p>
+                  </div>
+                  <span className="shrink-0 text-xs text-muted-foreground">{user.created ? new Date(user.created).toLocaleDateString() : '-'}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border border-border shadow-sm">
+            <CardHeader>
+              <CardTitle>Most Viewed Pages</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {loading ? (
+                <p className="text-sm text-muted-foreground">Loading views...</p>
+              ) : data.topPages.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No page views tracked yet.</p>
+              ) : data.topPages.map((page) => (
+                <div key={page.page} className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2">
+                  <p className="min-w-0 truncate text-sm font-semibold">{page.page}</p>
+                  <Badge variant="secondary">{page.views}</Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
 
         <Card className="bg-card border border-border shadow-sm">

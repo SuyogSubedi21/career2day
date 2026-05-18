@@ -9,19 +9,19 @@ import { allCareerSummaries, calculateReadinessScore, getCareerPlatformBySlug } 
 import { getSalaryMarketsForCareer } from '@/data/salaryMarketsByCareer.js';
 import { useRetention } from '@/hooks/useRetention.js';
 import { getLocalizedSalaryMarkets } from '@/lib/utils/localSalaryMarkets.js';
+import { useAuth } from '@/contexts/AuthContext.jsx';
 
-const progressKey = (slug) => `career2day-progress-${slug}`;
-const quizKey = (slug) => `career2day-quiz-${slug}`;
-const interviewKey = (slug) => `career2day-interview-${slug}`;
-const projectKey = (slug) => `career2day-project-${slug}`;
+const accountStateKey = (userId, type, slug) => userId ? `career2day-${type}-${userId}-${slug}` : null;
 
 export default function CareerDetailPage() {
   const { careerSlug } = useParams();
+  const { currentUser } = useAuth();
   const career = getCareerPlatformBySlug(careerSlug);
-  const [checkedItems, setCheckedItems] = useLocalState(progressKey(careerSlug), {});
-  const [answers, setAnswers] = useLocalState(quizKey(careerSlug), {});
-  const [practiced, setPracticed] = useLocalState(interviewKey(careerSlug), {});
-  const [projectSubmission, setProjectSubmission] = useLocalState(projectKey(careerSlug), {
+  const userId = currentUser?.id || null;
+  const [checkedItems, setCheckedItems] = useLocalState(accountStateKey(userId, 'progress', careerSlug), {});
+  const [answers, setAnswers] = useLocalState(accountStateKey(userId, 'quiz', careerSlug), {});
+  const [practiced, setPracticed] = useLocalState(accountStateKey(userId, 'interview', careerSlug), {});
+  const [projectSubmission, setProjectSubmission] = useLocalState(accountStateKey(userId, 'project', careerSlug), {
     title: '',
     url: '',
     notes: '',
@@ -728,6 +728,7 @@ function scoreProject(submission, career, brief = getCapstoneBrief(career)) {
 
 function useLocalState(key, initialValue) {
   const [value, setValue] = useState(() => {
+    if (!key) return initialValue;
     try {
       const stored = window.localStorage.getItem(key);
       return stored ? JSON.parse(stored) : initialValue;
@@ -736,10 +737,26 @@ function useLocalState(key, initialValue) {
     }
   });
 
+  React.useEffect(() => {
+    if (!key) {
+      setValue(initialValue);
+      return;
+    }
+
+    try {
+      const stored = window.localStorage.getItem(key);
+      setValue(stored ? JSON.parse(stored) : initialValue);
+    } catch {
+      setValue(initialValue);
+    }
+  }, [key]);
+
   const setPersistedValue = (nextValue) => {
     setValue((currentValue) => {
       const resolved = typeof nextValue === 'function' ? nextValue(currentValue) : nextValue;
-      window.localStorage.setItem(key, JSON.stringify(resolved));
+      if (key) {
+        window.localStorage.setItem(key, JSON.stringify(resolved));
+      }
       return resolved;
     });
   };

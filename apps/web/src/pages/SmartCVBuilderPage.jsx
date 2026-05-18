@@ -300,7 +300,6 @@ function TextMini({ title, text = 'Delivered measurable project work and clear o
 }
 
 function CVPreview({ profile, template, style }) {
-  const pad = style.density === 'compact' ? 'p-6' : style.density === 'spacious' ? 'p-10' : 'p-8';
   const fontFamily = fontOptions[style.font] || fontOptions.inter;
   const sectionClass = style.headingStyle === 'block' ? 'bg-slate-100 px-2 py-1' : style.headingStyle === 'plain' ? '' : 'border-b border-slate-200 pb-1';
   const showPhoto = template.supportsPhoto && profile.photo;
@@ -309,26 +308,26 @@ function CVPreview({ profile, template, style }) {
   const pageStyle = { ...css, width: '794px', height: '1123px' };
 
   if (template.family === 'sidebar') {
-    return <div id="smart-cv-template" className={`${pageClass} grid grid-cols-[250px_1fr]`} style={pageStyle}><aside className="flex h-full flex-col p-7 text-white" style={{ background: 'var(--cv-sidebar)' }}>{showPhoto && <img src={profile.photo} alt="" className="mb-5 h-28 w-28 rounded-md object-cover" />}<h2 className="text-3xl font-extrabold">{profile.name}</h2><p className="mt-2 font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-5 text-[13px] leading-[1.45] opacity-85">{profile.email}<br />{profile.phone}<br />{profile.location}<br />{profile.website}</p><CVSection title="Skills" sectionClass={sectionClass} dark><SkillPills text={profile.skills} dark /></CVSection></aside><main className={`${pad} h-full`}><CVContent profile={profile} sectionClass={sectionClass} /></main></div>;
+    return <div id="smart-cv-template" className={`${pageClass} grid grid-cols-[250px_1fr]`} style={pageStyle}><aside className="flex h-full flex-col px-[18px] py-[28px] text-white" style={{ background: 'var(--cv-sidebar)' }}>{showPhoto && <img src={profile.photo} alt="" className="mb-5 h-28 w-28 rounded-md object-cover" />}<h2 className="text-3xl font-extrabold">{profile.name}</h2><p className="mt-1 font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mb-4 mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] leading-[1.55] opacity-85">{[profile.email, profile.phone, profile.location, profile.website].filter(Boolean).map((item) => <span key={item}>{item}</span>)}</p><CVSection title="Skills" sectionClass={sectionClass} dark sidebar><SkillPills text={profile.skills} dark sidebar /></CVSection></aside><main className="h-full px-[24px] py-[28px]"><CVContent profile={profile} sectionClass={sectionClass} /></main></div>;
   }
   if (template.family === 'bold' || template.family === 'leadership') {
-    return <div id="smart-cv-template" className={`${pageClass} flex flex-col`} style={pageStyle}><header className={`${pad} text-white`} style={{ background: 'var(--cv-header)' }}><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-2 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-3 text-[13px] opacity-85">{profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><main className={`grid flex-1 gap-4 ${pad} md:grid-cols-[1fr_0.72fr]`}><div><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Experience" sectionClass={sectionClass}><EntryText text={profile.experience} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><EntryText text={formatLeveledProjectText(profile.projects)} /></CVSection></div><div><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><EntryText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
+    return <div id="smart-cv-template" className={`${pageClass} flex flex-col`} style={pageStyle}><header className="px-[40px] py-[32px] text-white" style={{ background: 'var(--cv-header)' }}><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-1 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mb-4 mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] opacity-85">{[profile.email, profile.phone, profile.location, profile.website].filter(Boolean).map((item) => <span key={item}>{item}</span>)}</p></header><main className="grid flex-1 gap-5 px-[36px] py-[24px] md:grid-cols-[1fr_0.72fr]"><div><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Experience" sectionClass={sectionClass}><EntryText text={profile.experience} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><EntryText text={formatLeveledProjectText(profile.projects)} /></CVSection></div><div><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><EntryText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
   }
   if (template.family === 'impact' || template.family === 'grid' || template.family === 'showcase') {
-    return <div id="smart-cv-template" className={`${pageClass} flex flex-col ${pad}`} style={pageStyle}><header className={`grid gap-5 rounded-md border-l-8 bg-slate-50 p-6 ${showPhoto ? 'grid-cols-[96px_1fr] items-center' : ''}`} style={{ borderColor: 'var(--cv-accent)' }}>{showPhoto && <img src={profile.photo} alt="" className="h-24 w-24 rounded-md object-cover" />}<div><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-1 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-2 text-[13px] text-slate-600">{profile.email} | {profile.phone} | {profile.location}</p></div></header><main className="grid flex-1 gap-4 md:grid-cols-[1fr_0.75fr]"><div><CVContent profile={profile} sectionClass={sectionClass} /></div><div><CVSection title="Links" sectionClass={sectionClass}><BulletText text={profile.website} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
+    return <div id="smart-cv-template" className={`${pageClass} flex flex-col px-[48px] py-[40px]`} style={pageStyle}><header className={`mb-[18px] grid gap-5 rounded-md border-l-8 bg-slate-50 px-[40px] py-[32px] ${showPhoto ? 'grid-cols-[96px_1fr] items-center' : ''}`} style={{ borderColor: 'var(--cv-accent)' }}>{showPhoto && <img src={profile.photo} alt="" className="h-24 w-24 rounded-md object-cover" />}<div><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-1 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mb-4 mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-600">{[profile.email, profile.phone, profile.location].filter(Boolean).map((item) => <span key={item}>{item}</span>)}</p></div></header><main className="grid flex-1 gap-5 md:grid-cols-[1fr_0.75fr]"><div><CVContent profile={profile} sectionClass={sectionClass} /></div><div><CVSection title="Links" sectionClass={sectionClass}><BulletText text={profile.website} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div></main></div>;
   }
   if (template.family === 'ats' || template.family === 'academic' || template.family === 'graduate') {
-    return <div id="smart-cv-template" className={`${pageClass} flex flex-col ${pad}`} style={pageStyle}><header className="text-center"><h2 className="text-3xl font-bold">{profile.name}</h2><p className="mt-1 text-[13px]">{profile.title} | {profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><CVContent profile={profile} sectionClass={sectionClass} /></div>;
+    return <div id="smart-cv-template" className={`${pageClass} flex flex-col px-[48px] py-[40px]`} style={pageStyle}><header className="mb-[18px] text-center"><h2 className="text-3xl font-bold">{profile.name}</h2><p className="mt-1 text-[13px]">{profile.title}</p><p className="mt-2.5 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[13px]">{[profile.email, profile.phone, profile.location, profile.website].filter(Boolean).map((item) => <span key={item}>{item}</span>)}</p></header><CVContent profile={profile} sectionClass={sectionClass} /></div>;
   }
-  return <div id="smart-cv-template" className={`${pageClass} flex flex-col ${pad}`} style={pageStyle}><header className="border-b-4 pb-5" style={{ borderColor: 'var(--cv-header)' }}><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-1 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-2 text-[13px] text-slate-600">{profile.email} | {profile.phone} | {profile.location} | {profile.website}</p></header><CVContent profile={profile} sectionClass={sectionClass} /></div>;
+  return <div id="smart-cv-template" className={`${pageClass} flex flex-col px-[48px] py-[40px]`} style={pageStyle}><header className="mb-[18px] border-b-4 pb-5" style={{ borderColor: 'var(--cv-header)' }}><h2 className="text-4xl font-extrabold">{profile.name}</h2><p className="mt-1 text-lg font-bold" style={{ color: 'var(--cv-accent)' }}>{profile.title}</p><p className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-600">{[profile.email, profile.phone, profile.location, profile.website].filter(Boolean).map((item) => <span key={item}>{item}</span>)}</p></header><CVContent profile={profile} sectionClass={sectionClass} /></div>;
 }
 
 function CVContent({ profile, sectionClass }) {
   return <div className="flex flex-1 flex-col"><CVSection title="Summary" sectionClass={sectionClass}><p>{profile.summary}</p></CVSection><CVSection title="Skills" sectionClass={sectionClass}><SkillPills text={profile.skills} /></CVSection><CVSection title="Projects" sectionClass={sectionClass}><EntryText text={formatLeveledProjectText(profile.projects)} /></CVSection><CVSection title="Experience" sectionClass={sectionClass}><EntryText text={profile.experience} /></CVSection><CVSection title="Education" sectionClass={sectionClass}><EntryText text={profile.education} /></CVSection><CVSection title="Certifications" sectionClass={sectionClass}><BulletText text={profile.certifications} /></CVSection></div>;
 }
 
-function CVSection({ title, children, sectionClass, dark = false }) {
-  return <section className="mt-3"><h3 className={`mb-1 text-[12px] font-extrabold uppercase leading-4 tracking-[0.12em] ${dark ? 'text-white/80' : 'text-slate-500'} ${sectionClass}`}>{title}</h3><div className={`text-[13px] leading-[1.34] ${dark ? 'text-white/85' : 'text-slate-700'}`}>{children}</div></section>;
+function CVSection({ title, children, sectionClass, dark = false, sidebar = false }) {
+  return <section className={`${sidebar ? 'mb-[18px]' : 'mb-5'} last:mb-0`}><h3 className={`mb-2 mt-0 pb-[5px] text-[12px] font-extrabold uppercase leading-4 tracking-[0.12em] ${dark ? 'text-white/80' : 'text-slate-500'} ${sectionClass}`}>{title}</h3><div className={`text-[13px] leading-[1.55] ${dark ? 'text-white/85' : 'text-slate-700'}`}>{children}</div></section>;
 }
 
 function Field({ label, value, onChange }) {
@@ -347,13 +346,13 @@ function SelectField({ label, value, onChange, options }) {
   return <label className="grid gap-1 text-sm font-bold">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-950 dark:border-white/10">{options.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>;
 }
 
-function SkillPills({ text, dark = false }) {
-  return <div className="flex flex-wrap gap-1">{String(text).split(',').map((skill) => skill.trim()).filter(Boolean).map((skill) => <span key={skill} className={`rounded-sm px-1.5 py-0.5 text-[12px] font-bold leading-4 ${dark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-700'}`}>{skill}</span>)}</div>;
+function SkillPills({ text, dark = false, sidebar = false }) {
+  return <div className={sidebar ? 'grid gap-0.5' : 'flex flex-wrap gap-1'}>{String(text).split(',').map((skill) => skill.trim()).filter(Boolean).map((skill) => <span key={skill} className={`${sidebar ? 'border-b border-white/10 py-[3px]' : 'rounded-sm px-1.5 py-0.5'} text-[12px] font-bold leading-4 ${dark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-700'}`}>{skill}</span>)}</div>;
 }
 
 function BulletText({ text }) {
   const lines = String(text).split('\n').map((line) => line.trim()).filter(Boolean);
-  return <ul className="list-disc space-y-0 pl-4">{lines.map((line) => <li key={line} className="pl-0.5 leading-[1.3]">{line}</li>)}</ul>;
+  return <ul className="mt-[5px] list-disc pl-[13px]">{lines.map((line, index) => <li key={line} className={`leading-[1.55] ${index === lines.length - 1 ? 'mb-0' : 'mb-[3px]'}`}>{line}</li>)}</ul>;
 }
 
 function EntryText({ text }) {
@@ -368,11 +367,11 @@ function EntryText({ text }) {
   const date = hasStructuredHeader ? parts[parts.length - 1] : '';
 
   return (
-    <div className="space-y-1">
-      <div className="grid grid-cols-[minmax(0,1fr)_max-content] gap-4">
+    <div className="mb-[13px] break-inside-avoid last:mb-0">
+      <div className="flex items-start justify-between gap-2.5">
         <div>
           <p className="font-bold leading-[1.25] text-slate-950">{title}</p>
-          {subtitle && <p className="mt-0.5 text-[11px] font-semibold leading-[1.25] text-slate-600">{subtitle}</p>}
+          {subtitle && <p className="mt-[2px] text-[11px] font-semibold leading-[1.25] text-slate-600">{subtitle}</p>}
         </div>
         {date && <p className="max-w-[150px] text-right text-[11px] font-semibold leading-[1.25] text-slate-600">{date}</p>}
       </div>

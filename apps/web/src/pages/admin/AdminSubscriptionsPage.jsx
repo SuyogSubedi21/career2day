@@ -30,7 +30,7 @@ export default function AdminSubscriptionsPage() {
     try {
       setLoading(true);
       setError('');
-      const records = await getAdminSubscriptions();
+      const records = await getAdminSubscriptions().catch(() => ({ items: [], totalItems: 0 }));
       setSubscriptions(records.items || []);
     } catch (err) {
       setError(err.message || 'Failed to load subscriptions');

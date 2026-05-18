@@ -301,6 +301,11 @@ export default defineConfig({
 			'Cross-Origin-Embedder-Policy': 'credentialless',
 		},
 		proxy: {
+			'/pb': {
+				target: 'http://localhost:8090',
+				changeOrigin: true,
+				rewrite: (path) => path.replace(/^\/pb/, ''),
+			},
 			'/hcgi/platform': {
 				target: 'http://localhost:8090',
 				changeOrigin: true,

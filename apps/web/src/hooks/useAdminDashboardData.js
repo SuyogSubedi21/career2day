@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import pb from '@/lib/pocketbaseClient.js';
 import { subDays, format, isAfter, startOfMonth, subMonths } from 'date-fns';
+import { getAdminSummary, getAdminUsers, getAdminSubscriptions } from '@/lib/adminApi.js';
 
 export function useAdminDashboardData() {
   const [data, setData] = useState({
@@ -11,6 +12,11 @@ export function useAdminDashboardData() {
     totalCVs: 0,
     totalDownloads: 0,
     totalBookmarks: 0,
+    pageViews: 0,
+    userActivity: 0,
+    totalCareers: 0,
+    recentUsers: [],
+    topPages: [],
     monthlyRevenue: [],
     userGrowth: [],
     activityData: []
@@ -23,19 +29,33 @@ export function useAdminDashboardData() {
       setLoading(true);
       setError(null);
 
+      const [summaryRes, adminUsersRes, adminSubsRes] = await Promise.all([
+        getAdminSummary().catch(() => null),
+        getAdminUsers().catch(() => ({ items: [], totalItems: 0 })),
+        getAdminSubscriptions().catch(() => ({ items: [], totalItems: 0 }))
+      ]);
+
       // Fetch all required collections concurrently with autoCancel disabled
       const [
         usersRes,
         cvsRes,
         downloadsRes,
         bookmarksRes,
-        subsRes
+        savedCareersRes,
+        subsRes,
+        pageViewsRes,
+        userActivityRes,
+        careersRes
       ] = await Promise.all([
-        pb.collection('users').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
+        pb.collection('users').getFullList({ sort: '-created', $autoCancel: false }).catch(() => adminUsersRes.items || []),
         pb.collection('userCVs').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
         pb.collection('downloads').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
         pb.collection('bookmarks').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
-        pb.collection('subscriptions_stripe').getFullList({ sort: '-created', $autoCancel: false }).catch(() => [])
+        pb.collection('savedCareers').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
+        pb.collection('subscriptions_stripe').getFullList({ sort: '-created', $autoCancel: false }).catch(() => adminSubsRes.items || []),
+        pb.collection('page_views').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
+        pb.collection('user_activity').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
+        pb.collection('careers').getFullList({ sort: '-created', $autoCancel: false }).catch(() => [])
       ]);
 
       console.log('[AdminDashboard] Fetched Users:', usersRes.length);
@@ -45,13 +65,17 @@ export function useAdminDashboardData() {
       console.log('[AdminDashboard] Fetched Subscriptions:', subsRes.length);
 
       // --- Calculate Stats ---
-      const totalUsers = usersRes.length;
-      const paidUsers = usersRes.filter(u => u.premium === true).length;
-      const freeUsers = totalUsers - paidUsers;
+      const summaryCounts = summaryRes?.counts || {};
+      const totalUsers = summaryCounts.users ?? adminUsersRes.totalItems ?? usersRes.length;
+      const paidUsers = summaryCounts.activeSubscriptions ?? usersRes.filter(u => u.premium === true).length;
+      const freeUsers = Math.max(0, totalUsers - paidUsers);
       
-      const totalCVs = cvsRes.length;
+      const totalCVs = summaryCounts.cvs ?? cvsRes.length;
       const totalDownloads = downloadsRes.length;
-      const totalBookmarks = bookmarksRes.length;
+      const totalBookmarks = Math.max(bookmarksRes.length, savedCareersRes.length);
+      const pageViews = summaryCounts.pageViews ?? pageViewsRes.length;
+      const userActivity = summaryCounts.userActivity ?? userActivityRes.length;
+      const totalCareers = summaryCounts.careers ?? careersRes.length;
 
       // --- Generate Chart Data ---
       const last30Days = Array.from({ length: 30 }).map((_, i) => {
@@ -112,6 +136,17 @@ export function useAdminDashboardData() {
         downloadCount: activityMap[dateStr].downloadCount
       }));
 
+      const topPagesMap = {};
+      pageViewsRes.forEach((view) => {
+        const pageName = view.page_name || view.path || 'Unknown';
+        topPagesMap[pageName] = (topPagesMap[pageName] || 0) + 1;
+      });
+
+      const topPages = Object.entries(topPagesMap)
+        .map(([page, views]) => ({ page, views }))
+        .sort((a, b) => b.views - a.views)
+        .slice(0, 8);
+
       setData({
         totalUsers,
         freeUsers,
@@ -119,6 +154,11 @@ export function useAdminDashboardData() {
         totalCVs,
         totalDownloads,
         totalBookmarks,
+        pageViews,
+        userActivity,
+        totalCareers,
+        recentUsers: usersRes.slice(0, 8),
+        topPages,
         monthlyRevenue,
         userGrowth,
         activityData

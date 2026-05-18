@@ -2,6 +2,9 @@
 import React from 'react';
 import { cvTemplates } from '@/data/cvTemplatesData.js';
 
+const A4_WIDTH_PX = '794px';
+const A4_HEIGHT_PX = '1123px';
+
 const clampRem = (value, min, max, fallback) => {
   const numericValue = Number.parseFloat(String(value || '').replace('rem', ''));
   if (Number.isNaN(numericValue)) return fallback;
@@ -57,9 +60,9 @@ const renderBullets = (text) => {
   if (bulletStrings.length === 0) return null;
   
   return (
-    <ul style={{ margin: 0, paddingLeft: '0.72rem', marginTop: '0.1rem', listStyleType: 'disc' }}>
+    <ul style={{ margin: 0, paddingLeft: '13px', marginTop: '5px', listStyleType: 'disc', lineHeight: 1.55 }}>
       {bulletStrings.map((bullet, idx) => (
-        <li key={idx} style={{ marginBottom: '0.04rem' }}>{bullet}</li>
+        <li key={idx} style={{ marginBottom: idx === bulletStrings.length - 1 ? 0 : '3px' }}>{bullet}</li>
       ))}
     </ul>
   );
@@ -86,6 +89,18 @@ const MasterTemplate = ({ cvData, config }) => {
   const pageBg = isDarkCanvas ? '#0f172a' : '#ffffff';
   const textMain = isDarkCanvas ? '#f8fafc' : '#1e293b';
   const textMuted = isDarkCanvas ? '#cbd5e1' : '#475569';
+  const contentCount = [
+    cvData?.professionalSummary ? 1 : 0,
+    cvData?.experience?.length || 0,
+    cvData?.education?.length || 0,
+    cvData?.projects?.length || 0,
+    cvData?.certifications?.length || 0,
+    cvData?.volunteer?.length || 0
+  ].reduce((sum, value) => sum + value, 0);
+  const useRelaxedSpacing = contentCount > 0 && contentCount <= 5;
+  const sectionGap = useRelaxedSpacing ? '24px' : '20px';
+  const entryGap = useRelaxedSpacing ? '16px' : '13px';
+  const bodyLineHeight = useRelaxedSpacing ? 1.6 : 1.55;
 
   // Layout calculations
   const isSidebarLayout = layout.type.includes('sidebar');
@@ -109,8 +124,8 @@ const MasterTemplate = ({ cvData, config }) => {
     fontSize: professionalTypography.sizes.body,
     backgroundColor: pageBg,
     color: textMain,
-    minHeight: '297mm',
-    width: '210mm',
+    minHeight: A4_HEIGHT_PX,
+    width: A4_WIDTH_PX,
     boxSizing: 'border-box',
     position: 'relative',
     margin: '0 auto',
@@ -119,9 +134,19 @@ const MasterTemplate = ({ cvData, config }) => {
     border: styling.borders === 'solid' ? `4px solid ${primaryColor}` : styling.borders === 'double' ? `6px double ${primaryColor}` : 'none'
   };
 
+  const renderSectionList = (sectionNames, isSidebar = false) => {
+    const renderedSections = sectionNames.map((sectionName) => renderSection(sectionName, isSidebar)).filter(Boolean);
+    return renderedSections.map((section, index) => React.cloneElement(section, {
+      style: {
+        ...section.props.style,
+        marginBottom: index === renderedSections.length - 1 ? 0 : section.props.style?.marginBottom
+      }
+    }));
+  };
+
   // --- Reusable Renderers ---
   const ContactItem = ({ icon, text, color, iconColor }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.32rem', marginBottom: '0.18rem', fontSize: '0.56rem', color: color, fontWeight: '500', minWidth: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.32rem', fontSize: '0.56rem', color: color, fontWeight: '500', minWidth: 0 }}>
       <span style={{ color: iconColor || color, display: 'flex', alignItems: 'center' }}>{icon}</span>
       <span style={{ overflowWrap: 'anywhere' }}>{text}</span>
     </div>
@@ -147,67 +172,73 @@ const MasterTemplate = ({ cvData, config }) => {
       color: color,
       textTransform: styling.sectionTitles === 'uppercase-tracking' ? 'uppercase' : 'none',
       letterSpacing: styling.sectionTitles === 'uppercase-tracking' ? '0.08em' : 'normal',
-      marginBottom: '0.28rem',
-      paddingBottom: styling.sectionTitles === 'underline' || isSidebar ? '0.25rem' : '0',
+      marginTop: 0,
+      marginBottom: isSidebar ? '7px' : '8px',
+      paddingBottom: '5px',
       borderBottom: styling.sectionTitles === 'underline' || isSidebar ? `1px solid ${isSidebar ? color + '40' : secondaryColor}` : 'none',
       display: styling.sectionTitles === 'pill' ? 'inline-block' : 'block',
       backgroundColor: styling.sectionTitles === 'pill' ? secondaryColor : 'transparent',
-      padding: styling.sectionTitles === 'pill' ? '0.12rem 0.5rem' : (styling.sectionTitles === 'underline' || isSidebar ? '0 0 0.18rem 0' : '0'),
+      padding: styling.sectionTitles === 'pill' ? '0.12rem 0.5rem 5px' : (styling.sectionTitles === 'underline' || isSidebar ? '0 0 5px 0' : '0 0 5px 0'),
       borderRadius: styling.sectionTitles === 'pill' ? '9999px' : '0'
     };
     return <h3 style={style}>{title}</h3>;
   };
 
   const renderItemHeader = (title, subtitle, date, tColor, mColor) => (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) max-content', gap: '0.75rem', alignItems: 'start', marginBottom: '0.15rem' }}>
-      <div style={{ minWidth: 0 }}>
-        <h4 style={{ fontWeight: '700', fontSize: '0.62rem', color: tColor, margin: 0, lineHeight: '1.25' }}>{title}</h4>
-        {subtitle && <div style={{ fontSize: '0.56rem', fontWeight: '600', color: mColor, marginTop: '0.06rem', lineHeight: '1.25' }}>{subtitle}</div>}
-      </div>
-      {date && (
-        <div style={{
-          maxWidth: '1.35in',
-          textAlign: 'right',
-          fontSize: '0.5rem',
-          fontWeight: '700',
-          color: textMuted,
-          lineHeight: '1.25',
-          whiteSpace: 'normal'
-        }}>
-          {formatDateRange(date)}
+    <div style={{ marginBottom: '5px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: subtitle ? '2px' : 0 }}>
+        <div style={{ minWidth: 0 }}>
+          <h4 style={{ fontWeight: '700', fontSize: '0.62rem', color: tColor, margin: 0, lineHeight: '1.25' }}>{title}</h4>
         </div>
-      )}
+        {date && (
+          <div style={{
+            maxWidth: '1.35in',
+            textAlign: 'right',
+            fontSize: '0.5rem',
+            fontWeight: '700',
+            color: textMuted,
+            lineHeight: '1.25',
+            whiteSpace: 'normal'
+          }}>
+            {formatDateRange(date)}
+          </div>
+        )}
+      </div>
+      {subtitle && <div style={{ fontSize: '0.56rem', fontWeight: '600', color: mColor, marginTop: 0, lineHeight: '1.25' }}>{subtitle}</div>}
     </div>
   );
 
-  const renderTimelineItem = (title, subtitle, date, description, tColor, mColor) => (
-    <div style={{ position: 'relative', paddingLeft: '0.58rem', paddingBottom: '0.28rem', borderLeft: `1px solid #cbd5e1` }}>
+  const renderTimelineItem = (title, subtitle, date, description, tColor, mColor, isLast = false) => (
+    <div style={{ position: 'relative', paddingLeft: '0.58rem', marginBottom: isLast ? 0 : entryGap, paddingBottom: '0.28rem', borderLeft: `1px solid #cbd5e1`, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
       <div style={{ position: 'absolute', left: '-3px', top: '6px', width: '5px', height: '5px', borderRadius: '50%', backgroundColor: accentColor }} />
       {renderItemHeader(title, subtitle, date, tColor, mColor)}
-      {description && <div style={{ fontSize: '0.56rem', lineHeight: '1.35', color: mColor }}>{renderBullets(description)}</div>}
+      {description && <div style={{ fontSize: '0.56rem', lineHeight: bodyLineHeight, color: mColor, marginTop: '5px' }}>{renderBullets(description)}</div>}
     </div>
   );
 
-  const renderStandardItem = (title, subtitle, date, description, tColor, mColor) => (
-    <div style={{ marginBottom: '0.32rem' }}>
+  const renderStandardItem = (title, subtitle, date, description, tColor, mColor, isLast = false) => (
+    <div style={{ marginBottom: isLast ? 0 : entryGap, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
       {renderItemHeader(title, subtitle, date, tColor, mColor)}
-      {description && <div style={{ fontSize: '0.56rem', lineHeight: '1.35', color: mColor }}>{renderBullets(description)}</div>}
+      {description && <div style={{ fontSize: '0.56rem', lineHeight: bodyLineHeight, color: mColor, marginTop: '5px' }}>{renderBullets(description)}</div>}
     </div>
   );
 
   const renderSkills = (skills, isSidebar, tColor) => {
     if (!skills?.length) return null;
     return (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.16rem 0.22rem' }}>
+      <div style={{ display: isSidebar ? 'block' : 'flex', flexWrap: 'wrap', gap: isSidebar ? '2px' : '0.16rem 0.22rem' }}>
         {skills.map((skill, idx) => (
           <span key={idx} style={{
+            display: isSidebar ? 'block' : 'inline-block',
             backgroundColor: isSidebar ? (isSidebarDarkText ? secondaryColor : 'rgba(255,255,255,0.12)') : secondaryColor,
             color: isSidebar ? tColor : primaryColor,
-            padding: '0.06rem 0.2rem',
+            padding: isSidebar ? '3px 0' : '0.06rem 0.2rem',
             borderRadius: '2px',
             fontSize: '0.52rem',
             fontWeight: '600',
-            border: isSidebar && !isSidebarDarkText ? `1px solid rgba(255,255,255,0.2)` : `1px solid #d1d5db`
+            border: isSidebar ? 'none' : `1px solid #d1d5db`,
+            borderBottom: isSidebar ? `1px solid ${isSidebarDarkText ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)'}` : undefined,
+            marginBottom: isSidebar && idx !== skills.length - 1 ? '2px' : 0
           }}>
             {skill.name || skill}
           </span>
@@ -225,23 +256,23 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'summary':
         if (!cvData?.professionalSummary) return null;
         return (
-          <div key="summary" style={{ marginBottom: '0.46rem' }}>
+          <div key="summary" style={{ marginBottom: isSidebar ? '18px' : sectionGap }}>
             {renderSectionTitle('Professional Summary', isSidebar ? textColor : primaryColor, isSidebar)}
-            <div style={{ fontSize: '0.56rem', lineHeight: '1.35', color: mutedColor }}>{cvData.professionalSummary}</div>
+            <div style={{ fontSize: '0.56rem', lineHeight: bodyLineHeight, color: mutedColor }}>{cvData.professionalSummary}</div>
           </div>
         );
         
       case 'experience':
         if (!cvData?.experience?.length) return null;
         return (
-          <div key="experience" style={{ marginBottom: '0.46rem' }}>
+          <div key="experience" style={{ marginBottom: isSidebar ? '18px' : sectionGap }}>
             {renderSectionTitle('Experience', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {cvData.experience.map((exp, idx) => (
                 <div key={idx}>
                   {useTimeline 
-                    ? renderTimelineItem(exp.position, exp.company, exp.duration, exp.description, textColor, mutedColor)
-                    : renderStandardItem(exp.position, exp.company, exp.duration, exp.description, textColor, mutedColor)}
+                    ? renderTimelineItem(exp.position, exp.company, exp.duration, exp.description, textColor, mutedColor, idx === cvData.experience.length - 1)
+                    : renderStandardItem(exp.position, exp.company, exp.duration, exp.description, textColor, mutedColor, idx === cvData.experience.length - 1)}
                 </div>
               ))}
             </div>
@@ -251,7 +282,7 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'education':
         if (!cvData?.education?.length) return null;
         return (
-          <div key="education" style={{ marginBottom: '0.46rem' }}>
+          <div key="education" style={{ marginBottom: isSidebar ? '18px' : sectionGap }}>
             {renderSectionTitle('Education', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {cvData.education.map((edu, idx) => {
@@ -259,8 +290,8 @@ const MasterTemplate = ({ cvData, config }) => {
                 return (
                   <div key={idx}>
                     {useTimeline 
-                      ? renderTimelineItem(edu.school, subtitle, edu.year, null, textColor, mutedColor)
-                      : renderStandardItem(edu.school, subtitle, edu.year, null, textColor, mutedColor)}
+                      ? renderTimelineItem(edu.school, subtitle, edu.year, null, textColor, mutedColor, idx === cvData.education.length - 1)
+                      : renderStandardItem(edu.school, subtitle, edu.year, null, textColor, mutedColor, idx === cvData.education.length - 1)}
                   </div>
                 );
               })}
@@ -271,14 +302,14 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'projects':
         if (!cvData?.projects?.length) return null;
         return (
-          <div key="projects" style={{ marginBottom: '0.46rem' }}>
+          <div key="projects" style={{ marginBottom: isSidebar ? '18px' : sectionGap }}>
             {renderSectionTitle('Projects', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {cvData.projects.slice(0, 3).map((proj, idx) => (
+              {cvData.projects.slice(0, 3).map((proj, idx, list) => (
                 <div key={idx}>
                   {useTimeline 
-                    ? renderTimelineItem(proj.name, null, `Level ${idx + 1} Project`, proj.description, textColor, mutedColor)
-                    : renderStandardItem(proj.name, null, `Level ${idx + 1} Project`, proj.description, textColor, mutedColor)}
+                    ? renderTimelineItem(proj.name, null, `Level ${idx + 1} Project`, proj.description, textColor, mutedColor, idx === list.length - 1)
+                    : renderStandardItem(proj.name, null, `Level ${idx + 1} Project`, proj.description, textColor, mutedColor, idx === list.length - 1)}
                 </div>
               ))}
             </div>
@@ -288,7 +319,7 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'skills':
         if (!cvData?.skills?.length) return null;
         return (
-          <div key="skills" style={{ marginBottom: '0.46rem' }}>
+          <div key="skills" style={{ marginBottom: isSidebar ? '18px' : sectionGap }}>
             {renderSectionTitle('Skills', isSidebar ? textColor : primaryColor, isSidebar)}
             {renderSkills(cvData.skills, isSidebar, textColor)}
           </div>
@@ -297,7 +328,7 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'certifications':
         if (!cvData?.certifications?.length) return null;
         return (
-          <div key="certifications" style={{ marginBottom: '0.46rem' }}>
+          <div key="certifications" style={{ marginBottom: isSidebar ? '18px' : sectionGap }}>
             {renderSectionTitle('Certifications', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.12rem' }}>
               {cvData.certifications.map((cert, idx) => (
@@ -316,7 +347,7 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'languages':
         if (!cvData?.languages?.length) return null;
         return (
-          <div key="languages" style={{ marginBottom: '0.46rem' }}>
+          <div key="languages" style={{ marginBottom: isSidebar ? '18px' : sectionGap }}>
             {renderSectionTitle('Languages', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.08rem' }}>
               {cvData.languages.map((lang, idx) => (
@@ -332,12 +363,12 @@ const MasterTemplate = ({ cvData, config }) => {
       case 'volunteer':
         if (!cvData?.volunteer?.length) return null;
         return (
-          <div key="volunteer" style={{ marginBottom: '0.46rem' }}>
+          <div key="volunteer" style={{ marginBottom: isSidebar ? '18px' : sectionGap }}>
             {renderSectionTitle('Volunteer', isSidebar ? textColor : primaryColor, isSidebar)}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {cvData.volunteer.map((vol, idx) => (
                 <div key={idx}>
-                  {renderStandardItem(vol.role, vol.organization, vol.duration, vol.description, textColor, mutedColor)}
+                  {renderStandardItem(vol.role, vol.organization, vol.duration, vol.description, textColor, mutedColor, idx === cvData.volunteer.length - 1)}
                 </div>
               ))}
             </div>
@@ -355,13 +386,13 @@ const MasterTemplate = ({ cvData, config }) => {
     // SINGLE COLUMN LAYOUT
     return (
       <div style={containerStyle}>
-        <div style={{ padding: '1rem 1.7rem 0.6rem 1.7rem', backgroundColor: headerBg, color: headerTextMain, borderBottom: `1px solid ${accentColor}` }}>
+        <div style={{ padding: isHeaderColored ? '32px 40px' : '40px 48px 0', backgroundColor: headerBg, color: headerTextMain, borderBottom: `1px solid ${accentColor}` }}>
           <div style={{ display: 'flex', justifyContent: layout.headerAlign === 'center' ? 'center' : 'space-between', alignItems: 'center', flexDirection: layout.headerAlign === 'center' ? 'column' : 'row', gap: '0.8rem' }}>
             {layout.headerAlign !== 'right' && renderPhoto('58px', 'flex-start')}
             <div style={{ textAlign: layout.headerAlign, flex: 1 }}>
               <h1 style={{ fontSize: professionalTypography.sizes.header, fontWeight: '700', margin: 0, letterSpacing: '0', lineHeight: '1.12' }}>{cvData?.personalInfo?.fullName}</h1>
-              <h2 style={{ fontSize: '0.7rem', fontWeight: '600', color: isHeaderColored ? 'rgba(255,255,255,0.9)' : accentColor, marginTop: '0.15rem' }}>{cvData?.personalInfo?.jobTitle}</h2>
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.55rem', justifyContent: layout.headerAlign === 'center' ? 'center' : 'flex-start', flexWrap: 'wrap', fontSize: '0.56rem' }}>
+              <h2 style={{ fontSize: '0.7rem', fontWeight: '600', color: isHeaderColored ? 'rgba(255,255,255,0.9)' : accentColor, marginTop: '4px' }}>{cvData?.personalInfo?.jobTitle}</h2>
+              <div style={{ display: 'flex', gap: '6px 16px', marginTop: '10px', marginBottom: '16px', justifyContent: layout.headerAlign === 'center' ? 'center' : 'flex-start', flexWrap: 'wrap', fontSize: '0.56rem' }}>
                 {cvData?.personalInfo?.email && <ContactItem icon={MailIcon} text={cvData.personalInfo.email} color={headerTextMuted} iconColor={isHeaderColored ? '#ffffff' : primaryColor} />}
                 {cvData?.personalInfo?.phone && <ContactItem icon={PhoneIcon} text={cvData.personalInfo.phone} color={headerTextMuted} iconColor={isHeaderColored ? '#ffffff' : primaryColor} />}
                 {cvData?.personalInfo?.location && <ContactItem icon={PinIcon} text={cvData.personalInfo.location} color={headerTextMuted} iconColor={isHeaderColored ? '#ffffff' : primaryColor} />}
@@ -370,8 +401,8 @@ const MasterTemplate = ({ cvData, config }) => {
             {layout.headerAlign === 'right' && renderPhoto('58px', 'flex-end')}
           </div>
         </div>
-        <div style={{ padding: '0.85rem 1.7rem 1.25rem' }}>
-          {sections.map(s => renderSection(s, false))}
+        <div style={{ padding: isHeaderColored ? '24px 36px' : '18px 48px 40px' }}>
+          {renderSectionList(sections, false)}
         </div>
       </div>
     );
@@ -383,30 +414,30 @@ const MasterTemplate = ({ cvData, config }) => {
   const mainSectionsToRender = sections.filter(s => !sideSectionNames.includes(s));
 
   const Sidebar = () => (
-    <div style={{ width: '32%', backgroundColor: sidebarBgColor, padding: '1rem 0.8rem', color: sbTextMain, borderRight: isLeftSidebar && isSidebarDarkText ? 'none' : `1px solid ${secondaryColor}`, borderLeft: !isLeftSidebar && isSidebarDarkText ? 'none' : `1px solid ${secondaryColor}` }}>
+    <div style={{ width: '32%', backgroundColor: sidebarBgColor, padding: '28px 18px', color: sbTextMain, borderRight: isLeftSidebar && isSidebarDarkText ? 'none' : `1px solid ${secondaryColor}`, borderLeft: !isLeftSidebar && isSidebarDarkText ? 'none' : `1px solid ${secondaryColor}` }}>
       {renderPhoto('60px', 'center')}
       
-      <div style={{ marginBottom: '0.85rem' }}>
+      <div style={{ marginBottom: '18px' }}>
         {renderSectionTitle('Contact', sbTextMain, true)}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {cvData?.personalInfo?.email && <ContactItem icon={MailIcon} text={cvData.personalInfo.email} color={sbTextMuted} iconColor={sbIconColor} />}
           {cvData?.personalInfo?.phone && <ContactItem icon={PhoneIcon} text={cvData.personalInfo.phone} color={sbTextMuted} iconColor={sbIconColor} />}
           {cvData?.personalInfo?.location && <ContactItem icon={PinIcon} text={cvData.personalInfo.location} color={sbTextMuted} iconColor={sbIconColor} />}
         </div>
       </div>
 
-      {sideSectionsToRender.map(s => renderSection(s, true))}
+      {renderSectionList(sideSectionsToRender, true)}
     </div>
   );
 
   const MainArea = () => (
-    <div style={{ width: '68%', padding: '1rem 1.35rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem', borderBottom: `1px solid ${secondaryColor}`, paddingBottom: '0.55rem' }}>
+    <div style={{ width: '68%', padding: '28px 24px' }}>
+      <div style={{ marginBottom: '18px', borderBottom: `1px solid ${secondaryColor}`, paddingBottom: '0.55rem' }}>
         <h1 style={{ fontSize: professionalTypography.sizes.header, fontWeight: '700', color: primaryColor, margin: 0, letterSpacing: '0', lineHeight: '1.12' }}>{cvData?.personalInfo?.fullName}</h1>
-        <h2 style={{ fontSize: '0.7rem', fontWeight: '600', color: accentColor, marginTop: '0.15rem' }}>{cvData?.personalInfo?.jobTitle}</h2>
+        <h2 style={{ fontSize: '0.7rem', fontWeight: '600', color: accentColor, marginTop: '4px' }}>{cvData?.personalInfo?.jobTitle}</h2>
       </div>
       
-      {mainSectionsToRender.map(s => renderSection(s, false))}
+      {renderSectionList(mainSectionsToRender, false)}
     </div>
   );
 
