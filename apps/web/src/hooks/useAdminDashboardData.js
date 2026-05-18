@@ -71,7 +71,7 @@ export function useAdminDashboardData() {
         ]).then(([users, adminUsers]) => {
           const merged = users.length || adminUsers.length
             ? [...users, ...adminUsers]
-            : (adminUsersRes.items || []).map((user) => normalizeUser(user));
+            : (adminUsersRes.items?.length ? adminUsersRes.items : summaryRes?.users?.items || []).map((user) => normalizeUser(user));
           return merged.sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
         }),
         pb.collection('userCVs').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAdminUsers } from '@/lib/adminApi.js';
+import { getAdminSummary, getAdminUsers } from '@/lib/adminApi.js';
 import pb from '@/lib/pocketbaseClient.js';
 
 const currentAdminFallback = () => {
@@ -52,6 +52,10 @@ export default function AdminUserManagementPage() {
       setLoading(true);
       setError(null);
       const records = await getAdminUsers()
+        .catch(async () => {
+          const summary = await getAdminSummary();
+          return summary.users || { items: [], totalItems: 0 };
+        })
         .catch(async () => {
           const items = [
             ...(await fetchCollectionUsers('users')),

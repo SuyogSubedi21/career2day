@@ -105,6 +105,10 @@ routerAdd("GET", "/api/admin/summary", (e) => {
   const users = list("users", 2000);
   const adminUsers = list("admin_users", 2000);
   const subscriptions = list("subscriptions_stripe", 2000);
+  const userItems = [
+    ...usersPayload(users).map((user) => ({ ...user, collection: "users" })),
+    ...usersPayload(adminUsers).map((user) => ({ ...user, collection: "admin_users" }))
+  ].sort((a, b) => String(b.created || "").localeCompare(String(a.created || "")));
 
   return e.json(200, {
     counts: {
@@ -119,6 +123,10 @@ routerAdd("GET", "/api/admin/summary", (e) => {
       interviewQuestions: list("careerInterviewQuestions", 2000).length,
       quizzes: list("careerQuizzes", 2000).length,
       roadmaps: list("careerRoadmaps", 2000).length
+    },
+    users: {
+      totalItems: userItems.length,
+      items: userItems
     }
   });
 }, $apis.requireAuth("users", "admin_users", "admins"));
