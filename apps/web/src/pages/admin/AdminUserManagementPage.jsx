@@ -6,10 +6,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAdminSummary, getAdminUsers } from '@/lib/adminApi.js';
-import pb from '@/lib/pocketbaseClient.js';
+import adminPb from '@/lib/adminPocketbaseClient.js';
 
 const currentAdminFallback = () => {
-  const model = pb.authStore.model;
+  const model = adminPb.authStore.model;
   if (!model) return [];
 
   return [{
@@ -33,7 +33,7 @@ const normalizeUser = (user, collection = user.collection || 'users') => ({
 
 const fetchCollectionUsers = async (collection) => {
   try {
-    const items = await pb.collection(collection).getFullList({ sort: '-created', $autoCancel: false });
+    const items = await adminPb.collection(collection).getFullList({ sort: '-created', $autoCancel: false });
     return items.map((item) => normalizeUser(item, collection));
   } catch {
     return [];

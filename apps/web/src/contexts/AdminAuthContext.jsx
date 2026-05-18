@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import pb from '@/lib/pocketbaseClient.js';
+import adminPb from '@/lib/adminPocketbaseClient.js';
 
 const AdminAuthContext = createContext({
   isAdminLoggedIn: false,
@@ -33,8 +33,8 @@ export const AdminAuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('admin_session');
-    if (pb.authStore.isValid) {
-      pb.authStore.clear();
+    if (adminPb.authStore.isValid) {
+      adminPb.authStore.clear();
     }
     setIsAdminLoggedIn(false);
     setAdminEmail(null);
@@ -46,7 +46,7 @@ export const AdminAuthProvider = ({ children }) => {
       if (sessionStr) {
         const session = JSON.parse(sessionStr);
         if (session.expiresAt && new Date(session.expiresAt) > new Date()) {
-          if (pb.authStore.isValid && isAllowedAdmin(pb.authStore.model)) {
+          if (adminPb.authStore.isValid && isAllowedAdmin(adminPb.authStore.model)) {
             setIsAdminLoggedIn(true);
             setAdminEmail(session.email);
           } else {
@@ -74,7 +74,7 @@ export const AdminAuthProvider = ({ children }) => {
 
     for (const collectionName of ADMIN_AUTH_COLLECTIONS) {
       try {
-        authData = await pb.collection(collectionName).authWithPassword(cleanEmail, password, { $autoCancel: false });
+        authData = await adminPb.collection(collectionName).authWithPassword(cleanEmail, password, { $autoCancel: false });
         break;
       } catch (error) {
         lastError = error;
@@ -88,7 +88,7 @@ export const AdminAuthProvider = ({ children }) => {
     const user = authData.record;
 
     if (!isAllowedAdmin(user)) {
-      pb.authStore.clear();
+      adminPb.authStore.clear();
       throw new Error('Access denied. This user is not allowed to open the admin dashboard.');
     }
 

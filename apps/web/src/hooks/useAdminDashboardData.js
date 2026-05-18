@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import pb from '@/lib/pocketbaseClient.js';
+import adminPb from '@/lib/adminPocketbaseClient.js';
 import { subDays, format, isAfter, startOfMonth, subMonths } from 'date-fns';
 import { getAdminSummary, getAdminUsers, getAdminSubscriptions } from '@/lib/adminApi.js';
 
@@ -15,7 +15,7 @@ const normalizeUser = (user, collection = user.collection || 'users') => ({
 
 const fetchUsersFromCollection = async (collection) => {
   try {
-    const users = await pb.collection(collection).getFullList({ sort: '-created', $autoCancel: false });
+    const users = await adminPb.collection(collection).getFullList({ sort: '-created', $autoCancel: false });
     return users.map((user) => normalizeUser(user, collection));
   } catch {
     return [];
@@ -75,14 +75,14 @@ export function useAdminDashboardData() {
             : (adminUsersRes.items?.length ? adminUsersRes.items : summaryRes?.users?.items || []).map((user) => normalizeUser(user));
           return merged.sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
         }),
-        pb.collection('userCVs').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
-        pb.collection('downloads').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
-        pb.collection('bookmarks').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
-        pb.collection('savedCareers').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
-        pb.collection('subscriptions_stripe').getFullList({ sort: '-created', $autoCancel: false }).catch(() => adminSubsRes.items || []),
-        pb.collection('page_views').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
-        pb.collection('user_activity').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
-        pb.collection('careers').getFullList({ sort: '-created', $autoCancel: false }).catch(() => [])
+        adminPb.collection('userCVs').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
+        adminPb.collection('downloads').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
+        adminPb.collection('bookmarks').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
+        adminPb.collection('savedCareers').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
+        adminPb.collection('subscriptions_stripe').getFullList({ sort: '-created', $autoCancel: false }).catch(() => adminSubsRes.items || []),
+        adminPb.collection('page_views').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
+        adminPb.collection('user_activity').getFullList({ sort: '-created', $autoCancel: false }).catch(() => []),
+        adminPb.collection('careers').getFullList({ sort: '-created', $autoCancel: false }).catch(() => [])
       ]);
 
       console.log('[AdminDashboard] Fetched Users:', usersRes.length);
