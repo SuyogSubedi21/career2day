@@ -111,8 +111,21 @@ export default function AdminDashboardPage() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">API Status</span>
-              <Badge className="bg-green-500/20 text-green-700">Online</Badge>
+              <Badge className={data.adminStatus?.summaryOk ? 'bg-green-500/20 text-green-700' : 'bg-red-500/20 text-red-700'}>
+                {data.adminStatus?.summaryOk ? 'Online' : `Admin API ${data.adminStatus?.summaryError || 'unavailable'}`}
+              </Badge>
             </div>
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-sm">Admin User Reads</span>
+              <Badge className={data.adminStatus?.usersOk ? 'bg-green-500/20 text-green-700' : 'bg-red-500/20 text-red-700'}>
+                {data.adminStatus?.usersOk ? 'Online' : `Users API ${data.adminStatus?.usersError || 'unavailable'}`}
+              </Badge>
+            </div>
+            {data.adminStatus?.diagnostics && (
+              <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                users: {data.adminStatus.diagnostics.collectionCounts?.users ?? '-'} | admin_users: {data.adminStatus.diagnostics.collectionCounts?.admin_users ?? '-'} | admins: {data.adminStatus.diagnostics.collectionCounts?.admins ?? '-'} | auth: {data.adminStatus.diagnostics.authCollection || '-'}
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-sm">User Privacy</span>
               <Badge variant="secondary">Users page shows name and email only</Badge>

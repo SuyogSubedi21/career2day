@@ -37,7 +37,8 @@ export function useAdminDashboardData() {
     topPages: [],
     monthlyRevenue: [],
     userGrowth: [],
-    activityData: []
+    activityData: [],
+    adminStatus: null
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,11 +48,28 @@ export function useAdminDashboardData() {
       setLoading(true);
       setError(null);
 
-      const [summaryRes, adminUsersRes, adminSubsRes] = await Promise.all([
-        getAdminSummary().catch(() => null),
-        getAdminUsers().catch(() => ({ items: [], totalItems: 0 })),
-        getAdminSubscriptions().catch(() => ({ items: [], totalItems: 0 }))
+      const [summaryResult, adminUsersResult, adminSubsResult] = await Promise.all([
+        getAdminSummary()
+          .then((data) => ({ ok: true, data }))
+          .catch((err) => ({ ok: false, err })),
+        getAdminUsers()
+          .then((data) => ({ ok: true, data }))
+          .catch((err) => ({ ok: false, err })),
+        getAdminSubscriptions()
+          .then((data) => ({ ok: true, data }))
+          .catch((err) => ({ ok: false, err }))
       ]);
+      const summaryRes = summaryResult.ok ? summaryResult.data : null;
+      const adminUsersRes = adminUsersResult.ok ? adminUsersResult.data : { items: [], totalItems: 0 };
+      const adminSubsRes = adminSubsResult.ok ? adminSubsResult.data : { items: [], totalItems: 0 };
+      const adminStatus = {
+        summaryOk: summaryResult.ok,
+        usersOk: adminUsersResult.ok,
+        subscriptionsOk: adminSubsResult.ok,
+        summaryError: summaryResult.err?.status || summaryResult.err?.message || null,
+        usersError: adminUsersResult.err?.status || adminUsersResult.err?.message || null,
+        diagnostics: summaryRes?.diagnostics || null
+      };
 
       // Fetch all required collections concurrently with autoCancel disabled
       const [
@@ -188,7 +206,8 @@ export function useAdminDashboardData() {
         topPages,
         monthlyRevenue,
         userGrowth,
-        activityData
+        activityData,
+        adminStatus
       });
     } catch (err) {
       console.error('[useAdminDashboardData] Error fetching data:', err);
